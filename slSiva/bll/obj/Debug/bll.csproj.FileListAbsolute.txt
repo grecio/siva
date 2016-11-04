@@ -1,0 +1,5 @@
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\bll\bin\Debug\bll.dll
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\bll\bin\Debug\bll.pdb
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\bll\obj\Debug\bll.csprojResolveAssemblyReference.cache
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\bll\obj\Debug\bll.dll
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\bll\obj\Debug\bll.pdb
