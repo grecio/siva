@@ -1,10 +1,8 @@
-﻿
-@{
-    Layout = null;
-}
+﻿@model presenter.Usuario
+@{Layout = null;}
 
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <!-- Meta, title, CSS, favicons, etc. -->
@@ -35,16 +33,16 @@
         <div class="login_wrapper">
             <div class="animate form login_form">
                 <section class="login_content">
-                    <form  action="/Login/Entrar">
+                    <form action="/Login/Entrar" method="post">
                         <h1>SIVA</h1>
                         <div>
-                            <input type="text" class="form-control" placeholder="Login" id="login" />
+                            <input type="text" class="form-control" placeholder="Login" id="login" name="login" />
                         </div>
                         <div>
-                            <input type="password" class="form-control" placeholder="Senha" id="senha" />
+                            <input type="password" class="form-control" placeholder="Senha" id="senha" name="senha" />
                         </div>
                         <div>
-                            <button id="send" type="submit" class="btn btn-success">Entrar</button>
+                            <button id="send" type="button" class="btn btn-success">Entrar</button>
                         </div>
 
                         <div class="clearfix"></div>
@@ -64,43 +62,61 @@
         </div>
     </div>
     <!-- jQuery -->
-    <script src="/vendors/jquery/dist/jquery.min.js"></script>
+    <script src="~/Content/vendors/jquery/dist/jquery.min.js"></script>
     <!-- Bootstrap -->
-    <script src="/vendors/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="~/Content/vendors/bootstrap/dist/js/bootstrap.min.js"></script>
     <!-- FastClick -->
-    <script src="/vendors/fastclick/lib/fastclick.js"></script>
+    <script src="~/Content/vendors/fastclick/lib/fastclick.js"></script>
     <!-- NProgress -->
-    <script src="/vendors/nprogress/nprogress.js"></script>
+    <script src="~/Content/vendors/nprogress/nprogress.js"></script>
     <!-- validator -->
-    <script src="/vendors/validator/validator.js"></script>
+    <script src="~/Content/vendors/validator/validator.js"></script>
 
     <!-- Custom Theme Scripts -->
-    <script src="/build/js/custom.min.js"></script>
+    <script src="~/Content/build/js/custom.min.js"></script>
 
     <!-- validator -->
     <script>
 
-     $(document).ready(function() {
+        $(document).ready(function () {
 
-      $('form').submit(function(e) {
-          e.preventDefault();
-          var submit = true;
+            $('#send').on('click',function (e) {
 
-          if(!$.trim($("#login").val()))
-            return alert('Informe o login.');
+                e.preventDefault();
 
-          if(!$.trim($("#senha").val()))
-            return alert('Informe a Senha.');
+                if (!$.trim($("#login").val()))
+                    return alert('Informe o login.');
 
-          if (submit)
-            this.submit();
+                if (!$.trim($("#senha").val()))
+                    return alert('Informe a Senha.');
 
-          return false;
+
+                var usuario = {
+                    Login: $("#login").val(),
+                    Senha:$("#senha").val()
+                }
+
+                $('#target').html('sending..');
+
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("Entrar", "Login")',
+                    dataType: "json",
+                    success: function (data) {                        
+                        
+                        if (data.ex != null) {
+                            return alert(data.ex);
+                        }
+                        
+                       document.location.href = '@Url.Action("Index", "Principal")';
+                    },
+                    data: usuario
+                });
+            });
         });
-
-     });
 
     </script>
     <!-- /validator -->
+
 </body>
 </html>

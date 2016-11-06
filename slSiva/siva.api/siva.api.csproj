@@ -132,6 +132,7 @@
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\LoginController.cs" />
     <Compile Include="Controllers\LogoutController.cs" />
@@ -3101,6 +3102,24 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\bll\bll.csproj">
+      <Project>{09b46fd6-19f5-404e-a3e4-9af7e16fcc9e}</Project>
+      <Name>bll</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\dal\dal.csproj">
+      <Project>{39f1c046-4d47-42e9-9e3b-552d80ac63c7}</Project>
+      <Name>dal</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\framework\framework.csproj">
+      <Project>{cda58391-12ed-4f44-a5a5-2159727b6a2a}</Project>
+      <Name>framework</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\presenter\presenter.csproj">
+      <Project>{0373cb03-5c3d-4246-aa2c-34d66f244ff2}</Project>
+      <Name>presenter</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

@@ -44,3 +44,12 @@ C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.api\bin\Antlr3.Runtime.pdb
 C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.api\obj\Debug\siva.api.csprojResolveAssemblyReference.cache
 C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.api\obj\Debug\siva.api.dll
 C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.api\obj\Debug\siva.api.pdb
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.api\bin\bll.dll
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.api\bin\dal.dll
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.api\bin\framework.dll
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.api\bin\presenter.dll
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.api\bin\Oracle.ManagedDataAccess.dll
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.api\bin\bll.pdb
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.api\bin\dal.pdb
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.api\bin\framework.pdb
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.api\bin\presenter.pdb
