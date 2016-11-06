@@ -5,6 +5,5 @@ C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\bll\obj\Debug\bll.dll
 C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\bll\obj\Debug\bll.pdb
 C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\bll\bin\Debug\dal.dll
 C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\bll\bin\Debug\framework.dll
-C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\bll\bin\Debug\Oracle.ManagedDataAccess.dll
 C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\bll\bin\Debug\dal.pdb
 C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\bll\bin\Debug\framework.pdb

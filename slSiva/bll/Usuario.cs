@@ -8,17 +8,17 @@ namespace bll
         {
             using (var adp = new dal.DsUsuarioTableAdapters.UsuarioTableAdapter())
             {
-                return adp.Listar();
+                return adp.GetData();
             }
         }
 
-        public dal.DsUsuario.UsuarioDataTable Selecionar(decimal sqUsuario)
-        {
-            using (var adp = new dal.DsUsuarioTableAdapters.UsuarioTableAdapter())
-            {
-                return adp.Selecionar(sqUsuario);
-            }
-        }
+        //public dal.DsUsuario.UsuarioDataTable Selecionar(decimal sqUsuario)
+        //{
+        //    using (var adp = new dal.DsUsuarioTableAdapters.UsuarioTableAdapter())
+        //    {
+        //        return adp.Selecionar(sqUsuario);
+        //    }
+        //}
 
         public dal.DsUsuario.UsuarioDataTable EfetuarLogin(string Login, string Senha)
         {
@@ -35,28 +35,28 @@ namespace bll
             }
         }
 
-        public void Incluir(string NM_USUARIO, string LOGIN, string SENHA, System.DateTime DT_INCLUSAO)
-        {
-            using (var adp = new dal.DsUsuarioTableAdapters.UsuarioTableAdapter())
-            {
+        //public void Incluir(string NM_USUARIO, string LOGIN, string SENHA, System.DateTime DT_INCLUSAO)
+        //{
+        //    using (var adp = new dal.DsUsuarioTableAdapters.UsuarioTableAdapter())
+        //    {
 
-                Validador.Validar(!string.IsNullOrWhiteSpace(NM_USUARIO), "Informe o nome do usuário.");
-                Validador.Validar(!string.IsNullOrWhiteSpace(LOGIN), "Informe o login.");
-                Validador.Validar(!string.IsNullOrWhiteSpace(SENHA), "Informe a senha.");
+        //        Validador.Validar(!string.IsNullOrWhiteSpace(NM_USUARIO), "Informe o nome do usuário.");
+        //        Validador.Validar(!string.IsNullOrWhiteSpace(LOGIN), "Informe o login.");
+        //        Validador.Validar(!string.IsNullOrWhiteSpace(SENHA), "Informe a senha.");
 
-                adp.Incluir(NM_USUARIO, LOGIN, SENHA, DT_INCLUSAO);
-            }
-        }
+        //        adp.Incluir(NM_USUARIO, LOGIN, SENHA, DT_INCLUSAO);
+        //    }
+        //}
 
-        public void Excluir(decimal SQ_USUARIO)
-        {
-            using (var adp = new dal.DsUsuarioTableAdapters.UsuarioTableAdapter())
-            {
+        //public void Excluir(decimal SQ_USUARIO)
+        //{
+        //    using (var adp = new dal.DsUsuarioTableAdapters.UsuarioTableAdapter())
+        //    {
 
-                Validador.Validar(SQ_USUARIO > 0, "Informe o usuário.");
+        //        Validador.Validar(SQ_USUARIO > 0, "Informe o usuário.");
 
-                adp.Excluir(SQ_USUARIO);
-            }
-        }
+        //        adp.Excluir(SQ_USUARIO);
+        //    }
+        //}
     }
 }
