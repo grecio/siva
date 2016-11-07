@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace siva.api.Controllers
 {
-    public class LoginController : BaseController
+    public class LoginController : Controller
     {
         private readonly bll.Usuario bpUsuario;
 
@@ -27,10 +27,10 @@ namespace siva.api.Controllers
 
                 if (dt.Count > 0)
                 {
-                    UsuarioLogado = new presenter.Usuario(dt[0]);
+                    Session["UsuarioLogado"] = new presenter.Usuario(dt[0]);
                 }
 
-                return Json(new { result = UsuarioLogado});
+                return Json(new { result = Session["UsuarioLogado"]  as presenter.Usuario});
             }
             catch (Exception ex)
             {

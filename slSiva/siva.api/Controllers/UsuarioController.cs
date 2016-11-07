@@ -4,8 +4,13 @@ using System.Web.Mvc;
 
 namespace siva.api.Controllers
 {
-    public class UsuarioController : Controller
+    public class UsuarioController : BaseController
     {
+
+        public ActionResult AlterarSenha()
+        {
+            return View(UsuarioLogado);
+        }
 
         public ActionResult Index()
         {

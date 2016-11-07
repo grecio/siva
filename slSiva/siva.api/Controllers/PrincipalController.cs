@@ -1,12 +1,14 @@
-﻿using System.Web.Mvc;
+﻿using siva.api.Filters;
+using System.Web.Mvc;
 
 namespace siva.api.Controllers
 {
-    public class PrincipalController : Controller
+    public class PrincipalController : BaseController
     {
+        [SessionExpire]
         public ActionResult Index()
         {
-            return View();
+            return View(UsuarioLogado);
         }
     }
 }

@@ -32,21 +32,6 @@ namespace siva.api.Controllers
             {
                 return UsuarioLogado != null;
             }            
-        }
-
-        protected override void Initialize(RequestContext requestContext)
-        {
-            base.Initialize(requestContext);
-
-            if (!UsuarioAutenticado)
-            {
-                RedirectToAction("Index", "Logout");
-            }
-        }
-
-        public void Alert(string Mensagem)
-        {            
-            ViewData["Alert"] = "<script type=\"text/javascript\">alert('" + Mensagem + "');</script>";
-        }
+        }    
     }
 }

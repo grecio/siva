@@ -1,0 +1,62 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div role="main" class="right_col">
+    <div>
+        <div class="page-title">
+            <div class="title_left">
+                <h3>Usuários</h3>
+            </div>            
+        </div>
+        <div class="clearfix"></div>
+        <div class="row">
+            <div class="col-md-12 col-sm-12 col-xs-12">
+                <div class="x_panel">
+                    <div class="x_title">
+                        <h2>Alterar Senha</h2>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="x_content">
+                        <form class="form-horizontal form-label-left" novalidate="">
+                  
+                            <div class="item form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="senha">
+                                    Nova Senha <span class="required">*</span>
+                                </label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    <input id="senha" class="form-control col-md-7 col-xs-12" data-validate-length-range="6" data-validate-words="2" name="name" placeholder="Informe a nova senha" required="required" type="password">
+                                </div>
+                            </div>                            
+                            
+                            <div class="ln_solid"></div>
+                            <div class="form-group">
+                                <div class="col-md-6 col-md-offset-3">                                    
+                                    <button id="send" type="submit" class="btn btn-success">Alterar Senha</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+
+    <!-- jQuery-->
+    <script src="~/Content/vendors/jquery/dist/jquery.min.js"></script>
+    <!-- Bootstrap-->
+    <script src="~/Content/vendors/bootstrap/dist/js/bootstrap.min.js"></script>
+    <!-- FastClick-->
+    <script src="~/Content/vendors/fastclick/lib/fastclick.js"></script>
+    <!-- NProgress-->
+    <script src="~/Content/vendors/nprogress/nprogress.js"></script>
+
+    <!-- Custom Theme Scripts -->
+    <script src="~/Content/build/js/custom.min.js"></script>
+
+}
+

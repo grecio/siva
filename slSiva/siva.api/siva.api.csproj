@@ -139,6 +139,7 @@
     <Compile Include="Controllers\PrincipalController.cs" />
     <Compile Include="Controllers\UsuarioController.cs" />
     <Compile Include="Controllers\ValuesController.cs" />
+    <Compile Include="Filters\SessionExpireAttribute.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -3088,6 +3089,7 @@
     <Content Include="Views\Login\Index.cshtml" />
     <Content Include="Views\Principal\Index.cshtml" />
     <Content Include="Views\Usuario\Index.cshtml" />
+    <Content Include="Views\Usuario\AlterarSenha.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="Content\vendors\moment\moment.d.ts" />
