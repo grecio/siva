@@ -8,7 +8,7 @@ namespace bll
         {
             using (var adp = new dal.DsUsuarioTableAdapters.UsuarioTableAdapter())
             {
-                return adp.GetData();
+                return adp.Listar();
             }
         }
 

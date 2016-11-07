@@ -52,3 +52,4 @@ C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.api\bin\bll.pdb
 C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.api\bin\dal.pdb
 C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.api\bin\framework.pdb
 C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.api\bin\presenter.pdb
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.api\bin\Oracle.ManagedDataAccess.dll

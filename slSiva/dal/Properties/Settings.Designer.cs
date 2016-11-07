@@ -26,7 +26,8 @@ namespace dal.Properties {
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.ConnectionString)]
-        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=201.76.148.38:1521/GENIPABU;User ID=developer;Password=Solucao!2016*2" +"017;")]
+        [global::System.Configuration.DefaultSettingValueAttribute("DATA SOURCE=201.76.148.38:1521/GENIPABU;PASSWORD=Solucao!2016*2017;USER ID=DEVELO" +
+            "PER")]
         public string ConnectionString {
             get {
                 return ((string)(this["ConnectionString"]));

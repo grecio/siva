@@ -50,3 +50,4 @@ C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.api.Tests\bin\Debug\bll.pd
 C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.api.Tests\bin\Debug\presenter.pdb
 C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.api.Tests\bin\Debug\dal.pdb
 C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.api.Tests\bin\Debug\framework.pdb
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.api.Tests\bin\Debug\Oracle.ManagedDataAccess.dll

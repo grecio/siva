@@ -888,13 +888,13 @@ namespace dal.DsUsuarioTableAdapters {
     [global::System.ComponentModel.Design.HelpKeywordAttribute("vs.data.TableAdapter")]
     public partial class UsuarioTableAdapter : global::System.ComponentModel.Component {
         
-        private global::System.Data.OracleClient.OracleDataAdapter _adapter;
+        private global::Oracle.ManagedDataAccess.Client.OracleDataAdapter _adapter;
         
-        private global::System.Data.OracleClient.OracleConnection _connection;
+        private global::Oracle.ManagedDataAccess.Client.OracleConnection _connection;
         
-        private global::System.Data.OracleClient.OracleTransaction _transaction;
+        private global::Oracle.ManagedDataAccess.Client.OracleTransaction _transaction;
         
-        private global::System.Data.OracleClient.OracleCommand[] _commandCollection;
+        private global::Oracle.ManagedDataAccess.Client.OracleCommand[] _commandCollection;
         
         private bool _clearBeforeFill;
         
@@ -906,7 +906,7 @@ namespace dal.DsUsuarioTableAdapters {
         
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-        protected internal global::System.Data.OracleClient.OracleDataAdapter Adapter {
+        protected internal global::Oracle.ManagedDataAccess.Client.OracleDataAdapter Adapter {
             get {
                 if ((this._adapter == null)) {
                     this.InitAdapter();
@@ -917,7 +917,7 @@ namespace dal.DsUsuarioTableAdapters {
         
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-        internal global::System.Data.OracleClient.OracleConnection Connection {
+        internal global::Oracle.ManagedDataAccess.Client.OracleConnection Connection {
             get {
                 if ((this._connection == null)) {
                     this.InitConnection();
@@ -937,7 +937,7 @@ namespace dal.DsUsuarioTableAdapters {
                 }
                 for (int i = 0; (i < this.CommandCollection.Length); i = (i + 1)) {
                     if ((this.CommandCollection[i] != null)) {
-                        ((global::System.Data.OracleClient.OracleCommand)(this.CommandCollection[i])).Connection = value;
+                        ((global::Oracle.ManagedDataAccess.Client.OracleCommand)(this.CommandCollection[i])).Connection = value;
                     }
                 }
             }
@@ -945,7 +945,7 @@ namespace dal.DsUsuarioTableAdapters {
         
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-        internal global::System.Data.OracleClient.OracleTransaction Transaction {
+        internal global::Oracle.ManagedDataAccess.Client.OracleTransaction Transaction {
             get {
                 return this._transaction;
             }
@@ -971,7 +971,7 @@ namespace dal.DsUsuarioTableAdapters {
         
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-        protected global::System.Data.OracleClient.OracleCommand[] CommandCollection {
+        protected global::Oracle.ManagedDataAccess.Client.OracleCommand[] CommandCollection {
             get {
                 if ((this._commandCollection == null)) {
                     this.InitCommandCollection();
@@ -994,7 +994,7 @@ namespace dal.DsUsuarioTableAdapters {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
         private void InitAdapter() {
-            this._adapter = new global::System.Data.OracleClient.OracleDataAdapter();
+            this._adapter = new global::Oracle.ManagedDataAccess.Client.OracleDataAdapter();
             global::System.Data.Common.DataTableMapping tableMapping = new global::System.Data.Common.DataTableMapping();
             tableMapping.SourceTable = "Table";
             tableMapping.DataSetTable = "Usuario";
@@ -1012,44 +1012,44 @@ namespace dal.DsUsuarioTableAdapters {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
         private void InitConnection() {
-            this._connection = new global::System.Data.OracleClient.OracleConnection();
+            this._connection = new global::Oracle.ManagedDataAccess.Client.OracleConnection();
             this._connection.ConnectionString = global::dal.Properties.Settings.Default.ConnectionString;
         }
         
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
         private void InitCommandCollection() {
-            this._commandCollection = new global::System.Data.OracleClient.OracleCommand[2];
-            this._commandCollection[0] = new global::System.Data.OracleClient.OracleCommand();
+            this._commandCollection = new global::Oracle.ManagedDataAccess.Client.OracleCommand[2];
+            this._commandCollection[0] = new global::Oracle.ManagedDataAccess.Client.OracleCommand();
             this._commandCollection[0].Connection = this.Connection;
-            this._commandCollection[0].CommandText = "select * from sig_usuario\r\n";
+            this._commandCollection[0].CommandText = "SELECT        *\r\nFROM            sig_usuario";
             this._commandCollection[0].CommandType = global::System.Data.CommandType.Text;
-            this._commandCollection[1] = new global::System.Data.OracleClient.OracleCommand();
+            this._commandCollection[1] = new global::Oracle.ManagedDataAccess.Client.OracleCommand();
             this._commandCollection[1].Connection = this.Connection;
-            this._commandCollection[1].CommandText = "select * from sig_usuario\r\n where login = :login and senha =:senha";
+            this._commandCollection[1].CommandText = "SELECT        *\r\nFROM            sig_usuario\r\nWHERE        (login = :login) AND (" +
+                "senha = :senha)";
             this._commandCollection[1].CommandType = global::System.Data.CommandType.Text;
-            this._commandCollection[1].Parameters.Add(new global::System.Data.OracleClient.OracleParameter("login", global::System.Data.OracleClient.OracleType.VarChar, 100, global::System.Data.ParameterDirection.Input, "LOGIN", global::System.Data.DataRowVersion.Current, false, null));
-            this._commandCollection[1].Parameters.Add(new global::System.Data.OracleClient.OracleParameter("senha", global::System.Data.OracleClient.OracleType.VarChar, 100, global::System.Data.ParameterDirection.Input, "SENHA", global::System.Data.DataRowVersion.Current, false, null));
-        }
-        
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-        [global::System.ComponentModel.Design.HelpKeywordAttribute("vs.data.TableAdapter")]
-        [global::System.ComponentModel.DataObjectMethodAttribute(global::System.ComponentModel.DataObjectMethodType.Fill, true)]
-        public virtual int Listar(DsUsuario.UsuarioDataTable dataTable) {
-            this.Adapter.SelectCommand = this.CommandCollection[0];
-            if ((this.ClearBeforeFill == true)) {
-                dataTable.Clear();
-            }
-            int returnValue = this.Adapter.Fill(dataTable);
-            return returnValue;
+            global::Oracle.ManagedDataAccess.Client.OracleParameter param = new global::Oracle.ManagedDataAccess.Client.OracleParameter();
+            param.ParameterName = ":login";
+            param.DbType = global::System.Data.DbType.AnsiString;
+            param.OracleDbTypeEx = global::Oracle.ManagedDataAccess.Client.OracleDbType.Varchar2;
+            param.Size = 1024;
+            param.IsNullable = true;
+            this._commandCollection[1].Parameters.Add(param);
+            param = new global::Oracle.ManagedDataAccess.Client.OracleParameter();
+            param.ParameterName = ":senha";
+            param.DbType = global::System.Data.DbType.AnsiString;
+            param.OracleDbTypeEx = global::Oracle.ManagedDataAccess.Client.OracleDbType.Varchar2;
+            param.Size = 1024;
+            param.IsNullable = true;
+            this._commandCollection[1].Parameters.Add(param);
         }
         
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
         [global::System.ComponentModel.Design.HelpKeywordAttribute("vs.data.TableAdapter")]
         [global::System.ComponentModel.DataObjectMethodAttribute(global::System.ComponentModel.DataObjectMethodType.Select, true)]
-        public virtual DsUsuario.UsuarioDataTable GetData() {
+        public virtual DsUsuario.UsuarioDataTable Listar() {
             this.Adapter.SelectCommand = this.CommandCollection[0];
             DsUsuario.UsuarioDataTable dataTable = new DsUsuario.UsuarioDataTable();
             this.Adapter.Fill(dataTable);
@@ -1063,13 +1063,13 @@ namespace dal.DsUsuarioTableAdapters {
         public virtual DsUsuario.UsuarioDataTable EfetuarLogin(string login, string senha) {
             this.Adapter.SelectCommand = this.CommandCollection[1];
             if ((login == null)) {
-                this.Adapter.SelectCommand.Parameters[0].Value = global::System.DBNull.Value;
+                throw new global::System.ArgumentNullException("login");
             }
             else {
                 this.Adapter.SelectCommand.Parameters[0].Value = ((string)(login));
             }
             if ((senha == null)) {
-                this.Adapter.SelectCommand.Parameters[1].Value = global::System.DBNull.Value;
+                throw new global::System.ArgumentNullException("senha");
             }
             else {
                 this.Adapter.SelectCommand.Parameters[1].Value = ((string)(senha));
