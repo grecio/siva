@@ -32,6 +32,15 @@ namespace siva.api.Controllers
             {
                 return UsuarioLogado != null;
             }            
-        }    
+        }
+
+        public void ShowMsg(string mensagem)
+        {
+            TempData["msg"] = string.Format("alert('{0}');", mensagem);
+        }        
+
     }
+
+
+
 }

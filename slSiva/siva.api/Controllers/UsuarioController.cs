@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using siva.api.Filters;
+using System;
+using System.Collections.Generic;
 using System.Web.Http;
 using System.Web.Mvc;
 
@@ -6,42 +8,52 @@ namespace siva.api.Controllers
 {
     public class UsuarioController : BaseController
     {
+        private readonly bll.Usuario bpUsuario;
 
+        public UsuarioController()
+        {
+            this.bpUsuario = new bll.Usuario();
+        }
+
+        [SessionExpire]
+        public ActionResult Alterar([System.Web.Http.FromBody]presenter.Usuario usuario)
+        {
+            try
+            {
+                bpUsuario.AtualizarSenha(usuario.Senha, UsuarioLogado.Id);
+
+                ShowMsg("Senha alterada com sucesso!");
+
+                return RedirectToAction("AlterarSenha");
+            }
+            catch 
+            {
+                return RedirectToAction("AlterarSenha");
+            }
+        }
+
+        [SessionExpire]
         public ActionResult AlterarSenha()
         {
             return View(UsuarioLogado);
         }
 
+        [SessionExpire]
         public ActionResult Index()
         {
-            return View();
-        }
+            try
+            {
+                var dt = bpUsuario.Listar();
 
-        // GET: api/Usuario
-        public IEnumerable<string> Get()
-        {
-            return new string[] { "value1", "value2" };
-        }
+                return View(dt);
 
-        // GET: api/Usuario/5
-        public string Get(int id)
-        {
-            return "value";
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+            
         }
-
-        // POST: api/Usuario
-        public void Post([FromBody]string value)
-        {
-        }
-
-        // PUT: api/Usuario/5
-        public void Put(int id, [FromBody]string value)
-        {
-        }
-
-        // DELETE: api/Usuario/5
-        public void Delete(int id)
-        {
-        }
+      
     }
 }

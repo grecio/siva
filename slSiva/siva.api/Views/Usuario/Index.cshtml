@@ -1,4 +1,6 @@
-﻿<div role="main" class="right_col">
+﻿@model dal.DsUsuario.UsuarioDataTable
+
+<div role="main" class="right_col">
     <div>
         <div class="page-title">
             <div class="title_left">
@@ -27,26 +29,26 @@
                             <thead>
                                 <tr>
                                     <th>Nome</th>
-                                    <th>Login</th>                                    
+                                    <th>Login</th>
+                                    <th class="col-lg-2">#</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>Tiger Nixon</td>
-                                    <td>System Architect</td>                                    
-                                </tr>
-                                <tr>
-                                    <td>Garrett Winters</td>
-                                    <td>Accountant</td>                                    
-                                </tr>
-                                <tr>
-                                    <td>Ashton Cox</td>
-                                    <td>Junior Technical Author</td>                                    
-                                </tr>
-                                <tr>
-                                    <td>Cedric Kelly</td>
-                                    <td>Senior Javascript Developer</td>                                    
-                                </tr>
+
+                                @foreach (dal.DsUsuario.UsuarioRow row in Model.Rows)
+                                {
+                                    <tr>
+                                        <td>@row.NM_USUARIO</td>
+                                        <td>@row.LOGIN</td>
+                                        <td class="col-lg-2">
+                                            <a href="#" class="btn btn-primary btn-xs"><i class="fa fa-folder"></i> Prefeituras </a>
+                                            <a href="#" class="btn btn-info btn-xs"><i class="fa fa-pencil"></i> Editar </a>
+                                            <a href="#" class="btn btn-danger btn-xs"><i class="fa fa-trash-o"></i> Excluir </a>
+                                        </td>
+                                    </tr>
+                                }
+
+
                             </tbody>
                         </table>
                     </div>
@@ -58,103 +60,91 @@
 
 @section scripts {
 
-<!-- jQuery-->
-<script src="~/Content/vendors/jquery/dist/jquery.min.js"></script>
-<!-- Bootstrap-->
-<script src="~/Content/vendors/bootstrap/dist/js/bootstrap.min.js"></script>
-<!-- FastClick-->
-<script src="~/Content/vendors/fastclick/lib/fastclick.js"></script>
-<!-- NProgress-->
-<script src="~/Content/vendors/nprogress/nprogress.js"></script>
-
-  <!-- Custom Theme Scripts -->
-<script src="~/Content/build/js/custom.min.js"></script>
-
-<!--Datatables-->
-<script src="~/Content/vendors/datatables.net/js/jquery.dataTables.min.js"></script>
-<script src="~/Content/vendors/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
-<script src="~/Content/vendors/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
-<script src="~/Content/vendors/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
-<script src="~/Content/vendors/datatables.net-buttons/js/buttons.flash.min.js"></script>
-<script src="~/Content/vendors/datatables.net-buttons/js/buttons.html5.min.js"></script>
-<script src="~/Content/vendors/datatables.net-buttons/js/buttons.print.min.js"></script>
-<script src="~/Content/vendors/datatables.net-fixedheader/js/dataTables.fixedHeader.min.js"></script>
-<script src="~/Content/vendors/datatables.net-keytable/js/dataTables.keyTable.min.js"></script>
-<script src="~/Content/vendors/datatables.net-responsive/js/dataTables.responsive.min.js"></script>
-<script src="~/Content/vendors/datatables.net-responsive-bs/js/responsive.bootstrap.js"></script>
-<script src="~/Content/vendors/datatables.net-scroller/js/datatables.scroller.min.js"></script>
-<script src="~/Content/vendors/jszip/dist/jszip.min.js"></script>
-<script src="~/Content/vendors/pdfmake/build/pdfmake.min.js"></script>
-<script src="~/Content/vendors/pdfmake/build/vfs_fonts.js"></script>
-<script>
-    $(document).ready(function () {
-        var handleDataTableButtons = function () {
-            if ($("#datatable-buttons").length) {
-                $("#datatable-buttons").DataTable({
-                    dom: "Bfrtip",
-                    buttons: [
-                    {
-                        extend: "copy",
-                        className: "btn-sm"
-                    },
-                    {
-                        extend: "csv",
-                        className: "btn-sm"
-                    },
-                    {
-                        extend: "excel",
-                        className: "btn-sm"
-                    },
-                    {
-                        extend: "pdfHtml5",
-                        className: "btn-sm"
-                    },
-                    {
-                        extend: "print",
-                        className: "btn-sm"
-                    },
-                    ],
-                    responsive: true
-                });
-            }
-        };
-        TableManageButtons = function () {
-            "use strict";
-            return {
-                init: function () {
-                    handleDataTableButtons();
+    <!--Datatables-->
+    <script src="~/Content/vendors/datatables.net/js/jquery.dataTables.min.js"></script>
+    <script src="~/Content/vendors/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Content/vendors/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Content/vendors/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Content/vendors/datatables.net-buttons/js/buttons.flash.min.js"></script>
+    <script src="~/Content/vendors/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Content/vendors/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Content/vendors/datatables.net-fixedheader/js/dataTables.fixedHeader.min.js"></script>
+    <script src="~/Content/vendors/datatables.net-keytable/js/dataTables.keyTable.min.js"></script>
+    <script src="~/Content/vendors/datatables.net-responsive/js/dataTables.responsive.min.js"></script>
+    <script src="~/Content/vendors/datatables.net-responsive-bs/js/responsive.bootstrap.js"></script>
+    <script src="~/Content/vendors/datatables.net-scroller/js/datatables.scroller.min.js"></script>
+    <script src="~/Content/vendors/jszip/dist/jszip.min.js"></script>
+    <script src="~/Content/vendors/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Content/vendors/pdfmake/build/vfs_fonts.js"></script>
+    <script>
+        $(document).ready(function () {
+            var handleDataTableButtons = function () {
+                if ($("#datatable-buttons").length) {
+                    $("#datatable-buttons").DataTable({
+                        dom: "Bfrtip",
+                        buttons: [
+                        {
+                            extend: "copy",
+                            className: "btn-sm"
+                        },
+                        {
+                            extend: "csv",
+                            className: "btn-sm"
+                        },
+                        {
+                            extend: "excel",
+                            className: "btn-sm"
+                        },
+                        {
+                            extend: "pdfHtml5",
+                            className: "btn-sm"
+                        },
+                        {
+                            extend: "print",
+                            className: "btn-sm"
+                        },
+                        ],
+                        responsive: true
+                    });
                 }
             };
-        }();
-        $('#datatable').dataTable();
-        $('#datatable-keytable').DataTable({
-            keys: true
-        });
-        $('#datatable-responsive').DataTable();
-        $('#datatable-scroller').DataTable({
-            ajax: "js/datatables/json/scroller-demo.json",
-            deferRender: true,
-            scrollY: 380,
-            scrollCollapse: true,
-            scroller: true
-        });
-        $('#datatable-fixed-header').DataTable({
-            fixedHeader: true
-        });
-        var $datatable = $('#datatable-checkbox');
-        $datatable.dataTable({
-            'order': [[1, 'asc']],
-            'columnDefs': [
-            { orderable: false, targets: [0] }
-            ]
-        });
-        $datatable.on('draw.dt', function () {
-            $('input').iCheck({
-                checkboxClass: 'icheckbox_flat-green'
+            TableManageButtons = function () {
+                "use strict";
+                return {
+                    init: function () {
+                        handleDataTableButtons();
+                    }
+                };
+            }();
+            $('#datatable').dataTable();
+            $('#datatable-keytable').DataTable({
+                keys: true
             });
+            $('#datatable-responsive').DataTable();
+            $('#datatable-scroller').DataTable({
+                ajax: "js/datatables/json/scroller-demo.json",
+                deferRender: true,
+                scrollY: 380,
+                scrollCollapse: true,
+                scroller: true
+            });
+            $('#datatable-fixed-header').DataTable({
+                fixedHeader: true
+            });
+            var $datatable = $('#datatable-checkbox');
+            $datatable.dataTable({
+                'order': [[1, 'asc']],
+                'columnDefs': [
+                { orderable: false, targets: [0] }
+                ]
+            });
+            $datatable.on('draw.dt', function () {
+                $('input').iCheck({
+                    checkboxClass: 'icheckbox_flat-green'
+                });
+            });
+            TableManageButtons.init();
         });
-        TableManageButtons.init();
-    });
-</script>
+    </script>
 
 }

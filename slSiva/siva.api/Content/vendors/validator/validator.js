@@ -14,20 +14,20 @@ var validator = (function(){
 	/* general text messages
 	*/
 	message = {
-		invalid			: 'invalid input',
-		empty			: 'please put something here',
-		min				: 'input is too short',
-		max				: 'input is too long',
-		number_min		: 'too low',
-		number_max		: 'too high',
-		url				: 'invalid URL',
-		number			: 'not a number',
-		email			: 'email address is invalid',
-		email_repeat	: 'emails do not match',
-		password_repeat	: 'passwords do not match',
-		repeat			: 'no match',
-		complete		: 'input is not complete',
-		select			: 'Please select an option'
+		invalid			: 'Entrada não permitida',
+		empty			: 'Campo requerido',
+		min				: 'Campo muito curto',
+		max				: 'Campo muito longo',
+		number_min		: 'Número muito curto',
+		number_max		: 'Número muito longo',
+		url				: 'URL incompleta',
+		number			: 'Não é um número.',
+		email			: 'E-mail inválido.',
+		email_repeat	: 'E-mails não conferem.',
+		password_repeat	: 'Senhas não conferem.',
+		repeat			: 'Sem correpondência.',
+		complete		: 'Campo incompleto.',
+		select			: 'Selecione uma opção'
 	};
 	
 	// defaults
