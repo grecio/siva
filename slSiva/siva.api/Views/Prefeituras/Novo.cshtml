@@ -1,0 +1,181 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div role="main" class="right_col">
+    <div>
+        <div class="page-title">
+            <div class="title_left">
+                <h3>Prefeituras</h3>
+            </div>
+        </div>
+        <div class="clearfix"></div>
+        <div class="row">
+            <div class="col-md-12 col-sm-12 col-xs-12">
+                <div class="x_panel">
+                    <div class="x_title">
+                        <h2>Nova Prefeitura</h2>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="x_content">
+                        <form class="form-horizontal form-label-left" method="post" action="@Url.Action("Registrar")" novalidate>
+
+                            <div class="item form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="prefeitura">
+                                    Prefeitura <span class="required">*</span>
+                                </label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    <input id="nome" class="form-control col-md-7 col-xs-12" name="nome" placeholder="Informe o nome da prefeitura" required="required" type="text">
+                                </div>
+                            </div>
+
+                            <div class="item form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="prefeito">
+                                    Prefeito <span class="required">*</span>
+                                </label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    <input id="prefeito" class="form-control col-md-7 col-xs-12" name="prefeito" placeholder="Informe o prefeito" required="required" type="text">
+                                </div>
+                            </div>
+
+                            <div class="item form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="secretarioTributacao">
+                                    Sec. de Tributação <span class="required">*</span>
+                                </label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    <input id="secretarioTributacao" class="form-control col-md-7 col-xs-12" name="secretarioTributacao" placeholder="Informe o secretário de tributação" required="required" type="text">
+                                </div>
+                            </div>
+
+                            <div class="item form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="contador">
+                                    Contador
+                                </label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    <input id="contador" class="form-control col-md-7 col-xs-12" name="contador" placeholder="Informe o contador" type="text">
+                                </div>
+                            </div>
+
+                            <div class="item form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="logradouro">
+                                    Logradouro
+                                </label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    <input id="logradouro" class="form-control col-md-7 col-xs-12" name="logradouro" placeholder="Informe o logradouro" type="text">
+                                </div>
+                            </div>
+
+                            <div class="item form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-3" for="numero">
+                                    Numero
+                                </label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    <input id="numero" class="form-control col-md-7 col-xs-12" name="numero" placeholder="Informe o número" type="text">
+                                </div>
+                            </div>
+
+                            <div class="item form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="complemento">
+                                    Complemento
+                                </label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    <input id="complemento" class="form-control col-md-7 col-xs-12" name="complemento" placeholder="Informe o complemento" type="text">
+                                </div>
+                            </div>
+
+                            <div class="item form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="contato">
+                                    Contato
+                                </label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    <input id="contato" class="form-control col-md-7 col-xs-12" name="contato" placeholder="Informe o contato" type="text">
+                                </div>
+                            </div>
+
+                            <div class="item form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="numeroHabitantes">
+                                    Nº de Habitantes
+                                </label>
+                                <div class="col-md-6 col-sm-6 col-xs-13">
+                                    <input id="numeroHabitantes" class="form-control col-md-7 col-xs-12" name="numeroHabitantes" placeholder="Informe Nº de habitantes" type="text">
+                                </div>
+                            </div>
+
+                            <div class="item form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="territorio">
+                                    Território
+                                </label>
+                                <div class="col-md-6 col-sm-6 col-xs-3">
+                                    <input id="territorio" class="form-control col-md-7 col-xs-12" name="territorio" placeholder="Informe território" type="text">
+                                </div>
+                            </div>
+                            
+
+                            <div class="ln_solid"></div>
+                            <div class="form-group">
+                                <div class="col-md-6 col-md-offset-3">
+                                    <button id="cmdCancelar" type="button" class="btn btn-danger">Cancelar</button>
+                                    <button id="send" type="submit" class="btn btn-success">Cadastrar</button>                                    
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+
+
+
+    <!-- validator -->
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+
+            $("#cmdCancelar").on('click', function () {
+
+                document.location.href = '@Url.Action("Index", "Prefeituras")';
+
+            });
+
+        });
+
+        // initialize the validator function
+        validator.message.date = 'not a real date';
+
+        // validate a field on "blur" event, a 'select' on 'change' event & a '.reuired' classed multifield on 'keyup':
+        $('form')
+          .on('blur', 'input[required], input.optional, select.required', validator.checkField)
+          .on('change', 'select.required', validator.checkField);
+
+        $('.multi.required').on('blur', 'input', function () {
+            validator.checkField.apply($(this).siblings().last()[0]);
+        });
+
+
+        $('form').submit(function (e) {
+
+            e.preventDefault();
+
+            var submit = true;
+
+            // evaluate the form using generic validaing
+            if (!validator.checkAll($(this))) {
+                submit = false;
+            }
+
+            if (submit)
+                this.submit();
+
+            return false;
+        });
+
+        @Html.Raw(TempData["msg"])
+
+    </script>
+
+}

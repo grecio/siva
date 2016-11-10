@@ -1293,11 +1293,90 @@ namespace dal.DsPrefeituraTableAdapters {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
         private void InitCommandCollection() {
-            this._commandCollection = new global::Oracle.ManagedDataAccess.Client.OracleCommand[1];
+            this._commandCollection = new global::Oracle.ManagedDataAccess.Client.OracleCommand[2];
             this._commandCollection[0] = new global::Oracle.ManagedDataAccess.Client.OracleCommand();
             this._commandCollection[0].Connection = this.Connection;
             this._commandCollection[0].CommandText = "select * from SIG_PREFEITURA ORDER BY SQ_PREFEITURA DESC";
             this._commandCollection[0].CommandType = global::System.Data.CommandType.Text;
+            this._commandCollection[1] = new global::Oracle.ManagedDataAccess.Client.OracleCommand();
+            this._commandCollection[1].Connection = this.Connection;
+            this._commandCollection[1].CommandText = @"INSERT INTO SIG_PREFEITURA (
+NM_PREFEITURA,
+NM_PREFEITO,
+NM_SEC_TRIBUTACAO,
+NM_CONTADOR,
+NM_LOGRADOURO,
+NU_NUMERO,
+TX_CONTATO,
+DT_INCLUSAO,
+NM_USUARIO_INCLUSAO,
+NU_HABITANTES,
+QT_EXTENSAO_TERRITORIAL
+TX_COMPLEMENTO, VALUES (
+:NM_PREFEITURA,:NM_PREFEITO, :NM_SEC_TRIBUTACAO, :NM_CONTADOR, :NM_LOGRADOURO , :NU_NUMERO, :TX_CONTATO, sysdate, user, :NU_HABITANTES, :QT_EXTENSAO_TERRITORIAL)";
+            this._commandCollection[1].CommandType = global::System.Data.CommandType.Text;
+            global::Oracle.ManagedDataAccess.Client.OracleParameter param = new global::Oracle.ManagedDataAccess.Client.OracleParameter();
+            param.ParameterName = "NM_PREFEITURA";
+            param.DbType = global::System.Data.DbType.AnsiString;
+            param.IsNullable = true;
+            param.SourceColumn = null;
+            this._commandCollection[1].Parameters.Add(param);
+            param = new global::Oracle.ManagedDataAccess.Client.OracleParameter();
+            param.ParameterName = "NM_PREFEITO";
+            param.DbType = global::System.Data.DbType.AnsiString;
+            param.IsNullable = true;
+            param.SourceColumn = null;
+            this._commandCollection[1].Parameters.Add(param);
+            param = new global::Oracle.ManagedDataAccess.Client.OracleParameter();
+            param.ParameterName = "NM_SEC_TRIBUTACAO";
+            param.DbType = global::System.Data.DbType.AnsiString;
+            param.IsNullable = true;
+            param.SourceColumn = null;
+            this._commandCollection[1].Parameters.Add(param);
+            param = new global::Oracle.ManagedDataAccess.Client.OracleParameter();
+            param.ParameterName = "NM_CONTADOR";
+            param.DbType = global::System.Data.DbType.AnsiString;
+            param.IsNullable = true;
+            param.SourceColumn = null;
+            this._commandCollection[1].Parameters.Add(param);
+            param = new global::Oracle.ManagedDataAccess.Client.OracleParameter();
+            param.ParameterName = "NM_LOGRADOURO";
+            param.DbType = global::System.Data.DbType.AnsiString;
+            param.IsNullable = true;
+            param.SourceColumn = null;
+            this._commandCollection[1].Parameters.Add(param);
+            param = new global::Oracle.ManagedDataAccess.Client.OracleParameter();
+            param.ParameterName = "NU_NUMERO";
+            param.DbType = global::System.Data.DbType.AnsiString;
+            param.IsNullable = true;
+            param.SourceColumn = null;
+            this._commandCollection[1].Parameters.Add(param);
+            param = new global::Oracle.ManagedDataAccess.Client.OracleParameter();
+            param.ParameterName = "TX_COMPLEMENTO";
+            param.DbType = global::System.Data.DbType.AnsiString;
+            param.IsNullable = true;
+            param.SourceColumn = null;
+            this._commandCollection[1].Parameters.Add(param);
+            param = new global::Oracle.ManagedDataAccess.Client.OracleParameter();
+            param.ParameterName = "TX_CONTATO";
+            param.DbType = global::System.Data.DbType.AnsiString;
+            param.IsNullable = true;
+            param.SourceColumn = null;
+            this._commandCollection[1].Parameters.Add(param);
+            param = new global::Oracle.ManagedDataAccess.Client.OracleParameter();
+            param.ParameterName = "NU_HABITANTES";
+            param.DbType = global::System.Data.DbType.Decimal;
+            param.OracleDbTypeEx = global::Oracle.ManagedDataAccess.Client.OracleDbType.Decimal;
+            param.IsNullable = true;
+            param.SourceColumn = null;
+            this._commandCollection[1].Parameters.Add(param);
+            param = new global::Oracle.ManagedDataAccess.Client.OracleParameter();
+            param.ParameterName = "QT_EXTENSAO_TERRITORIAL";
+            param.DbType = global::System.Data.DbType.Decimal;
+            param.OracleDbTypeEx = global::Oracle.ManagedDataAccess.Client.OracleDbType.Decimal;
+            param.IsNullable = true;
+            param.SourceColumn = null;
+            this._commandCollection[1].Parameters.Add(param);
         }
         
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
@@ -1309,6 +1388,79 @@ namespace dal.DsPrefeituraTableAdapters {
             DsPrefeitura.PrefeituraDataTable dataTable = new DsPrefeitura.PrefeituraDataTable();
             this.Adapter.Fill(dataTable);
             return dataTable;
+        }
+        
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+        [global::System.ComponentModel.Design.HelpKeywordAttribute("vs.data.TableAdapter")]
+        [global::System.ComponentModel.DataObjectMethodAttribute(global::System.ComponentModel.DataObjectMethodType.Insert, false)]
+        public virtual int Incluir(string NM_PREFEITURA, string NM_PREFEITO, string NM_SEC_TRIBUTACAO, string NM_CONTADOR, string NM_LOGRADOURO, string NU_NUMERO, string TX_COMPLEMENTO, string TX_CONTATO, decimal NU_HABITANTES, decimal QT_EXTENSAO_TERRITORIAL) {
+            global::Oracle.ManagedDataAccess.Client.OracleCommand command = this.CommandCollection[1];
+            if ((NM_PREFEITURA == null)) {
+                throw new global::System.ArgumentNullException("NM_PREFEITURA");
+            }
+            else {
+                command.Parameters[0].Value = ((string)(NM_PREFEITURA));
+            }
+            if ((NM_PREFEITO == null)) {
+                throw new global::System.ArgumentNullException("NM_PREFEITO");
+            }
+            else {
+                command.Parameters[1].Value = ((string)(NM_PREFEITO));
+            }
+            if ((NM_SEC_TRIBUTACAO == null)) {
+                throw new global::System.ArgumentNullException("NM_SEC_TRIBUTACAO");
+            }
+            else {
+                command.Parameters[2].Value = ((string)(NM_SEC_TRIBUTACAO));
+            }
+            if ((NM_CONTADOR == null)) {
+                throw new global::System.ArgumentNullException("NM_CONTADOR");
+            }
+            else {
+                command.Parameters[3].Value = ((string)(NM_CONTADOR));
+            }
+            if ((NM_LOGRADOURO == null)) {
+                throw new global::System.ArgumentNullException("NM_LOGRADOURO");
+            }
+            else {
+                command.Parameters[4].Value = ((string)(NM_LOGRADOURO));
+            }
+            if ((NU_NUMERO == null)) {
+                throw new global::System.ArgumentNullException("NU_NUMERO");
+            }
+            else {
+                command.Parameters[5].Value = ((string)(NU_NUMERO));
+            }
+            if ((TX_COMPLEMENTO == null)) {
+                throw new global::System.ArgumentNullException("TX_COMPLEMENTO");
+            }
+            else {
+                command.Parameters[6].Value = ((string)(TX_COMPLEMENTO));
+            }
+            if ((TX_CONTATO == null)) {
+                throw new global::System.ArgumentNullException("TX_CONTATO");
+            }
+            else {
+                command.Parameters[7].Value = ((string)(TX_CONTATO));
+            }
+            command.Parameters[8].Value = ((decimal)(NU_HABITANTES));
+            command.Parameters[9].Value = ((decimal)(QT_EXTENSAO_TERRITORIAL));
+            global::System.Data.ConnectionState previousConnectionState = command.Connection.State;
+            if (((command.Connection.State & global::System.Data.ConnectionState.Open) 
+                        != global::System.Data.ConnectionState.Open)) {
+                command.Connection.Open();
+            }
+            int returnValue;
+            try {
+                returnValue = command.ExecuteNonQuery();
+            }
+            finally {
+                if ((previousConnectionState == global::System.Data.ConnectionState.Closed)) {
+                    command.Connection.Close();
+                }
+            }
+            return returnValue;
         }
     }
     

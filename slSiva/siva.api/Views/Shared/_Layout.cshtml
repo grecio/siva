@@ -7,7 +7,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Solução Tributos </title>
-    <!-- Bootstrap-->    
+    <!-- Bootstrap-->
     <link href="~/Content/vendors/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome-->
     <link href="~/Content/vendors/font-awesome/css/font-awesome.min.css" rel="stylesheet">
@@ -20,7 +20,7 @@
     <link href="~/Content/vendors/fullcalendar/dist/fullcalendar.print.css" rel="stylesheet" media="print">
 
 
-        
+
 </head>
 <body class="nav-md">
     <div class="container body">
@@ -47,7 +47,7 @@
                                     <a><i class="fa fa-edit"></i> Cadastros <span class="fa fa-chevron-down"></span></a>
                                     <ul class="nav child_menu">
                                         <li>@Html.ActionLink("Usuários", "Index", "Usuario")</li>
-                                        <li><a href="/prefeituras">Prefeituras</a></li>
+                                        <li>@Html.ActionLink("Prefeituras", "Index", "Prefeituras")</li>                                        
                                         <li><a href="/contadores">Contadores</a></li>
                                     </ul>
                                 </li>
@@ -69,7 +69,7 @@
                             <li>
                                 <a href="javascript:;" data-toggle="dropdown" aria-expanded="false" class="user-profile dropdown-toggle"><img src="~/Content/images/img.jpg" alt="">@Html.DisplayFor(item => (Session["UsuarioLogado"] as presenter.Usuario).Nome)<span class="fa fa-angle-down"></span></a>
                                 <ul class="dropdown-menu dropdown-usermenu pull-right">
-                                    <li><a href="Usuario/AlterarSenha">Alterar Senha</a></li>                                    
+                                    <li><a href="Usuario/AlterarSenha">Alterar Senha</a></li>
                                     <li><a href="javascript:;">Ajuda</a></li>
                                     <li><a href="/Logout/Index"><i class="fa fa-sign-out pull-right"></i> Log Out</a></li>
                                 </ul>
@@ -94,7 +94,6 @@
             <!-- page content-->
             @RenderBody()
             <!-- /page content-->
-            
             <!-- footer content-->
             <footer>
                 <div class="pull-right">Solução Tributos</div>
@@ -103,7 +102,7 @@
             <!-- /footer content-->
         </div>
     </div>
-  
+
     <!-- jQuery-->
     <script src="~/Content/vendors/jquery/dist/jquery.min.js"></script>
     <!-- Bootstrap-->
@@ -116,8 +115,8 @@
     <script src="~/Content/vendors/validator/validator.js"></script>
 
     <!-- Custom Theme Scripts -->
-    <script src="~/Content/build/js/custom.min.js"></script>    
-    
+    <script src="~/Content/build/js/custom.min.js"></script>
+
     <!--mascaras-->
     <script src="~/Scripts/jquery.meiomask.js"></script>
 
@@ -133,9 +132,9 @@
         });
 
     </script>
-    
+
     @RenderSection("scripts", required: false)
-    
-    
+
+
 </body>
 </html>
