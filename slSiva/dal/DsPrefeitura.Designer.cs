@@ -20,17 +20,17 @@ namespace dal {
     [global::System.ComponentModel.DesignerCategoryAttribute("code")]
     [global::System.ComponentModel.ToolboxItem(true)]
     [global::System.Xml.Serialization.XmlSchemaProviderAttribute("GetTypedDataSetSchema")]
-    [global::System.Xml.Serialization.XmlRootAttribute("DsUsuario")]
+    [global::System.Xml.Serialization.XmlRootAttribute("DsPrefeitura")]
     [global::System.ComponentModel.Design.HelpKeywordAttribute("vs.data.DataSet")]
-    public partial class DsUsuario : global::System.Data.DataSet {
+    public partial class DsPrefeitura : global::System.Data.DataSet {
         
-        private UsuarioDataTable tableUsuario;
+        private PrefeituraDataTable tablePrefeitura;
         
         private global::System.Data.SchemaSerializationMode _schemaSerializationMode = global::System.Data.SchemaSerializationMode.IncludeSchema;
         
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-        public DsUsuario() {
+        public DsPrefeitura() {
             this.BeginInit();
             this.InitClass();
             global::System.ComponentModel.CollectionChangeEventHandler schemaChangedHandler = new global::System.ComponentModel.CollectionChangeEventHandler(this.SchemaChanged);
@@ -41,7 +41,7 @@ namespace dal {
         
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-        protected DsUsuario(global::System.Runtime.Serialization.SerializationInfo info, global::System.Runtime.Serialization.StreamingContext context) : 
+        protected DsPrefeitura(global::System.Runtime.Serialization.SerializationInfo info, global::System.Runtime.Serialization.StreamingContext context) : 
                 base(info, context, false) {
             if ((this.IsBinarySerialized(info, context) == true)) {
                 this.InitVars(false);
@@ -54,8 +54,8 @@ namespace dal {
             if ((this.DetermineSchemaSerializationMode(info, context) == global::System.Data.SchemaSerializationMode.IncludeSchema)) {
                 global::System.Data.DataSet ds = new global::System.Data.DataSet();
                 ds.ReadXmlSchema(new global::System.Xml.XmlTextReader(new global::System.IO.StringReader(strSchema)));
-                if ((ds.Tables["Usuario"] != null)) {
-                    base.Tables.Add(new UsuarioDataTable(ds.Tables["Usuario"]));
+                if ((ds.Tables["Prefeitura"] != null)) {
+                    base.Tables.Add(new PrefeituraDataTable(ds.Tables["Prefeitura"]));
                 }
                 this.DataSetName = ds.DataSetName;
                 this.Prefix = ds.Prefix;
@@ -79,9 +79,9 @@ namespace dal {
         [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
         [global::System.ComponentModel.Browsable(false)]
         [global::System.ComponentModel.DesignerSerializationVisibility(global::System.ComponentModel.DesignerSerializationVisibility.Content)]
-        public UsuarioDataTable Usuario {
+        public PrefeituraDataTable Prefeitura {
             get {
-                return this.tableUsuario;
+                return this.tablePrefeitura;
             }
         }
         
@@ -127,7 +127,7 @@ namespace dal {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
         public override global::System.Data.DataSet Clone() {
-            DsUsuario cln = ((DsUsuario)(base.Clone()));
+            DsPrefeitura cln = ((DsPrefeitura)(base.Clone()));
             cln.InitVars();
             cln.SchemaSerializationMode = this.SchemaSerializationMode;
             return cln;
@@ -152,8 +152,8 @@ namespace dal {
                 this.Reset();
                 global::System.Data.DataSet ds = new global::System.Data.DataSet();
                 ds.ReadXml(reader);
-                if ((ds.Tables["Usuario"] != null)) {
-                    base.Tables.Add(new UsuarioDataTable(ds.Tables["Usuario"]));
+                if ((ds.Tables["Prefeitura"] != null)) {
+                    base.Tables.Add(new PrefeituraDataTable(ds.Tables["Prefeitura"]));
                 }
                 this.DataSetName = ds.DataSetName;
                 this.Prefix = ds.Prefix;
@@ -188,10 +188,10 @@ namespace dal {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
         internal void InitVars(bool initTable) {
-            this.tableUsuario = ((UsuarioDataTable)(base.Tables["Usuario"]));
+            this.tablePrefeitura = ((PrefeituraDataTable)(base.Tables["Prefeitura"]));
             if ((initTable == true)) {
-                if ((this.tableUsuario != null)) {
-                    this.tableUsuario.InitVars();
+                if ((this.tablePrefeitura != null)) {
+                    this.tablePrefeitura.InitVars();
                 }
             }
         }
@@ -199,18 +199,18 @@ namespace dal {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
         private void InitClass() {
-            this.DataSetName = "DsUsuario";
+            this.DataSetName = "DsPrefeitura";
             this.Prefix = "";
-            this.Namespace = "http://tempuri.org/DsUsuario.xsd";
+            this.Namespace = "http://tempuri.org/DsPrefeitura.xsd";
             this.EnforceConstraints = true;
             this.SchemaSerializationMode = global::System.Data.SchemaSerializationMode.IncludeSchema;
-            this.tableUsuario = new UsuarioDataTable();
-            base.Tables.Add(this.tableUsuario);
+            this.tablePrefeitura = new PrefeituraDataTable();
+            base.Tables.Add(this.tablePrefeitura);
         }
         
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-        private bool ShouldSerializeUsuario() {
+        private bool ShouldSerializePrefeitura() {
             return false;
         }
         
@@ -225,7 +225,7 @@ namespace dal {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
         public static global::System.Xml.Schema.XmlSchemaComplexType GetTypedDataSetSchema(global::System.Xml.Schema.XmlSchemaSet xs) {
-            DsUsuario ds = new DsUsuario();
+            DsPrefeitura ds = new DsPrefeitura();
             global::System.Xml.Schema.XmlSchemaComplexType type = new global::System.Xml.Schema.XmlSchemaComplexType();
             global::System.Xml.Schema.XmlSchemaSequence sequence = new global::System.Xml.Schema.XmlSchemaSequence();
             global::System.Xml.Schema.XmlSchemaAny any = new global::System.Xml.Schema.XmlSchemaAny();
@@ -270,22 +270,32 @@ namespace dal {
         }
         
         [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-        public delegate void UsuarioRowChangeEventHandler(object sender, UsuarioRowChangeEvent e);
+        public delegate void PrefeituraRowChangeEventHandler(object sender, PrefeituraRowChangeEvent e);
         
         /// <summary>
         ///Represents the strongly named DataTable class.
         ///</summary>
         [global::System.Serializable()]
         [global::System.Xml.Serialization.XmlSchemaProviderAttribute("GetTypedTableSchema")]
-        public partial class UsuarioDataTable : global::System.Data.TypedTableBase<UsuarioRow> {
+        public partial class PrefeituraDataTable : global::System.Data.TypedTableBase<PrefeituraRow> {
             
-            private global::System.Data.DataColumn columnSQ_USUARIO;
+            private global::System.Data.DataColumn columnSQ_PREFEITURA;
             
-            private global::System.Data.DataColumn columnNM_USUARIO;
+            private global::System.Data.DataColumn columnNM_PREFEITURA;
             
-            private global::System.Data.DataColumn columnLOGIN;
+            private global::System.Data.DataColumn columnNM_PREFEITO;
             
-            private global::System.Data.DataColumn columnSENHA;
+            private global::System.Data.DataColumn columnNM_SEC_TRIBUTACAO;
+            
+            private global::System.Data.DataColumn columnNM_CONTADOR;
+            
+            private global::System.Data.DataColumn columnNM_LOGRADOURO;
+            
+            private global::System.Data.DataColumn columnNU_NUMERO;
+            
+            private global::System.Data.DataColumn columnTX_COMPLEMENTO;
+            
+            private global::System.Data.DataColumn columnTX_CONTATO;
             
             private global::System.Data.DataColumn columnDT_INCLUSAO;
             
@@ -295,10 +305,14 @@ namespace dal {
             
             private global::System.Data.DataColumn columnNM_USUARIO_ALTERACAO;
             
+            private global::System.Data.DataColumn columnNU_HABITANTES;
+            
+            private global::System.Data.DataColumn columnQT_EXTENSAO_TERRITORIAL;
+            
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-            public UsuarioDataTable() {
-                this.TableName = "Usuario";
+            public PrefeituraDataTable() {
+                this.TableName = "Prefeitura";
                 this.BeginInit();
                 this.InitClass();
                 this.EndInit();
@@ -306,7 +320,7 @@ namespace dal {
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-            internal UsuarioDataTable(global::System.Data.DataTable table) {
+            internal PrefeituraDataTable(global::System.Data.DataTable table) {
                 this.TableName = table.TableName;
                 if ((table.CaseSensitive != table.DataSet.CaseSensitive)) {
                     this.CaseSensitive = table.CaseSensitive;
@@ -323,40 +337,80 @@ namespace dal {
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-            protected UsuarioDataTable(global::System.Runtime.Serialization.SerializationInfo info, global::System.Runtime.Serialization.StreamingContext context) : 
+            protected PrefeituraDataTable(global::System.Runtime.Serialization.SerializationInfo info, global::System.Runtime.Serialization.StreamingContext context) : 
                     base(info, context) {
                 this.InitVars();
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-            public global::System.Data.DataColumn SQ_USUARIOColumn {
+            public global::System.Data.DataColumn SQ_PREFEITURAColumn {
                 get {
-                    return this.columnSQ_USUARIO;
+                    return this.columnSQ_PREFEITURA;
                 }
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-            public global::System.Data.DataColumn NM_USUARIOColumn {
+            public global::System.Data.DataColumn NM_PREFEITURAColumn {
                 get {
-                    return this.columnNM_USUARIO;
+                    return this.columnNM_PREFEITURA;
                 }
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-            public global::System.Data.DataColumn LOGINColumn {
+            public global::System.Data.DataColumn NM_PREFEITOColumn {
                 get {
-                    return this.columnLOGIN;
+                    return this.columnNM_PREFEITO;
                 }
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-            public global::System.Data.DataColumn SENHAColumn {
+            public global::System.Data.DataColumn NM_SEC_TRIBUTACAOColumn {
                 get {
-                    return this.columnSENHA;
+                    return this.columnNM_SEC_TRIBUTACAO;
+                }
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public global::System.Data.DataColumn NM_CONTADORColumn {
+                get {
+                    return this.columnNM_CONTADOR;
+                }
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public global::System.Data.DataColumn NM_LOGRADOUROColumn {
+                get {
+                    return this.columnNM_LOGRADOURO;
+                }
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public global::System.Data.DataColumn NU_NUMEROColumn {
+                get {
+                    return this.columnNU_NUMERO;
+                }
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public global::System.Data.DataColumn TX_COMPLEMENTOColumn {
+                get {
+                    return this.columnTX_COMPLEMENTO;
+                }
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public global::System.Data.DataColumn TX_CONTATOColumn {
+                get {
+                    return this.columnTX_CONTATO;
                 }
             }
             
@@ -394,6 +448,22 @@ namespace dal {
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public global::System.Data.DataColumn NU_HABITANTESColumn {
+                get {
+                    return this.columnNU_HABITANTES;
+                }
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public global::System.Data.DataColumn QT_EXTENSAO_TERRITORIALColumn {
+                get {
+                    return this.columnQT_EXTENSAO_TERRITORIAL;
+                }
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
             [global::System.ComponentModel.Browsable(false)]
             public int Count {
                 get {
@@ -403,59 +473,66 @@ namespace dal {
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-            public UsuarioRow this[int index] {
+            public PrefeituraRow this[int index] {
                 get {
-                    return ((UsuarioRow)(this.Rows[index]));
+                    return ((PrefeituraRow)(this.Rows[index]));
                 }
             }
             
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-            public event UsuarioRowChangeEventHandler UsuarioRowChanging;
+            public event PrefeituraRowChangeEventHandler PrefeituraRowChanging;
             
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-            public event UsuarioRowChangeEventHandler UsuarioRowChanged;
+            public event PrefeituraRowChangeEventHandler PrefeituraRowChanged;
             
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-            public event UsuarioRowChangeEventHandler UsuarioRowDeleting;
+            public event PrefeituraRowChangeEventHandler PrefeituraRowDeleting;
             
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-            public event UsuarioRowChangeEventHandler UsuarioRowDeleted;
+            public event PrefeituraRowChangeEventHandler PrefeituraRowDeleted;
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-            public void AddUsuarioRow(UsuarioRow row) {
+            public void AddPrefeituraRow(PrefeituraRow row) {
                 this.Rows.Add(row);
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-            public UsuarioRow AddUsuarioRow(decimal SQ_USUARIO, string NM_USUARIO, string LOGIN, string SENHA, System.DateTime DT_INCLUSAO, string NM_USUARIO_INCLUSAO, System.DateTime DT_ALTERACAO, string NM_USUARIO_ALTERACAO) {
-                UsuarioRow rowUsuarioRow = ((UsuarioRow)(this.NewRow()));
+            public PrefeituraRow AddPrefeituraRow(decimal SQ_PREFEITURA, string NM_PREFEITURA, string NM_PREFEITO, string NM_SEC_TRIBUTACAO, string NM_CONTADOR, string NM_LOGRADOURO, string NU_NUMERO, string TX_COMPLEMENTO, string TX_CONTATO, System.DateTime DT_INCLUSAO, string NM_USUARIO_INCLUSAO, System.DateTime DT_ALTERACAO, string NM_USUARIO_ALTERACAO, decimal NU_HABITANTES, decimal QT_EXTENSAO_TERRITORIAL) {
+                PrefeituraRow rowPrefeituraRow = ((PrefeituraRow)(this.NewRow()));
                 object[] columnValuesArray = new object[] {
-                        SQ_USUARIO,
-                        NM_USUARIO,
-                        LOGIN,
-                        SENHA,
+                        SQ_PREFEITURA,
+                        NM_PREFEITURA,
+                        NM_PREFEITO,
+                        NM_SEC_TRIBUTACAO,
+                        NM_CONTADOR,
+                        NM_LOGRADOURO,
+                        NU_NUMERO,
+                        TX_COMPLEMENTO,
+                        TX_CONTATO,
                         DT_INCLUSAO,
                         NM_USUARIO_INCLUSAO,
                         DT_ALTERACAO,
-                        NM_USUARIO_ALTERACAO};
-                rowUsuarioRow.ItemArray = columnValuesArray;
-                this.Rows.Add(rowUsuarioRow);
-                return rowUsuarioRow;
+                        NM_USUARIO_ALTERACAO,
+                        NU_HABITANTES,
+                        QT_EXTENSAO_TERRITORIAL};
+                rowPrefeituraRow.ItemArray = columnValuesArray;
+                this.Rows.Add(rowPrefeituraRow);
+                return rowPrefeituraRow;
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-            public UsuarioRow FindBySQ_USUARIO(decimal SQ_USUARIO) {
-                return ((UsuarioRow)(this.Rows.Find(new object[] {
-                            SQ_USUARIO})));
+            public PrefeituraRow FindBySQ_PREFEITURA(decimal SQ_PREFEITURA) {
+                return ((PrefeituraRow)(this.Rows.Find(new object[] {
+                            SQ_PREFEITURA})));
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
             public override global::System.Data.DataTable Clone() {
-                UsuarioDataTable cln = ((UsuarioDataTable)(base.Clone()));
+                PrefeituraDataTable cln = ((PrefeituraDataTable)(base.Clone()));
                 cln.InitVars();
                 return cln;
             }
@@ -463,33 +540,50 @@ namespace dal {
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
             protected override global::System.Data.DataTable CreateInstance() {
-                return new UsuarioDataTable();
+                return new PrefeituraDataTable();
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
             internal void InitVars() {
-                this.columnSQ_USUARIO = base.Columns["SQ_USUARIO"];
-                this.columnNM_USUARIO = base.Columns["NM_USUARIO"];
-                this.columnLOGIN = base.Columns["LOGIN"];
-                this.columnSENHA = base.Columns["SENHA"];
+                this.columnSQ_PREFEITURA = base.Columns["SQ_PREFEITURA"];
+                this.columnNM_PREFEITURA = base.Columns["NM_PREFEITURA"];
+                this.columnNM_PREFEITO = base.Columns["NM_PREFEITO"];
+                this.columnNM_SEC_TRIBUTACAO = base.Columns["NM_SEC_TRIBUTACAO"];
+                this.columnNM_CONTADOR = base.Columns["NM_CONTADOR"];
+                this.columnNM_LOGRADOURO = base.Columns["NM_LOGRADOURO"];
+                this.columnNU_NUMERO = base.Columns["NU_NUMERO"];
+                this.columnTX_COMPLEMENTO = base.Columns["TX_COMPLEMENTO"];
+                this.columnTX_CONTATO = base.Columns["TX_CONTATO"];
                 this.columnDT_INCLUSAO = base.Columns["DT_INCLUSAO"];
                 this.columnNM_USUARIO_INCLUSAO = base.Columns["NM_USUARIO_INCLUSAO"];
                 this.columnDT_ALTERACAO = base.Columns["DT_ALTERACAO"];
                 this.columnNM_USUARIO_ALTERACAO = base.Columns["NM_USUARIO_ALTERACAO"];
+                this.columnNU_HABITANTES = base.Columns["NU_HABITANTES"];
+                this.columnQT_EXTENSAO_TERRITORIAL = base.Columns["QT_EXTENSAO_TERRITORIAL"];
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
             private void InitClass() {
-                this.columnSQ_USUARIO = new global::System.Data.DataColumn("SQ_USUARIO", typeof(decimal), null, global::System.Data.MappingType.Element);
-                base.Columns.Add(this.columnSQ_USUARIO);
-                this.columnNM_USUARIO = new global::System.Data.DataColumn("NM_USUARIO", typeof(string), null, global::System.Data.MappingType.Element);
-                base.Columns.Add(this.columnNM_USUARIO);
-                this.columnLOGIN = new global::System.Data.DataColumn("LOGIN", typeof(string), null, global::System.Data.MappingType.Element);
-                base.Columns.Add(this.columnLOGIN);
-                this.columnSENHA = new global::System.Data.DataColumn("SENHA", typeof(string), null, global::System.Data.MappingType.Element);
-                base.Columns.Add(this.columnSENHA);
+                this.columnSQ_PREFEITURA = new global::System.Data.DataColumn("SQ_PREFEITURA", typeof(decimal), null, global::System.Data.MappingType.Element);
+                base.Columns.Add(this.columnSQ_PREFEITURA);
+                this.columnNM_PREFEITURA = new global::System.Data.DataColumn("NM_PREFEITURA", typeof(string), null, global::System.Data.MappingType.Element);
+                base.Columns.Add(this.columnNM_PREFEITURA);
+                this.columnNM_PREFEITO = new global::System.Data.DataColumn("NM_PREFEITO", typeof(string), null, global::System.Data.MappingType.Element);
+                base.Columns.Add(this.columnNM_PREFEITO);
+                this.columnNM_SEC_TRIBUTACAO = new global::System.Data.DataColumn("NM_SEC_TRIBUTACAO", typeof(string), null, global::System.Data.MappingType.Element);
+                base.Columns.Add(this.columnNM_SEC_TRIBUTACAO);
+                this.columnNM_CONTADOR = new global::System.Data.DataColumn("NM_CONTADOR", typeof(string), null, global::System.Data.MappingType.Element);
+                base.Columns.Add(this.columnNM_CONTADOR);
+                this.columnNM_LOGRADOURO = new global::System.Data.DataColumn("NM_LOGRADOURO", typeof(string), null, global::System.Data.MappingType.Element);
+                base.Columns.Add(this.columnNM_LOGRADOURO);
+                this.columnNU_NUMERO = new global::System.Data.DataColumn("NU_NUMERO", typeof(string), null, global::System.Data.MappingType.Element);
+                base.Columns.Add(this.columnNU_NUMERO);
+                this.columnTX_COMPLEMENTO = new global::System.Data.DataColumn("TX_COMPLEMENTO", typeof(string), null, global::System.Data.MappingType.Element);
+                base.Columns.Add(this.columnTX_COMPLEMENTO);
+                this.columnTX_CONTATO = new global::System.Data.DataColumn("TX_CONTATO", typeof(string), null, global::System.Data.MappingType.Element);
+                base.Columns.Add(this.columnTX_CONTATO);
                 this.columnDT_INCLUSAO = new global::System.Data.DataColumn("DT_INCLUSAO", typeof(global::System.DateTime), null, global::System.Data.MappingType.Element);
                 base.Columns.Add(this.columnDT_INCLUSAO);
                 this.columnNM_USUARIO_INCLUSAO = new global::System.Data.DataColumn("NM_USUARIO_INCLUSAO", typeof(string), null, global::System.Data.MappingType.Element);
@@ -498,13 +592,24 @@ namespace dal {
                 base.Columns.Add(this.columnDT_ALTERACAO);
                 this.columnNM_USUARIO_ALTERACAO = new global::System.Data.DataColumn("NM_USUARIO_ALTERACAO", typeof(string), null, global::System.Data.MappingType.Element);
                 base.Columns.Add(this.columnNM_USUARIO_ALTERACAO);
+                this.columnNU_HABITANTES = new global::System.Data.DataColumn("NU_HABITANTES", typeof(decimal), null, global::System.Data.MappingType.Element);
+                base.Columns.Add(this.columnNU_HABITANTES);
+                this.columnQT_EXTENSAO_TERRITORIAL = new global::System.Data.DataColumn("QT_EXTENSAO_TERRITORIAL", typeof(decimal), null, global::System.Data.MappingType.Element);
+                base.Columns.Add(this.columnQT_EXTENSAO_TERRITORIAL);
                 this.Constraints.Add(new global::System.Data.UniqueConstraint("Constraint1", new global::System.Data.DataColumn[] {
-                                this.columnSQ_USUARIO}, true));
-                this.columnSQ_USUARIO.AllowDBNull = false;
-                this.columnSQ_USUARIO.Unique = true;
-                this.columnNM_USUARIO.MaxLength = 100;
-                this.columnLOGIN.MaxLength = 100;
-                this.columnSENHA.MaxLength = 100;
+                                this.columnSQ_PREFEITURA}, true));
+                this.columnSQ_PREFEITURA.AllowDBNull = false;
+                this.columnSQ_PREFEITURA.Unique = true;
+                this.columnNM_PREFEITURA.AllowDBNull = false;
+                this.columnNM_PREFEITURA.MaxLength = 100;
+                this.columnNM_PREFEITO.MaxLength = 100;
+                this.columnNM_SEC_TRIBUTACAO.MaxLength = 100;
+                this.columnNM_CONTADOR.MaxLength = 100;
+                this.columnNM_LOGRADOURO.AllowDBNull = false;
+                this.columnNM_LOGRADOURO.MaxLength = 100;
+                this.columnNU_NUMERO.MaxLength = 10;
+                this.columnTX_COMPLEMENTO.MaxLength = 200;
+                this.columnTX_CONTATO.MaxLength = 100;
                 this.columnDT_INCLUSAO.AllowDBNull = false;
                 this.columnNM_USUARIO_INCLUSAO.MaxLength = 30;
                 this.columnNM_USUARIO_ALTERACAO.MaxLength = 30;
@@ -512,28 +617,28 @@ namespace dal {
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-            public UsuarioRow NewUsuarioRow() {
-                return ((UsuarioRow)(this.NewRow()));
+            public PrefeituraRow NewPrefeituraRow() {
+                return ((PrefeituraRow)(this.NewRow()));
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
             protected override global::System.Data.DataRow NewRowFromBuilder(global::System.Data.DataRowBuilder builder) {
-                return new UsuarioRow(builder);
+                return new PrefeituraRow(builder);
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
             protected override global::System.Type GetRowType() {
-                return typeof(UsuarioRow);
+                return typeof(PrefeituraRow);
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
             protected override void OnRowChanged(global::System.Data.DataRowChangeEventArgs e) {
                 base.OnRowChanged(e);
-                if ((this.UsuarioRowChanged != null)) {
-                    this.UsuarioRowChanged(this, new UsuarioRowChangeEvent(((UsuarioRow)(e.Row)), e.Action));
+                if ((this.PrefeituraRowChanged != null)) {
+                    this.PrefeituraRowChanged(this, new PrefeituraRowChangeEvent(((PrefeituraRow)(e.Row)), e.Action));
                 }
             }
             
@@ -541,8 +646,8 @@ namespace dal {
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
             protected override void OnRowChanging(global::System.Data.DataRowChangeEventArgs e) {
                 base.OnRowChanging(e);
-                if ((this.UsuarioRowChanging != null)) {
-                    this.UsuarioRowChanging(this, new UsuarioRowChangeEvent(((UsuarioRow)(e.Row)), e.Action));
+                if ((this.PrefeituraRowChanging != null)) {
+                    this.PrefeituraRowChanging(this, new PrefeituraRowChangeEvent(((PrefeituraRow)(e.Row)), e.Action));
                 }
             }
             
@@ -550,8 +655,8 @@ namespace dal {
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
             protected override void OnRowDeleted(global::System.Data.DataRowChangeEventArgs e) {
                 base.OnRowDeleted(e);
-                if ((this.UsuarioRowDeleted != null)) {
-                    this.UsuarioRowDeleted(this, new UsuarioRowChangeEvent(((UsuarioRow)(e.Row)), e.Action));
+                if ((this.PrefeituraRowDeleted != null)) {
+                    this.PrefeituraRowDeleted(this, new PrefeituraRowChangeEvent(((PrefeituraRow)(e.Row)), e.Action));
                 }
             }
             
@@ -559,14 +664,14 @@ namespace dal {
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
             protected override void OnRowDeleting(global::System.Data.DataRowChangeEventArgs e) {
                 base.OnRowDeleting(e);
-                if ((this.UsuarioRowDeleting != null)) {
-                    this.UsuarioRowDeleting(this, new UsuarioRowChangeEvent(((UsuarioRow)(e.Row)), e.Action));
+                if ((this.PrefeituraRowDeleting != null)) {
+                    this.PrefeituraRowDeleting(this, new PrefeituraRowChangeEvent(((PrefeituraRow)(e.Row)), e.Action));
                 }
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-            public void RemoveUsuarioRow(UsuarioRow row) {
+            public void RemovePrefeituraRow(PrefeituraRow row) {
                 this.Rows.Remove(row);
             }
             
@@ -575,7 +680,7 @@ namespace dal {
             public static global::System.Xml.Schema.XmlSchemaComplexType GetTypedTableSchema(global::System.Xml.Schema.XmlSchemaSet xs) {
                 global::System.Xml.Schema.XmlSchemaComplexType type = new global::System.Xml.Schema.XmlSchemaComplexType();
                 global::System.Xml.Schema.XmlSchemaSequence sequence = new global::System.Xml.Schema.XmlSchemaSequence();
-                DsUsuario ds = new DsUsuario();
+                DsPrefeitura ds = new DsPrefeitura();
                 global::System.Xml.Schema.XmlSchemaAny any1 = new global::System.Xml.Schema.XmlSchemaAny();
                 any1.Namespace = "http://www.w3.org/2001/XMLSchema";
                 any1.MinOccurs = new decimal(0);
@@ -593,7 +698,7 @@ namespace dal {
                 type.Attributes.Add(attribute1);
                 global::System.Xml.Schema.XmlSchemaAttribute attribute2 = new global::System.Xml.Schema.XmlSchemaAttribute();
                 attribute2.Name = "tableTypeName";
-                attribute2.FixedValue = "UsuarioDataTable";
+                attribute2.FixedValue = "PrefeituraDataTable";
                 type.Attributes.Add(attribute2);
                 type.Particle = sequence;
                 global::System.Xml.Schema.XmlSchema dsSchema = ds.GetSchemaSerializable();
@@ -637,73 +742,143 @@ namespace dal {
         /// <summary>
         ///Represents strongly named DataRow class.
         ///</summary>
-        public partial class UsuarioRow : global::System.Data.DataRow {
+        public partial class PrefeituraRow : global::System.Data.DataRow {
             
-            private UsuarioDataTable tableUsuario;
+            private PrefeituraDataTable tablePrefeitura;
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-            internal UsuarioRow(global::System.Data.DataRowBuilder rb) : 
+            internal PrefeituraRow(global::System.Data.DataRowBuilder rb) : 
                     base(rb) {
-                this.tableUsuario = ((UsuarioDataTable)(this.Table));
+                this.tablePrefeitura = ((PrefeituraDataTable)(this.Table));
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-            public decimal SQ_USUARIO {
+            public decimal SQ_PREFEITURA {
                 get {
-                    return ((decimal)(this[this.tableUsuario.SQ_USUARIOColumn]));
+                    return ((decimal)(this[this.tablePrefeitura.SQ_PREFEITURAColumn]));
                 }
                 set {
-                    this[this.tableUsuario.SQ_USUARIOColumn] = value;
+                    this[this.tablePrefeitura.SQ_PREFEITURAColumn] = value;
                 }
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-            public string NM_USUARIO {
+            public string NM_PREFEITURA {
                 get {
-                    try {
-                        return ((string)(this[this.tableUsuario.NM_USUARIOColumn]));
-                    }
-                    catch (global::System.InvalidCastException e) {
-                        throw new global::System.Data.StrongTypingException("The value for column \'NM_USUARIO\' in table \'Usuario\' is DBNull.", e);
-                    }
+                    return ((string)(this[this.tablePrefeitura.NM_PREFEITURAColumn]));
                 }
                 set {
-                    this[this.tableUsuario.NM_USUARIOColumn] = value;
+                    this[this.tablePrefeitura.NM_PREFEITURAColumn] = value;
                 }
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-            public string LOGIN {
+            public string NM_PREFEITO {
                 get {
                     try {
-                        return ((string)(this[this.tableUsuario.LOGINColumn]));
+                        return ((string)(this[this.tablePrefeitura.NM_PREFEITOColumn]));
                     }
                     catch (global::System.InvalidCastException e) {
-                        throw new global::System.Data.StrongTypingException("The value for column \'LOGIN\' in table \'Usuario\' is DBNull.", e);
+                        throw new global::System.Data.StrongTypingException("The value for column \'NM_PREFEITO\' in table \'Prefeitura\' is DBNull.", e);
                     }
                 }
                 set {
-                    this[this.tableUsuario.LOGINColumn] = value;
+                    this[this.tablePrefeitura.NM_PREFEITOColumn] = value;
                 }
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-            public string SENHA {
+            public string NM_SEC_TRIBUTACAO {
                 get {
                     try {
-                        return ((string)(this[this.tableUsuario.SENHAColumn]));
+                        return ((string)(this[this.tablePrefeitura.NM_SEC_TRIBUTACAOColumn]));
                     }
                     catch (global::System.InvalidCastException e) {
-                        throw new global::System.Data.StrongTypingException("The value for column \'SENHA\' in table \'Usuario\' is DBNull.", e);
+                        throw new global::System.Data.StrongTypingException("The value for column \'NM_SEC_TRIBUTACAO\' in table \'Prefeitura\' is DBNull.", e);
                     }
                 }
                 set {
-                    this[this.tableUsuario.SENHAColumn] = value;
+                    this[this.tablePrefeitura.NM_SEC_TRIBUTACAOColumn] = value;
+                }
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public string NM_CONTADOR {
+                get {
+                    try {
+                        return ((string)(this[this.tablePrefeitura.NM_CONTADORColumn]));
+                    }
+                    catch (global::System.InvalidCastException e) {
+                        throw new global::System.Data.StrongTypingException("The value for column \'NM_CONTADOR\' in table \'Prefeitura\' is DBNull.", e);
+                    }
+                }
+                set {
+                    this[this.tablePrefeitura.NM_CONTADORColumn] = value;
+                }
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public string NM_LOGRADOURO {
+                get {
+                    return ((string)(this[this.tablePrefeitura.NM_LOGRADOUROColumn]));
+                }
+                set {
+                    this[this.tablePrefeitura.NM_LOGRADOUROColumn] = value;
+                }
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public string NU_NUMERO {
+                get {
+                    try {
+                        return ((string)(this[this.tablePrefeitura.NU_NUMEROColumn]));
+                    }
+                    catch (global::System.InvalidCastException e) {
+                        throw new global::System.Data.StrongTypingException("The value for column \'NU_NUMERO\' in table \'Prefeitura\' is DBNull.", e);
+                    }
+                }
+                set {
+                    this[this.tablePrefeitura.NU_NUMEROColumn] = value;
+                }
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public string TX_COMPLEMENTO {
+                get {
+                    try {
+                        return ((string)(this[this.tablePrefeitura.TX_COMPLEMENTOColumn]));
+                    }
+                    catch (global::System.InvalidCastException e) {
+                        throw new global::System.Data.StrongTypingException("The value for column \'TX_COMPLEMENTO\' in table \'Prefeitura\' is DBNull.", e);
+                    }
+                }
+                set {
+                    this[this.tablePrefeitura.TX_COMPLEMENTOColumn] = value;
+                }
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public string TX_CONTATO {
+                get {
+                    try {
+                        return ((string)(this[this.tablePrefeitura.TX_CONTATOColumn]));
+                    }
+                    catch (global::System.InvalidCastException e) {
+                        throw new global::System.Data.StrongTypingException("The value for column \'TX_CONTATO\' in table \'Prefeitura\' is DBNull.", e);
+                    }
+                }
+                set {
+                    this[this.tablePrefeitura.TX_CONTATOColumn] = value;
                 }
             }
             
@@ -711,10 +886,10 @@ namespace dal {
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
             public System.DateTime DT_INCLUSAO {
                 get {
-                    return ((global::System.DateTime)(this[this.tableUsuario.DT_INCLUSAOColumn]));
+                    return ((global::System.DateTime)(this[this.tablePrefeitura.DT_INCLUSAOColumn]));
                 }
                 set {
-                    this[this.tableUsuario.DT_INCLUSAOColumn] = value;
+                    this[this.tablePrefeitura.DT_INCLUSAOColumn] = value;
                 }
             }
             
@@ -723,14 +898,14 @@ namespace dal {
             public string NM_USUARIO_INCLUSAO {
                 get {
                     try {
-                        return ((string)(this[this.tableUsuario.NM_USUARIO_INCLUSAOColumn]));
+                        return ((string)(this[this.tablePrefeitura.NM_USUARIO_INCLUSAOColumn]));
                     }
                     catch (global::System.InvalidCastException e) {
-                        throw new global::System.Data.StrongTypingException("The value for column \'NM_USUARIO_INCLUSAO\' in table \'Usuario\' is DBNull.", e);
+                        throw new global::System.Data.StrongTypingException("The value for column \'NM_USUARIO_INCLUSAO\' in table \'Prefeitura\' is DBNull.", e);
                     }
                 }
                 set {
-                    this[this.tableUsuario.NM_USUARIO_INCLUSAOColumn] = value;
+                    this[this.tablePrefeitura.NM_USUARIO_INCLUSAOColumn] = value;
                 }
             }
             
@@ -739,14 +914,14 @@ namespace dal {
             public System.DateTime DT_ALTERACAO {
                 get {
                     try {
-                        return ((global::System.DateTime)(this[this.tableUsuario.DT_ALTERACAOColumn]));
+                        return ((global::System.DateTime)(this[this.tablePrefeitura.DT_ALTERACAOColumn]));
                     }
                     catch (global::System.InvalidCastException e) {
-                        throw new global::System.Data.StrongTypingException("The value for column \'DT_ALTERACAO\' in table \'Usuario\' is DBNull.", e);
+                        throw new global::System.Data.StrongTypingException("The value for column \'DT_ALTERACAO\' in table \'Prefeitura\' is DBNull.", e);
                     }
                 }
                 set {
-                    this[this.tableUsuario.DT_ALTERACAOColumn] = value;
+                    this[this.tablePrefeitura.DT_ALTERACAOColumn] = value;
                 }
             }
             
@@ -755,87 +930,179 @@ namespace dal {
             public string NM_USUARIO_ALTERACAO {
                 get {
                     try {
-                        return ((string)(this[this.tableUsuario.NM_USUARIO_ALTERACAOColumn]));
+                        return ((string)(this[this.tablePrefeitura.NM_USUARIO_ALTERACAOColumn]));
                     }
                     catch (global::System.InvalidCastException e) {
-                        throw new global::System.Data.StrongTypingException("The value for column \'NM_USUARIO_ALTERACAO\' in table \'Usuario\' is DBNull.", e);
+                        throw new global::System.Data.StrongTypingException("The value for column \'NM_USUARIO_ALTERACAO\' in table \'Prefeitura\' is DBNull.", e);
                     }
                 }
                 set {
-                    this[this.tableUsuario.NM_USUARIO_ALTERACAOColumn] = value;
+                    this[this.tablePrefeitura.NM_USUARIO_ALTERACAOColumn] = value;
                 }
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-            public bool IsNM_USUARIONull() {
-                return this.IsNull(this.tableUsuario.NM_USUARIOColumn);
+            public decimal NU_HABITANTES {
+                get {
+                    try {
+                        return ((decimal)(this[this.tablePrefeitura.NU_HABITANTESColumn]));
+                    }
+                    catch (global::System.InvalidCastException e) {
+                        throw new global::System.Data.StrongTypingException("The value for column \'NU_HABITANTES\' in table \'Prefeitura\' is DBNull.", e);
+                    }
+                }
+                set {
+                    this[this.tablePrefeitura.NU_HABITANTESColumn] = value;
+                }
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-            public void SetNM_USUARIONull() {
-                this[this.tableUsuario.NM_USUARIOColumn] = global::System.Convert.DBNull;
+            public decimal QT_EXTENSAO_TERRITORIAL {
+                get {
+                    try {
+                        return ((decimal)(this[this.tablePrefeitura.QT_EXTENSAO_TERRITORIALColumn]));
+                    }
+                    catch (global::System.InvalidCastException e) {
+                        throw new global::System.Data.StrongTypingException("The value for column \'QT_EXTENSAO_TERRITORIAL\' in table \'Prefeitura\' is DBNull.", e);
+                    }
+                }
+                set {
+                    this[this.tablePrefeitura.QT_EXTENSAO_TERRITORIALColumn] = value;
+                }
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-            public bool IsLOGINNull() {
-                return this.IsNull(this.tableUsuario.LOGINColumn);
+            public bool IsNM_PREFEITONull() {
+                return this.IsNull(this.tablePrefeitura.NM_PREFEITOColumn);
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-            public void SetLOGINNull() {
-                this[this.tableUsuario.LOGINColumn] = global::System.Convert.DBNull;
+            public void SetNM_PREFEITONull() {
+                this[this.tablePrefeitura.NM_PREFEITOColumn] = global::System.Convert.DBNull;
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-            public bool IsSENHANull() {
-                return this.IsNull(this.tableUsuario.SENHAColumn);
+            public bool IsNM_SEC_TRIBUTACAONull() {
+                return this.IsNull(this.tablePrefeitura.NM_SEC_TRIBUTACAOColumn);
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-            public void SetSENHANull() {
-                this[this.tableUsuario.SENHAColumn] = global::System.Convert.DBNull;
+            public void SetNM_SEC_TRIBUTACAONull() {
+                this[this.tablePrefeitura.NM_SEC_TRIBUTACAOColumn] = global::System.Convert.DBNull;
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public bool IsNM_CONTADORNull() {
+                return this.IsNull(this.tablePrefeitura.NM_CONTADORColumn);
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public void SetNM_CONTADORNull() {
+                this[this.tablePrefeitura.NM_CONTADORColumn] = global::System.Convert.DBNull;
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public bool IsNU_NUMERONull() {
+                return this.IsNull(this.tablePrefeitura.NU_NUMEROColumn);
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public void SetNU_NUMERONull() {
+                this[this.tablePrefeitura.NU_NUMEROColumn] = global::System.Convert.DBNull;
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public bool IsTX_COMPLEMENTONull() {
+                return this.IsNull(this.tablePrefeitura.TX_COMPLEMENTOColumn);
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public void SetTX_COMPLEMENTONull() {
+                this[this.tablePrefeitura.TX_COMPLEMENTOColumn] = global::System.Convert.DBNull;
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public bool IsTX_CONTATONull() {
+                return this.IsNull(this.tablePrefeitura.TX_CONTATOColumn);
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public void SetTX_CONTATONull() {
+                this[this.tablePrefeitura.TX_CONTATOColumn] = global::System.Convert.DBNull;
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
             public bool IsNM_USUARIO_INCLUSAONull() {
-                return this.IsNull(this.tableUsuario.NM_USUARIO_INCLUSAOColumn);
+                return this.IsNull(this.tablePrefeitura.NM_USUARIO_INCLUSAOColumn);
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
             public void SetNM_USUARIO_INCLUSAONull() {
-                this[this.tableUsuario.NM_USUARIO_INCLUSAOColumn] = global::System.Convert.DBNull;
+                this[this.tablePrefeitura.NM_USUARIO_INCLUSAOColumn] = global::System.Convert.DBNull;
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
             public bool IsDT_ALTERACAONull() {
-                return this.IsNull(this.tableUsuario.DT_ALTERACAOColumn);
+                return this.IsNull(this.tablePrefeitura.DT_ALTERACAOColumn);
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
             public void SetDT_ALTERACAONull() {
-                this[this.tableUsuario.DT_ALTERACAOColumn] = global::System.Convert.DBNull;
+                this[this.tablePrefeitura.DT_ALTERACAOColumn] = global::System.Convert.DBNull;
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
             public bool IsNM_USUARIO_ALTERACAONull() {
-                return this.IsNull(this.tableUsuario.NM_USUARIO_ALTERACAOColumn);
+                return this.IsNull(this.tablePrefeitura.NM_USUARIO_ALTERACAOColumn);
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
             public void SetNM_USUARIO_ALTERACAONull() {
-                this[this.tableUsuario.NM_USUARIO_ALTERACAOColumn] = global::System.Convert.DBNull;
+                this[this.tablePrefeitura.NM_USUARIO_ALTERACAOColumn] = global::System.Convert.DBNull;
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public bool IsNU_HABITANTESNull() {
+                return this.IsNull(this.tablePrefeitura.NU_HABITANTESColumn);
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public void SetNU_HABITANTESNull() {
+                this[this.tablePrefeitura.NU_HABITANTESColumn] = global::System.Convert.DBNull;
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public bool IsQT_EXTENSAO_TERRITORIALNull() {
+                return this.IsNull(this.tablePrefeitura.QT_EXTENSAO_TERRITORIALColumn);
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public void SetQT_EXTENSAO_TERRITORIALNull() {
+                this[this.tablePrefeitura.QT_EXTENSAO_TERRITORIALColumn] = global::System.Convert.DBNull;
             }
         }
         
@@ -843,22 +1110,22 @@ namespace dal {
         ///Row event argument class
         ///</summary>
         [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-        public class UsuarioRowChangeEvent : global::System.EventArgs {
+        public class PrefeituraRowChangeEvent : global::System.EventArgs {
             
-            private UsuarioRow eventRow;
+            private PrefeituraRow eventRow;
             
             private global::System.Data.DataRowAction eventAction;
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-            public UsuarioRowChangeEvent(UsuarioRow row, global::System.Data.DataRowAction action) {
+            public PrefeituraRowChangeEvent(PrefeituraRow row, global::System.Data.DataRowAction action) {
                 this.eventRow = row;
                 this.eventAction = action;
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-            public UsuarioRow Row {
+            public PrefeituraRow Row {
                 get {
                     return this.eventRow;
                 }
@@ -874,7 +1141,7 @@ namespace dal {
         }
     }
 }
-namespace dal.DsUsuarioTableAdapters {
+namespace dal.DsPrefeituraTableAdapters {
     
     
     /// <summary>
@@ -886,7 +1153,7 @@ namespace dal.DsUsuarioTableAdapters {
     [global::System.ComponentModel.DesignerAttribute("Microsoft.VSDesigner.DataSource.Design.TableAdapterDesigner, Microsoft.VSDesigner" +
         ", Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")]
     [global::System.ComponentModel.Design.HelpKeywordAttribute("vs.data.TableAdapter")]
-    public partial class UsuarioTableAdapter : global::System.ComponentModel.Component {
+    public partial class PrefeituraTableAdapter : global::System.ComponentModel.Component {
         
         private global::Oracle.ManagedDataAccess.Client.OracleDataAdapter _adapter;
         
@@ -900,7 +1167,7 @@ namespace dal.DsUsuarioTableAdapters {
         
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-        public UsuarioTableAdapter() {
+        public PrefeituraTableAdapter() {
             this.ClearBeforeFill = true;
         }
         
@@ -997,15 +1264,22 @@ namespace dal.DsUsuarioTableAdapters {
             this._adapter = new global::Oracle.ManagedDataAccess.Client.OracleDataAdapter();
             global::System.Data.Common.DataTableMapping tableMapping = new global::System.Data.Common.DataTableMapping();
             tableMapping.SourceTable = "Table";
-            tableMapping.DataSetTable = "Usuario";
-            tableMapping.ColumnMappings.Add("SQ_USUARIO", "SQ_USUARIO");
-            tableMapping.ColumnMappings.Add("NM_USUARIO", "NM_USUARIO");
-            tableMapping.ColumnMappings.Add("LOGIN", "LOGIN");
-            tableMapping.ColumnMappings.Add("SENHA", "SENHA");
+            tableMapping.DataSetTable = "Prefeitura";
+            tableMapping.ColumnMappings.Add("SQ_PREFEITURA", "SQ_PREFEITURA");
+            tableMapping.ColumnMappings.Add("NM_PREFEITURA", "NM_PREFEITURA");
+            tableMapping.ColumnMappings.Add("NM_PREFEITO", "NM_PREFEITO");
+            tableMapping.ColumnMappings.Add("NM_SEC_TRIBUTACAO", "NM_SEC_TRIBUTACAO");
+            tableMapping.ColumnMappings.Add("NM_CONTADOR", "NM_CONTADOR");
+            tableMapping.ColumnMappings.Add("NM_LOGRADOURO", "NM_LOGRADOURO");
+            tableMapping.ColumnMappings.Add("NU_NUMERO", "NU_NUMERO");
+            tableMapping.ColumnMappings.Add("TX_COMPLEMENTO", "TX_COMPLEMENTO");
+            tableMapping.ColumnMappings.Add("TX_CONTATO", "TX_CONTATO");
             tableMapping.ColumnMappings.Add("DT_INCLUSAO", "DT_INCLUSAO");
             tableMapping.ColumnMappings.Add("NM_USUARIO_INCLUSAO", "NM_USUARIO_INCLUSAO");
             tableMapping.ColumnMappings.Add("DT_ALTERACAO", "DT_ALTERACAO");
             tableMapping.ColumnMappings.Add("NM_USUARIO_ALTERACAO", "NM_USUARIO_ALTERACAO");
+            tableMapping.ColumnMappings.Add("NU_HABITANTES", "NU_HABITANTES");
+            tableMapping.ColumnMappings.Add("QT_EXTENSAO_TERRITORIAL", "QT_EXTENSAO_TERRITORIAL");
             this._adapter.TableMappings.Add(tableMapping);
         }
         
@@ -1019,245 +1293,22 @@ namespace dal.DsUsuarioTableAdapters {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
         private void InitCommandCollection() {
-            this._commandCollection = new global::Oracle.ManagedDataAccess.Client.OracleCommand[6];
+            this._commandCollection = new global::Oracle.ManagedDataAccess.Client.OracleCommand[1];
             this._commandCollection[0] = new global::Oracle.ManagedDataAccess.Client.OracleCommand();
             this._commandCollection[0].Connection = this.Connection;
-            this._commandCollection[0].CommandText = "SELECT        *\r\nFROM            sig_usuario\r\nORDER BY SQ_USUARIO DESC";
+            this._commandCollection[0].CommandText = "select * from SIG_PREFEITURA ORDER BY SQ_PREFEITURA DESC";
             this._commandCollection[0].CommandType = global::System.Data.CommandType.Text;
-            this._commandCollection[1] = new global::Oracle.ManagedDataAccess.Client.OracleCommand();
-            this._commandCollection[1].Connection = this.Connection;
-            this._commandCollection[1].CommandText = "UPDATE       SIG_USUARIO\r\nSET                Senha = :Senha\r\nWHERE        (SQ_USU" +
-                "ARIO = :SQ_USUARIO)";
-            this._commandCollection[1].CommandType = global::System.Data.CommandType.Text;
-            global::Oracle.ManagedDataAccess.Client.OracleParameter param = new global::Oracle.ManagedDataAccess.Client.OracleParameter();
-            param.ParameterName = ":Senha";
-            param.DbType = global::System.Data.DbType.AnsiString;
-            param.OracleDbTypeEx = global::Oracle.ManagedDataAccess.Client.OracleDbType.Varchar2;
-            param.Size = 1024;
-            param.IsNullable = true;
-            param.SourceColumn = "Senha";
-            this._commandCollection[1].Parameters.Add(param);
-            param = new global::Oracle.ManagedDataAccess.Client.OracleParameter();
-            param.ParameterName = ":SQ_USUARIO";
-            param.DbType = global::System.Data.DbType.Decimal;
-            param.OracleDbTypeEx = global::Oracle.ManagedDataAccess.Client.OracleDbType.Decimal;
-            param.Size = 1024;
-            param.IsNullable = true;
-            param.SourceVersion = global::System.Data.DataRowVersion.Original;
-            this._commandCollection[1].Parameters.Add(param);
-            this._commandCollection[2] = new global::Oracle.ManagedDataAccess.Client.OracleCommand();
-            this._commandCollection[2].Connection = this.Connection;
-            this._commandCollection[2].CommandText = "SELECT        *\r\nFROM            sig_usuario\r\nWHERE        (login = :login) AND (" +
-                "senha = :senha)";
-            this._commandCollection[2].CommandType = global::System.Data.CommandType.Text;
-            param = new global::Oracle.ManagedDataAccess.Client.OracleParameter();
-            param.ParameterName = ":login";
-            param.DbType = global::System.Data.DbType.AnsiString;
-            param.OracleDbTypeEx = global::Oracle.ManagedDataAccess.Client.OracleDbType.Varchar2;
-            param.Size = 1024;
-            param.IsNullable = true;
-            this._commandCollection[2].Parameters.Add(param);
-            param = new global::Oracle.ManagedDataAccess.Client.OracleParameter();
-            param.ParameterName = ":senha";
-            param.DbType = global::System.Data.DbType.AnsiString;
-            param.OracleDbTypeEx = global::Oracle.ManagedDataAccess.Client.OracleDbType.Varchar2;
-            param.Size = 1024;
-            param.IsNullable = true;
-            this._commandCollection[2].Parameters.Add(param);
-            this._commandCollection[3] = new global::Oracle.ManagedDataAccess.Client.OracleCommand();
-            this._commandCollection[3].Connection = this.Connection;
-            this._commandCollection[3].CommandText = "DELETE SIG_USUARIO WHERE SQ_USUARIO =:SQ_USUARIO";
-            this._commandCollection[3].CommandType = global::System.Data.CommandType.Text;
-            param = new global::Oracle.ManagedDataAccess.Client.OracleParameter();
-            param.ParameterName = ":SQ_USUARIO";
-            param.DbType = global::System.Data.DbType.Decimal;
-            param.OracleDbTypeEx = global::Oracle.ManagedDataAccess.Client.OracleDbType.Decimal;
-            param.Size = 1024;
-            param.IsNullable = true;
-            param.SourceVersion = global::System.Data.DataRowVersion.Original;
-            this._commandCollection[3].Parameters.Add(param);
-            this._commandCollection[4] = new global::Oracle.ManagedDataAccess.Client.OracleCommand();
-            this._commandCollection[4].Connection = this.Connection;
-            this._commandCollection[4].CommandText = "INSERT INTO sig_usuario\r\n                         (NM_USUARIO, LOGIN, SENHA, DT_I" +
-                "NCLUSAO, NM_USUARIO_INCLUSAO)\r\nVALUES        (:NM_USUARIO, :LOGIN, :SENHA, SYSDA" +
-                "TE, USER)";
-            this._commandCollection[4].CommandType = global::System.Data.CommandType.Text;
-            param = new global::Oracle.ManagedDataAccess.Client.OracleParameter();
-            param.ParameterName = ":NM_USUARIO";
-            param.DbType = global::System.Data.DbType.AnsiString;
-            param.OracleDbTypeEx = global::Oracle.ManagedDataAccess.Client.OracleDbType.Varchar2;
-            param.Size = 1024;
-            param.IsNullable = true;
-            param.SourceColumn = "NM_USUARIO";
-            this._commandCollection[4].Parameters.Add(param);
-            param = new global::Oracle.ManagedDataAccess.Client.OracleParameter();
-            param.ParameterName = ":LOGIN";
-            param.DbType = global::System.Data.DbType.AnsiString;
-            param.OracleDbTypeEx = global::Oracle.ManagedDataAccess.Client.OracleDbType.Varchar2;
-            param.Size = 1024;
-            param.IsNullable = true;
-            param.SourceColumn = "LOGIN";
-            this._commandCollection[4].Parameters.Add(param);
-            param = new global::Oracle.ManagedDataAccess.Client.OracleParameter();
-            param.ParameterName = ":SENHA";
-            param.DbType = global::System.Data.DbType.AnsiString;
-            param.OracleDbTypeEx = global::Oracle.ManagedDataAccess.Client.OracleDbType.Varchar2;
-            param.Size = 1024;
-            param.IsNullable = true;
-            param.SourceColumn = "SENHA";
-            this._commandCollection[4].Parameters.Add(param);
-            this._commandCollection[5] = new global::Oracle.ManagedDataAccess.Client.OracleCommand();
-            this._commandCollection[5].Connection = this.Connection;
-            this._commandCollection[5].CommandText = "SELECT        *\r\nFROM            sig_usuario\r\nWHERE SQ_USUARIO =:SQ_USUARIO";
-            this._commandCollection[5].CommandType = global::System.Data.CommandType.Text;
-            param = new global::Oracle.ManagedDataAccess.Client.OracleParameter();
-            param.ParameterName = ":SQ_USUARIO";
-            param.DbType = global::System.Data.DbType.Decimal;
-            param.OracleDbTypeEx = global::Oracle.ManagedDataAccess.Client.OracleDbType.Decimal;
-            param.Size = 1024;
-            param.IsNullable = true;
-            this._commandCollection[5].Parameters.Add(param);
         }
         
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
         [global::System.ComponentModel.Design.HelpKeywordAttribute("vs.data.TableAdapter")]
         [global::System.ComponentModel.DataObjectMethodAttribute(global::System.ComponentModel.DataObjectMethodType.Select, true)]
-        public virtual DsUsuario.UsuarioDataTable Listar() {
+        public virtual DsPrefeitura.PrefeituraDataTable Listar() {
             this.Adapter.SelectCommand = this.CommandCollection[0];
-            DsUsuario.UsuarioDataTable dataTable = new DsUsuario.UsuarioDataTable();
+            DsPrefeitura.PrefeituraDataTable dataTable = new DsPrefeitura.PrefeituraDataTable();
             this.Adapter.Fill(dataTable);
             return dataTable;
-        }
-        
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-        [global::System.ComponentModel.Design.HelpKeywordAttribute("vs.data.TableAdapter")]
-        [global::System.ComponentModel.DataObjectMethodAttribute(global::System.ComponentModel.DataObjectMethodType.Select, false)]
-        public virtual DsUsuario.UsuarioDataTable EfetuarLogin(string login, string senha) {
-            this.Adapter.SelectCommand = this.CommandCollection[2];
-            if ((login == null)) {
-                throw new global::System.ArgumentNullException("login");
-            }
-            else {
-                this.Adapter.SelectCommand.Parameters[0].Value = ((string)(login));
-            }
-            if ((senha == null)) {
-                throw new global::System.ArgumentNullException("senha");
-            }
-            else {
-                this.Adapter.SelectCommand.Parameters[1].Value = ((string)(senha));
-            }
-            DsUsuario.UsuarioDataTable dataTable = new DsUsuario.UsuarioDataTable();
-            this.Adapter.Fill(dataTable);
-            return dataTable;
-        }
-        
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-        [global::System.ComponentModel.Design.HelpKeywordAttribute("vs.data.TableAdapter")]
-        [global::System.ComponentModel.DataObjectMethodAttribute(global::System.ComponentModel.DataObjectMethodType.Select, false)]
-        public virtual DsUsuario.UsuarioDataTable Selecionar(decimal SQ_USUARIO) {
-            this.Adapter.SelectCommand = this.CommandCollection[5];
-            this.Adapter.SelectCommand.Parameters[0].Value = ((decimal)(SQ_USUARIO));
-            DsUsuario.UsuarioDataTable dataTable = new DsUsuario.UsuarioDataTable();
-            this.Adapter.Fill(dataTable);
-            return dataTable;
-        }
-        
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-        [global::System.ComponentModel.Design.HelpKeywordAttribute("vs.data.TableAdapter")]
-        [global::System.ComponentModel.DataObjectMethodAttribute(global::System.ComponentModel.DataObjectMethodType.Update, false)]
-        public virtual int AtualizarSenha(string Senha, decimal SQ_USUARIO) {
-            global::Oracle.ManagedDataAccess.Client.OracleCommand command = this.CommandCollection[1];
-            if ((Senha == null)) {
-                throw new global::System.ArgumentNullException("Senha");
-            }
-            else {
-                command.Parameters[0].Value = ((string)(Senha));
-            }
-            command.Parameters[1].Value = ((decimal)(SQ_USUARIO));
-            global::System.Data.ConnectionState previousConnectionState = command.Connection.State;
-            if (((command.Connection.State & global::System.Data.ConnectionState.Open) 
-                        != global::System.Data.ConnectionState.Open)) {
-                command.Connection.Open();
-            }
-            int returnValue;
-            try {
-                returnValue = command.ExecuteNonQuery();
-            }
-            finally {
-                if ((previousConnectionState == global::System.Data.ConnectionState.Closed)) {
-                    command.Connection.Close();
-                }
-            }
-            return returnValue;
-        }
-        
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-        [global::System.ComponentModel.Design.HelpKeywordAttribute("vs.data.TableAdapter")]
-        [global::System.ComponentModel.DataObjectMethodAttribute(global::System.ComponentModel.DataObjectMethodType.Delete, false)]
-        public virtual int Excluir(decimal SQ_USUARIO) {
-            global::Oracle.ManagedDataAccess.Client.OracleCommand command = this.CommandCollection[3];
-            command.Parameters[0].Value = ((decimal)(SQ_USUARIO));
-            global::System.Data.ConnectionState previousConnectionState = command.Connection.State;
-            if (((command.Connection.State & global::System.Data.ConnectionState.Open) 
-                        != global::System.Data.ConnectionState.Open)) {
-                command.Connection.Open();
-            }
-            int returnValue;
-            try {
-                returnValue = command.ExecuteNonQuery();
-            }
-            finally {
-                if ((previousConnectionState == global::System.Data.ConnectionState.Closed)) {
-                    command.Connection.Close();
-                }
-            }
-            return returnValue;
-        }
-        
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-        [global::System.ComponentModel.Design.HelpKeywordAttribute("vs.data.TableAdapter")]
-        [global::System.ComponentModel.DataObjectMethodAttribute(global::System.ComponentModel.DataObjectMethodType.Insert, false)]
-        public virtual int Incluir(string NM_USUARIO, string LOGIN, string SENHA) {
-            global::Oracle.ManagedDataAccess.Client.OracleCommand command = this.CommandCollection[4];
-            if ((NM_USUARIO == null)) {
-                command.Parameters[0].Value = global::System.DBNull.Value;
-            }
-            else {
-                command.Parameters[0].Value = ((string)(NM_USUARIO));
-            }
-            if ((LOGIN == null)) {
-                command.Parameters[1].Value = global::System.DBNull.Value;
-            }
-            else {
-                command.Parameters[1].Value = ((string)(LOGIN));
-            }
-            if ((SENHA == null)) {
-                command.Parameters[2].Value = global::System.DBNull.Value;
-            }
-            else {
-                command.Parameters[2].Value = ((string)(SENHA));
-            }
-            global::System.Data.ConnectionState previousConnectionState = command.Connection.State;
-            if (((command.Connection.State & global::System.Data.ConnectionState.Open) 
-                        != global::System.Data.ConnectionState.Open)) {
-                command.Connection.Open();
-            }
-            int returnValue;
-            try {
-                returnValue = command.ExecuteNonQuery();
-            }
-            finally {
-                if ((previousConnectionState == global::System.Data.ConnectionState.Closed)) {
-                    command.Connection.Close();
-                }
-            }
-            return returnValue;
         }
     }
     
@@ -1329,7 +1380,7 @@ namespace dal.DsUsuarioTableAdapters {
         ///</summary>
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-        private int UpdateUpdatedRows(DsUsuario dataSet, global::System.Collections.Generic.List<global::System.Data.DataRow> allChangedRows, global::System.Collections.Generic.List<global::System.Data.DataRow> allAddedRows) {
+        private int UpdateUpdatedRows(DsPrefeitura dataSet, global::System.Collections.Generic.List<global::System.Data.DataRow> allChangedRows, global::System.Collections.Generic.List<global::System.Data.DataRow> allAddedRows) {
             int result = 0;
             return result;
         }
@@ -1339,7 +1390,7 @@ namespace dal.DsUsuarioTableAdapters {
         ///</summary>
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-        private int UpdateInsertedRows(DsUsuario dataSet, global::System.Collections.Generic.List<global::System.Data.DataRow> allAddedRows) {
+        private int UpdateInsertedRows(DsPrefeitura dataSet, global::System.Collections.Generic.List<global::System.Data.DataRow> allAddedRows) {
             int result = 0;
             return result;
         }
@@ -1349,7 +1400,7 @@ namespace dal.DsUsuarioTableAdapters {
         ///</summary>
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-        private int UpdateDeletedRows(DsUsuario dataSet, global::System.Collections.Generic.List<global::System.Data.DataRow> allChangedRows) {
+        private int UpdateDeletedRows(DsPrefeitura dataSet, global::System.Collections.Generic.List<global::System.Data.DataRow> allChangedRows) {
             int result = 0;
             return result;
         }
@@ -1383,7 +1434,7 @@ namespace dal.DsUsuarioTableAdapters {
         ///</summary>
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-        public virtual int UpdateAll(DsUsuario dataSet) {
+        public virtual int UpdateAll(DsPrefeitura dataSet) {
             if ((dataSet == null)) {
                 throw new global::System.ArgumentNullException("dataSet");
             }

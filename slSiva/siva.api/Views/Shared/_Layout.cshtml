@@ -116,8 +116,23 @@
     <script src="~/Content/vendors/validator/validator.js"></script>
 
     <!-- Custom Theme Scripts -->
-    <script src="~/Content/build/js/custom.min.js"></script>
+    <script src="~/Content/build/js/custom.min.js"></script>    
     
+    <!--mascaras-->
+    <script src="~/Scripts/jquery.meiomask.js"></script>
+
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+
+            $('input[data-mask]').each(function () {
+                var input = $(this);
+                input.setMask(input.data('mask'), { autoTab: false });
+            });
+
+        });
+
+    </script>
     
     @RenderSection("scripts", required: false)
     

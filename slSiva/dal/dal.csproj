@@ -47,6 +47,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DsPrefeitura.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>DsPrefeitura.xsd</DependentUpon>
+    </Compile>
     <Compile Include="DsUsuario.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -61,6 +66,17 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <None Include="DsPrefeitura.xsc">
+      <DependentUpon>DsPrefeitura.xsd</DependentUpon>
+    </None>
+    <None Include="DsPrefeitura.xsd">
+      <SubType>Designer</SubType>
+      <Generator>MSDataSetGenerator</Generator>
+      <LastGenOutput>DsPrefeitura.Designer.cs</LastGenOutput>
+    </None>
+    <None Include="DsPrefeitura.xss">
+      <DependentUpon>DsPrefeitura.xsd</DependentUpon>
+    </None>
     <None Include="DsUsuario.xsc">
       <DependentUpon>DsUsuario.xsd</DependentUpon>
     </None>

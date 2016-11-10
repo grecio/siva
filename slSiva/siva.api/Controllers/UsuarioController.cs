@@ -1,7 +1,5 @@
 ﻿using siva.api.Filters;
 using System;
-using System.Collections.Generic;
-using System.Web.Http;
 using System.Web.Mvc;
 
 namespace siva.api.Controllers
@@ -30,7 +28,7 @@ namespace siva.api.Controllers
             {
                 return RedirectToAction("AlterarSenha");
             }
-        }
+        }        
 
         [SessionExpire]
         public ActionResult AlterarSenha()
@@ -54,6 +52,45 @@ namespace siva.api.Controllers
             }
             
         }
-      
+
+        [SessionExpire]
+        [HttpPost]
+        public ActionResult Registrar([System.Web.Http.FromBody]presenter.Usuario usuario)
+        {
+            try
+            {
+                bpUsuario.Incluir(usuario.Nome, usuario.Login, usuario.Senha);                
+
+                return RedirectToAction("Index");
+            }
+            catch(Exception ex)
+            {
+                ShowMsg(ex.Message);
+                return RedirectToAction("Novo");
+            }
+        }
+
+        [SessionExpire]
+        public ActionResult Novo()
+        {
+            return View(UsuarioLogado);
+        }
+
+        [SessionExpire]
+        [HttpPost]
+        public JsonResult Excluir([System.Web.Http.FromBody]presenter.Usuario usuario)
+        {
+            try
+            {
+                bpUsuario.Excluir(usuario.Id);
+                
+                return Json(new { result = "ok"});
+            }
+            catch (Exception ex)
+            {
+                return Json(new { ex = ex.Message });
+            }
+        }
+
     }
 }
