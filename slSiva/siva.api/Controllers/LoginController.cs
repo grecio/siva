@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Web.Mvc;
-using System.Linq;
 
 namespace siva.api.Controllers
 {
     public class LoginController : Controller
     {
-        private readonly bll.Usuario bpUsuario;
+        private readonly BLL.Usuario bpUsuario;
 
         public LoginController()
         {
-            this.bpUsuario = new bll.Usuario();
+            this.bpUsuario = new BLL.Usuario();
         }
 
         public ActionResult Index()
@@ -19,7 +18,7 @@ namespace siva.api.Controllers
         }
 
         [HttpPost]
-        public JsonResult Entrar([System.Web.Http.FromBody]presenter.Usuario usuario)
+        public ActionResult Entrar([System.Web.Http.FromBody]Dominio.Usuario usuario)
         {
             try
             {
@@ -27,14 +26,14 @@ namespace siva.api.Controllers
 
                 if (dt.Count > 0)
                 {
-                    Session["UsuarioLogado"] = new presenter.Usuario(dt[0]);
+                    Session["UsuarioLogado"] = new Dominio.Usuario(dt[0]);
                 }
 
-                return Json(new { result = Session["UsuarioLogado"]  as presenter.Usuario});
+                return RedirectToAction("Index", "Principal");
             }
             catch (Exception ex)
             {
-                return Json(new { ex = ex.Message });
+                return RedirectToAction("Index");
             }            
         }            
     }

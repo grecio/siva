@@ -10,7 +10,7 @@
 
 #pragma warning disable 1591
 
-namespace dal {
+namespace DAL {
     
     
     /// <summary>
@@ -874,7 +874,7 @@ namespace dal {
         }
     }
 }
-namespace dal.DsUsuarioTableAdapters {
+namespace DAL.DsUsuarioTableAdapters {
     
     
     /// <summary>
@@ -1013,7 +1013,7 @@ namespace dal.DsUsuarioTableAdapters {
         [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
         private void InitConnection() {
             this._connection = new global::Oracle.ManagedDataAccess.Client.OracleConnection();
-            this._connection.ConnectionString = global::dal.Properties.Settings.Default.ConnectionString;
+            this._connection.ConnectionString = global::DAL.Properties.Settings.Default.ConnectionString;
         }
         
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]

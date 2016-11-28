@@ -1,4 +1,4 @@
-﻿namespace presenter
+﻿namespace Dominio
 {
     public class EntidadeBase
     {

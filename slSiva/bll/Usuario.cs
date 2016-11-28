@@ -1,28 +1,28 @@
 ﻿using CommonFrameWork;
 
-namespace bll
+namespace BLL
 {
     public class Usuario
     {
-        public dal.DsUsuario.UsuarioDataTable Listar()
+        public DAL.DsUsuario.UsuarioDataTable Listar()
         {
-            using (var adp = new dal.DsUsuarioTableAdapters.UsuarioTableAdapter())
+            using (var adp = new DAL.DsUsuarioTableAdapters.UsuarioTableAdapter())
             {
                 return adp.Listar();
             }
         }
 
-        public dal.DsUsuario.UsuarioDataTable Selecionar(decimal sqUsuario)
+        public DAL.DsUsuario.UsuarioDataTable Selecionar(decimal sqUsuario)
         {
-            using (var adp = new dal.DsUsuarioTableAdapters.UsuarioTableAdapter())
+            using (var adp = new DAL.DsUsuarioTableAdapters.UsuarioTableAdapter())
             {
                 return adp.Selecionar(sqUsuario);
             }
         }
 
-        public dal.DsUsuario.UsuarioDataTable EfetuarLogin(string Login, string Senha)
+        public DAL.DsUsuario.UsuarioDataTable EfetuarLogin(string Login, string Senha)
         {
-            using (var adp = new dal.DsUsuarioTableAdapters.UsuarioTableAdapter())
+            using (var adp = new DAL.DsUsuarioTableAdapters.UsuarioTableAdapter())
             {
                 Validador.Validar(!string.IsNullOrWhiteSpace(Login), "Informe o login.");
                 Validador.Validar(!string.IsNullOrWhiteSpace(Login), "Informe a senha.");
@@ -37,7 +37,7 @@ namespace bll
 
         public void AtualizarSenha(string Senha, decimal SQ_USUARIO)
         {
-            using (var adp = new dal.DsUsuarioTableAdapters.UsuarioTableAdapter())
+            using (var adp = new DAL.DsUsuarioTableAdapters.UsuarioTableAdapter())
             {
                 Validador.Validar(!string.IsNullOrWhiteSpace(Senha), "Informe a senha.");
                 Validador.Validar(SQ_USUARIO > 0, "Informe o usuário.");
@@ -48,7 +48,7 @@ namespace bll
 
         public void Incluir(string NM_USUARIO, string LOGIN, string SENHA)
         {
-            using (var adp = new dal.DsUsuarioTableAdapters.UsuarioTableAdapter())
+            using (var adp = new DAL.DsUsuarioTableAdapters.UsuarioTableAdapter())
             {
 
                 Validador.Validar(!string.IsNullOrWhiteSpace(NM_USUARIO), "Informe o nome do usuário.");
@@ -61,7 +61,7 @@ namespace bll
 
         public void Excluir(decimal SQ_USUARIO)
         {
-            using (var adp = new dal.DsUsuarioTableAdapters.UsuarioTableAdapter())
+            using (var adp = new DAL.DsUsuarioTableAdapters.UsuarioTableAdapter())
             {
 
                 Validador.Validar(SQ_USUARIO > 0, "Informe o usuário.");

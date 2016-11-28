@@ -1,0 +1,11 @@
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\presenter\bin\Debug\Dominio.dll
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\presenter\bin\Debug\Dominio.pdb
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\presenter\bin\Debug\DAL.dll
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\presenter\bin\Debug\Oracle.ManagedDataAccess.dll
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\presenter\bin\Debug\DAL.pdb
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\presenter\obj\Debug\Dominio.dll
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\presenter\obj\Debug\Dominio.pdb
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\presenter\obj\Debug\Dominio.csprojResolveAssemblyReference.cache
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\presenter\bin\Debug\DBBroker.dll
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\presenter\bin\Debug\DBBroker.xml
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\presenter\bin\Debug\pt\DBBroker.resources.dll

@@ -1,11 +1,11 @@
-﻿@model dal.DsUsuario.UsuarioDataTable
+﻿@model DAL.DsUsuario.UsuarioDataTable
 
 <div role="main" class="right_col">
     <div>
         <div class="page-title">
             <div class="title_left">
                 <h3>Cadastro de Usuários</h3>
-            </div>            
+            </div>
         </div>
         <div class="clearfix"></div>
         <div class="row">
@@ -26,14 +26,28 @@
                             </thead>
                             <tbody>
 
-                                @foreach (dal.DsUsuario.UsuarioRow row in Model.Rows)
+                                @foreach (DAL.DsUsuario.UsuarioRow row in Model.Rows)
                                 {
                                     <tr>
                                         <td>@row.NM_USUARIO</td>
                                         <td>@row.LOGIN</td>
                                         <td class="col-lg-2">
-                                            <a href="#" class="btn btn-primary btn-xs"><i class="fa fa-folder"></i> Prefeituras </a>                                                                                        
-                                            <a href="#" class="btn btn-danger btn-xs" id="cmdExcluir" data-key="@row.SQ_USUARIO"><i class="fa fa-trash-o"></i> Excluir </a>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-success dropdown-toggle btn-xs">Ações</button>
+                                                <button type="button" class="btn btn-success dropdown-toggle btn-xs" data-toggle="dropdown" aria-expanded="false">
+                                                    <span class="caret"></span>
+                                                    <span class="sr-only">Toggle Dropdown</span>
+                                                </button>
+                                                <ul class="dropdown-menu" role="menu">
+                                                    <li>
+                                                        <a href="#">Prefeituras </a>
+                                                    </li>                                                    
+                                                    <li class="divider"></li>
+                                                    <li>
+                                                        <a class="cmdExcluir" data-key="@row.SQ_USUARIO"> Excluir </a>
+                                                    </li>
+                                                </ul>
+                                            </div>                                            
                                         </td>
                                     </tr>
                                 }
@@ -80,9 +94,8 @@
 
             });
 
-            $("#cmdExcluir").on('click', function () {
-
-
+            $(".cmdExcluir").on('click', function () {
+                            
                 var _self = $(this);
 
                 if (confirm('deseja realmente excluir?')) {
@@ -99,13 +112,13 @@
                             }
 
                             if (data.result != null) {
-                                
+
                                 document.location.href = '@Url.Action("Index", "Usuario")';
 
                             }
 
                         },
-                        data: {Id: _self.data('key')}
+                        data: { Id: _self.data('key') }
                     });
 
                 }

@@ -1,8 +1,5 @@
 ﻿using siva.api.Filters;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
 using System.Web.Mvc;
 
 namespace siva.api.Controllers
@@ -10,29 +7,26 @@ namespace siva.api.Controllers
     public class PrefeiturasController : BaseController
     {
 
-        private readonly bll.Prefeitura bpPrefeitura;
+        private readonly BLL.Prefeitura bpPrefeitura;
 
         public PrefeiturasController()
         {
-            bpPrefeitura = new bll.Prefeitura();
+            bpPrefeitura = new BLL.Prefeitura();
         }
 
         [SessionExpire]
         public ActionResult Index()
         {
-
             try
             {
                 var dt = bpPrefeitura.Listar();
-
                 return View(dt);
 
             }
             catch (Exception ex)
             {
                 throw;
-            }
-            
+            }            
         }
 
         [SessionExpire]
@@ -43,7 +37,7 @@ namespace siva.api.Controllers
 
         [SessionExpire]
         [HttpPost]
-        public ActionResult Registrar([System.Web.Http.FromBody]presenter.Prefeitura prefeitura)
+        public ActionResult Registrar([System.Web.Http.FromBody]Dominio.Prefeitura prefeitura)
         {
             try
             {

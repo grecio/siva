@@ -2,3 +2,4 @@ C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\framework\bin\Debug\framework.d
 C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\framework\bin\Debug\framework.pdb
 C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\framework\obj\Debug\framework.dll
 C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\framework\obj\Debug\framework.pdb
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\framework\obj\Debug\framework.csprojResolveAssemblyReference.cache

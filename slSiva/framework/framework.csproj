@@ -7,8 +7,8 @@
     <ProjectGuid>{CDA58391-12ED-4F44-A5A5-2159727B6A2A}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>framework</RootNamespace>
-    <AssemblyName>framework</AssemblyName>
+    <RootNamespace>Framework</RootNamespace>
+    <AssemblyName>Framework</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

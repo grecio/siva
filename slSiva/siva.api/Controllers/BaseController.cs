@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Web;
 using System.Web.Http;
 using System.Web.Mvc;
 using System.Web.Routing;
@@ -8,14 +9,14 @@ namespace siva.api.Controllers
 {
     public class BaseController : Controller
     {
-        public presenter.Usuario UsuarioLogado
+        public Dominio.Usuario UsuarioLogado
         {
             get
             {
                 
                 if (Session["UsuarioLogado"] != null)
                 {
-                    return Session["UsuarioLogado"] as presenter.Usuario;
+                    return Session["UsuarioLogado"] as Dominio.Usuario;
                 }
 
                 return null;
@@ -36,6 +37,9 @@ namespace siva.api.Controllers
 
         public void ShowMsg(string mensagem)
         {
+
+            mensagem = HttpUtility.JavaScriptStringEncode(mensagem);
+            
             TempData["msg"] = string.Format("alert('{0}');", mensagem);
         }        
 

@@ -6,15 +6,15 @@ namespace siva.api.Controllers
 {
     public class UsuarioController : BaseController
     {
-        private readonly bll.Usuario bpUsuario;
+        private readonly BLL.Usuario bpUsuario;
 
         public UsuarioController()
         {
-            this.bpUsuario = new bll.Usuario();
+            this.bpUsuario = new BLL.Usuario();
         }
 
         [SessionExpire]
-        public ActionResult Alterar([System.Web.Http.FromBody]presenter.Usuario usuario)
+        public ActionResult Alterar([System.Web.Http.FromBody]Dominio.Usuario usuario)
         {
             try
             {
@@ -55,7 +55,7 @@ namespace siva.api.Controllers
 
         [SessionExpire]
         [HttpPost]
-        public ActionResult Registrar([System.Web.Http.FromBody]presenter.Usuario usuario)
+        public ActionResult Registrar([System.Web.Http.FromBody]Dominio.Usuario usuario)
         {
             try
             {
@@ -78,7 +78,7 @@ namespace siva.api.Controllers
 
         [SessionExpire]
         [HttpPost]
-        public JsonResult Excluir([System.Web.Http.FromBody]presenter.Usuario usuario)
+        public JsonResult Excluir([System.Web.Http.FromBody]Dominio.Usuario usuario)
         {
             try
             {

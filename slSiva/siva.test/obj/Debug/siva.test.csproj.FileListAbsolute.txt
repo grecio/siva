@@ -1,0 +1,12 @@
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.test\bin\Debug\siva.test.dll
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.test\bin\Debug\siva.test.pdb
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.test\bin\Debug\DAL.dll
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.test\bin\Debug\DBBroker.dll
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.test\bin\Debug\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.test\bin\Debug\Oracle.ManagedDataAccess.dll
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.test\bin\Debug\DAL.pdb
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.test\bin\Debug\DBBroker.xml
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.test\bin\Debug\pt\DBBroker.resources.dll
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.test\obj\Debug\siva.test.csprojResolveAssemblyReference.cache
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.test\obj\Debug\siva.test.dll
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.test\obj\Debug\siva.test.pdb

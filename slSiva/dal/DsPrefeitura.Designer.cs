@@ -10,7 +10,7 @@
 
 #pragma warning disable 1591
 
-namespace dal {
+namespace DAL {
     
     
     /// <summary>
@@ -1141,7 +1141,7 @@ namespace dal {
         }
     }
 }
-namespace dal.DsPrefeituraTableAdapters {
+namespace DAL.DsPrefeituraTableAdapters {
     
     
     /// <summary>
@@ -1287,7 +1287,7 @@ namespace dal.DsPrefeituraTableAdapters {
         [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
         private void InitConnection() {
             this._connection = new global::Oracle.ManagedDataAccess.Client.OracleConnection();
-            this._connection.ConnectionString = global::dal.Properties.Settings.Default.ConnectionString;
+            this._connection.ConnectionString = global::DAL.Properties.Settings.Default.ConnectionString;
         }
         
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
@@ -1311,9 +1311,19 @@ TX_CONTATO,
 DT_INCLUSAO,
 NM_USUARIO_INCLUSAO,
 NU_HABITANTES,
-QT_EXTENSAO_TERRITORIAL
-TX_COMPLEMENTO, VALUES (
-:NM_PREFEITURA,:NM_PREFEITO, :NM_SEC_TRIBUTACAO, :NM_CONTADOR, :NM_LOGRADOURO , :NU_NUMERO, :TX_CONTATO, sysdate, user, :NU_HABITANTES, :QT_EXTENSAO_TERRITORIAL)";
+QT_EXTENSAO_TERRITORIAL)
+VALUES (
+:NM_PREFEITURA,
+:NM_PREFEITO,
+:NM_SEC_TRIBUTACAO, 
+:NM_CONTADOR, 
+:NM_LOGRADOURO , 
+:NU_NUMERO, 
+:TX_CONTATO, 
+SYSDATE, 
+USER, 
+:NU_HABITANTES,
+:QT_EXTENSAO_TERRITORIAL)";
             this._commandCollection[1].CommandType = global::System.Data.CommandType.Text;
             global::Oracle.ManagedDataAccess.Client.OracleParameter param = new global::Oracle.ManagedDataAccess.Client.OracleParameter();
             param.ParameterName = "NM_PREFEITURA";

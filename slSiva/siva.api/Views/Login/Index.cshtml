@@ -1,5 +1,4 @@
-﻿@model presenter.Usuario
-@{Layout = null;}
+﻿@{Layout = null;}
 
 <!doctype html>
 <html>
@@ -33,7 +32,7 @@
         <div class="login_wrapper">
             <div class="animate form login_form">
                 <section class="login_content">
-                    <form action="/Login/Entrar" method="post">
+                    <form action="/Login/Entrar" method="post" name="frm">
                         <h1>SIVA</h1>
                         <div>
                             <input type="text" class="form-control" placeholder="Login" id="login" name="login" />
@@ -42,7 +41,7 @@
                             <input type="password" class="form-control" placeholder="Senha" id="senha" name="senha" />
                         </div>
                         <div>
-                            <button id="send" type="button" class="btn btn-success">Entrar</button>
+                            <input id="cmdEntrar" type="submit" class="btn btn-success" value="Entrar" />                            
                         </div>
 
                         <div class="clearfix"></div>
@@ -80,25 +79,21 @@
 
         $(document).ready(function () {
 
-            $('#send').on('click',function (e) {
+            $('#cmdEntrar').on('click', function (e) {
 
                 e.preventDefault();
+
+                var self = $(this);
 
                 if (!$.trim($("#login").val()))
                     return alert('Informe o login.');
 
                 if (!$.trim($("#senha").val()))
-                    return alert('Informe a Senha.');
+                    return alert('Informe a Senha.');                
 
+                document.frm.submit();
 
-                var usuario = {
-                    Login: $("#login").val(),
-                    Senha:$("#senha").val()
-                }
-
-                $('#target').html('sending..');
-
-                $.ajax({
+                @*$.ajax({
                     type: "POST",
                     url: '@Url.Action("Entrar", "Login")',
                     dataType: "json",
@@ -111,7 +106,7 @@
                        document.location.href = '@Url.Action("Index", "Principal")';
                     },
                     data: usuario
-                });
+                });*@
             });
         });
 

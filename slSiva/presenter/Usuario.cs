@@ -1,4 +1,4 @@
-﻿namespace presenter
+﻿namespace Dominio
 {
     public class Usuario : EntidadeBase
     {        
@@ -7,7 +7,7 @@
         public string Senha { get; set; }
 
 
-        public Usuario(dal.DsUsuario.UsuarioRow row)
+        public Usuario(DAL.DsUsuario.UsuarioRow row)
         {
             Id = row.SQ_USUARIO;
             Nome = row.NM_USUARIO;

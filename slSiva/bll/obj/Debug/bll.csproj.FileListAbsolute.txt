@@ -8,3 +8,6 @@ C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\bll\bin\Debug\framework.dll
 C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\bll\bin\Debug\dal.pdb
 C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\bll\bin\Debug\framework.pdb
 C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\bll\bin\Debug\Oracle.ManagedDataAccess.dll
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\bll\bin\Debug\DBBroker.dll
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\bll\bin\Debug\DBBroker.xml
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\bll\bin\Debug\pt\DBBroker.resources.dll
