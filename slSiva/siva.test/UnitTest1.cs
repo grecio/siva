@@ -13,9 +13,7 @@ namespace siva.test
             {
 
                 var dao = new DAL.DbUsuario();
-
-                var retorno = dao.EfetuarLogon("admin", "123");
-
+                                
                 Assert.Fail();
 
             }

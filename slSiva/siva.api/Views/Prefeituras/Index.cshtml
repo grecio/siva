@@ -1,4 +1,4 @@
-﻿@model DAL.DsPrefeitura.PrefeituraDataTable
+﻿@model IEnumerable<Dominio.Prefeitura>
 
 <div role="main" class="right_col">
     <div>
@@ -26,15 +26,30 @@
                             </thead>
                             <tbody>
 
-                                @foreach (DAL.DsPrefeitura.PrefeituraRow row in Model.Rows)
+                                @foreach (Dominio.Prefeitura row in Model.ToList())
                                 {
                                     <tr>
                                         <td>@row.NM_PREFEITURA</td>
                                         <td>@row.NM_PREFEITO</td>
                                         <td class="col-lg-2">
-                                            <a href="#" class="btn btn-primary btn-xs"><i class="fa fa-folder"></i> Prefeituras </a>
-                                            <a href="#" class="btn btn-info btn-xs"><i class="fa fa-pencil"></i> Editar </a>
-                                            <a href="#" class="btn btn-danger btn-xs" id="cmdExcluir" data-key="@row.SQ_PREFEITURA"><i class="fa fa-trash-o"></i> Excluir </a>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-success dropdown-toggle btn-xs">Ações</button>
+                                                <button type="button" class="btn btn-success dropdown-toggle btn-xs" data-toggle="dropdown" aria-expanded="false">
+                                                    <span class="caret"></span>
+                                                    <span class="sr-only">Toggle Dropdown</span>
+                                                </button>
+                                                <ul class="dropdown-menu" role="menu">
+                                                    <li>
+                                                        <a href="@Url.Action("Selecionar", new { Id = row.SQ_PREFEITURA })" class="cmdSel" data-key="@row.SQ_PREFEITURA"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span> Exibir</a>
+                                                    </li>
+                                                    <li>
+                                                        <a href="@Url.Action("Editar", new { Id = row.SQ_PREFEITURA })" class="cmdEdit" data-key="@row.SQ_PREFEITURA"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span> Editar</a>
+                                                    </li>
+                                                    <li>
+                                                        <a href="@Url.Action("Excluir", new { Id = row.SQ_PREFEITURA })" class="cmdDel" data-key="@row.SQ_PREFEITURA"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Excluir</a>                                                        
+                                                    </li>
+                                                </ul>
+                                            </div>
                                         </td>
                                     </tr>
                                 }
@@ -81,34 +96,15 @@
 
             });
 
-            $("#cmdExcluir").on('click', function () {
-
+            $(".cmdDel").on('click', function (e) {
 
                 var _self = $(this);
 
+                e.preventDefault();
+                
                 if (confirm('deseja realmente excluir?')) {
-
-
-                    $.ajax({
-                        type: "POST",
-                        url: '@Url.Action("Excluir", "Prefeituras")',
-                        dataType: "json",
-                        success: function (data) {
-
-                            if (data.ex != null) {
-                                return alert(data.ex);
-                            }
-
-                            if (data.result != null) {
-
-                                document.location.href = '@Url.Action("Index", "Prefeituras")';
-
-                            }
-
-                        },
-                        data: {Id: _self.data('key')}
-                    });
-
+                    
+                    document.location.href = _self.attr('href');
                 }
 
             });
@@ -180,6 +176,8 @@
             });
             TableManageButtons.init();
         });
+
+        @Html.Raw(TempData["msg"])        
     </script>
 
 }

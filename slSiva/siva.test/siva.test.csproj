@@ -65,6 +65,10 @@
       <Project>{39f1c046-4d47-42e9-9e3b-552d80ac63c7}</Project>
       <Name>DAL</Name>
     </ProjectReference>
+    <ProjectReference Include="..\presenter\Dominio.csproj">
+      <Project>{0373cb03-5c3d-4246-aa2c-34d66f244ff2}</Project>
+      <Name>Dominio</Name>
+    </ProjectReference>
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

@@ -1,4 +1,4 @@
-﻿@model DAL.DsUsuario.UsuarioDataTable
+﻿@model List<Dominio.Usuario>
 
 <div role="main" class="right_col">
     <div>
@@ -26,7 +26,7 @@
                             </thead>
                             <tbody>
 
-                                @foreach (DAL.DsUsuario.UsuarioRow row in Model.Rows)
+                                @foreach (Dominio.Usuario row in Model.ToList())
                                 {
                                     <tr>
                                         <td>@row.NM_USUARIO</td>
@@ -40,14 +40,14 @@
                                                 </button>
                                                 <ul class="dropdown-menu" role="menu">
                                                     <li>
-                                                        <a href="#">Prefeituras </a>
-                                                    </li>                                                    
+                                                        <a class="cmdExcluir" data-key="@row.SQ_USUARIO"> Excluir Usuário</a>
+                                                    </li>
                                                     <li class="divider"></li>
                                                     <li>
-                                                        <a class="cmdExcluir" data-key="@row.SQ_USUARIO"> Excluir </a>
+                                                        <a href="#">Vincular Prefeituras </a>
                                                     </li>
                                                 </ul>
-                                            </div>                                            
+                                            </div>
                                         </td>
                                     </tr>
                                 }
@@ -118,7 +118,7 @@
                             }
 
                         },
-                        data: { Id: _self.data('key') }
+                        data: { SQ_USUARIO: _self.data('key') }
                     });
 
                 }

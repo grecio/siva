@@ -6,11 +6,11 @@ namespace siva.api.Controllers
 {
     public class UsuarioController : BaseController
     {
-        private readonly BLL.Usuario bpUsuario;
+        private readonly BLL.BLLUsuario bpUsuario;
 
         public UsuarioController()
         {
-            this.bpUsuario = new BLL.Usuario();
+            this.bpUsuario = new BLL.BLLUsuario();
         }
 
         [SessionExpire]
@@ -18,16 +18,16 @@ namespace siva.api.Controllers
         {
             try
             {
-                bpUsuario.AtualizarSenha(usuario.Senha, UsuarioLogado.Id);
+                bpUsuario.AtualizarSenha(usuario.SENHA, UsuarioLogado.SQ_USUARIO);
 
                 ShowMsg("Senha alterada com sucesso!");
 
                 return RedirectToAction("AlterarSenha");
             }
-            catch 
+            catch
             {
                 return RedirectToAction("AlterarSenha");
-            }
+            }            
         }        
 
         [SessionExpire]
@@ -41,9 +41,9 @@ namespace siva.api.Controllers
         {
             try
             {
-                var dt = bpUsuario.Listar();
+                var usuarioList = bpUsuario.Listar();
 
-                return View(dt);
+                return View(usuarioList);
 
             }
             catch (Exception ex)
@@ -59,15 +59,15 @@ namespace siva.api.Controllers
         {
             try
             {
-                bpUsuario.Incluir(usuario.Nome, usuario.Login, usuario.Senha);                
+                bpUsuario.Incluir(usuario);
 
                 return RedirectToAction("Index");
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 ShowMsg(ex.Message);
                 return RedirectToAction("Novo");
-            }
+            }            
         }
 
         [SessionExpire]
@@ -82,9 +82,9 @@ namespace siva.api.Controllers
         {
             try
             {
-                bpUsuario.Excluir(usuario.Id);
-                
-                return Json(new { result = "ok"});
+                bpUsuario.Excluir(usuario.SQ_USUARIO);
+
+                return Json(new { result = "ok" });
             }
             catch (Exception ex)
             {

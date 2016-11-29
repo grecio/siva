@@ -10,3 +10,7 @@ C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.test\bin\Debug\pt\DBBroker
 C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.test\obj\Debug\siva.test.csprojResolveAssemblyReference.cache
 C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.test\obj\Debug\siva.test.dll
 C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.test\obj\Debug\siva.test.pdb
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.test\bin\Debug\Dapper.dll
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.test\bin\Debug\Dapper.xml
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.test\bin\Debug\Dominio.dll
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.test\bin\Debug\Dominio.pdb

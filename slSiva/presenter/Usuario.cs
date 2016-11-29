@@ -1,22 +1,16 @@
-﻿namespace Dominio
+﻿using System;
+
+namespace Dominio
 {
-    public class Usuario : EntidadeBase
-    {        
-        public string Nome { get; set; }
-        public string Login { get; set; }
-        public string Senha { get; set; }
-
-
-        public Usuario(DAL.DsUsuario.UsuarioRow row)
-        {
-            Id = row.SQ_USUARIO;
-            Nome = row.NM_USUARIO;
-            Login = row.LOGIN;            
-        }
-
-        public Usuario()
-        {
-
-        }
+    public class Usuario
+    {
+        public decimal SQ_USUARIO { get; set; }
+        public string NM_USUARIO { get; set; }
+        public string LOGIN { get; set; }
+        public string SENHA { get; set; }
+        public DateTime DT_INCLUSAO { get; set; }
+        public string NM_USUARIO_INCLUSAO { get; set; }
+        public DateTime DT_ALTERACAO { get; set; }
+        public string NM_USUARIO_ALTERACAO { get; set; }
     }
 }

@@ -3097,6 +3097,7 @@
     <Content Include="Views\Usuario\Novo.cshtml" />
     <Content Include="Views\Prefeituras\Index.cshtml" />
     <Content Include="Views\Prefeituras\Novo.cshtml" />
+    <Content Include="Views\Prefeituras\Selecionar.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="Content\vendors\moment\moment.d.ts" />

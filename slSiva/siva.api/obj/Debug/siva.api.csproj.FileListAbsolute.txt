@@ -53,6 +53,5 @@ C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.api\bin\framework.pdb
 C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.api\bin\Oracle.ManagedDataAccess.dll
 C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.api\bin\Dominio.dll
 C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.api\bin\Dominio.pdb
-C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.api\bin\DBBroker.dll
-C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.api\bin\DBBroker.xml
-C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.api\bin\pt\DBBroker.resources.dll
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.api\bin\Dapper.dll
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.api\bin\Dapper.xml

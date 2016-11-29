@@ -67,7 +67,7 @@
                         <div class="nav toggle"><a id="menu_toggle"><i class="fa fa-bars"></i></a></div>
                         <ul class="nav navbar-nav navbar-right">
                             <li>
-                                <a href="javascript:;" data-toggle="dropdown" aria-expanded="false" class="user-profile dropdown-toggle"><img src="~/Content/images/img.jpg" alt="">@Html.DisplayFor(item => (Session["UsuarioLogado"] as Dominio.Usuario).Nome)<span class="fa fa-angle-down"></span></a>
+                                <a href="javascript:;" data-toggle="dropdown" aria-expanded="false" class="user-profile dropdown-toggle"><img src="~/Content/images/img.jpg" alt="">@Html.DisplayFor(item => (Session["UsuarioLogado"] as Dominio.Usuario).NM_USUARIO)<span class="fa fa-angle-down"></span></a>
                                 <ul class="dropdown-menu dropdown-usermenu pull-right">
                                     <li><a href="Usuario/AlterarSenha">Alterar Senha</a></li>
                                     <li><a href="javascript:;">Ajuda</a></li>

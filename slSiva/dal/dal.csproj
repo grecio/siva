@@ -30,8 +30,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DBBroker, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\DBBroker.1.1.0\lib\net20\DBBroker.dll</HintPath>
+    <Reference Include="Dapper, Version=1.50.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Dapper.1.50.2\lib\net451\Dapper.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Oracle.ManagedDataAccess, Version=4.121.2.0, Culture=neutral, PublicKeyToken=89b483f429c47342, processorArchitecture=MSIL" />
@@ -54,17 +54,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DbPrefeitura.cs" />
     <Compile Include="DbUsuario.cs" />
-    <Compile Include="DsPrefeitura.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>DsPrefeitura.xsd</DependentUpon>
-    </Compile>
-    <Compile Include="DsUsuario.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>DsUsuario.xsd</DependentUpon>
-    </Compile>
+    <Compile Include="OracleDynamicParameters.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -74,28 +66,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="DsPrefeitura.xsc">
-      <DependentUpon>DsPrefeitura.xsd</DependentUpon>
-    </None>
-    <None Include="DsPrefeitura.xsd">
-      <SubType>Designer</SubType>
-      <Generator>MSDataSetGenerator</Generator>
-      <LastGenOutput>DsPrefeitura.Designer.cs</LastGenOutput>
-    </None>
-    <None Include="DsPrefeitura.xss">
-      <DependentUpon>DsPrefeitura.xsd</DependentUpon>
-    </None>
-    <None Include="DsUsuario.xsc">
-      <DependentUpon>DsUsuario.xsd</DependentUpon>
-    </None>
-    <None Include="DsUsuario.xsd">
-      <SubType>Designer</SubType>
-      <Generator>MSDataSetGenerator</Generator>
-      <LastGenOutput>DsUsuario.Designer.cs</LastGenOutput>
-    </None>
-    <None Include="DsUsuario.xss">
-      <DependentUpon>DsUsuario.xsd</DependentUpon>
-    </None>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -108,6 +78,12 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\presenter\Dominio.csproj">
+      <Project>{0373cb03-5c3d-4246-aa2c-34d66f244ff2}</Project>
+      <Name>Dominio</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

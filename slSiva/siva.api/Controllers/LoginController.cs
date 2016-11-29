@@ -5,11 +5,11 @@ namespace siva.api.Controllers
 {
     public class LoginController : Controller
     {
-        private readonly BLL.Usuario bpUsuario;
+        private readonly BLL.BLLUsuario bpUsuario;
 
         public LoginController()
         {
-            this.bpUsuario = new BLL.Usuario();
+            this.bpUsuario = new BLL.BLLUsuario();
         }
 
         public ActionResult Index()
@@ -22,11 +22,11 @@ namespace siva.api.Controllers
         {
             try
             {
-                var dt = bpUsuario.EfetuarLogin(usuario.Login, usuario.Senha);
+                var usuarioDb = bpUsuario.EfetuarLogin(usuario.LOGIN, usuario.SENHA);
 
-                if (dt.Count > 0)
+                if (usuarioDb.SQ_USUARIO > 0)
                 {
-                    Session["UsuarioLogado"] = new Dominio.Usuario(dt[0]);
+                    Session["UsuarioLogado"] = usuarioDb;
                 }
 
                 return RedirectToAction("Index", "Principal");
