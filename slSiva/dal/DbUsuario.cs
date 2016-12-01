@@ -32,6 +32,16 @@ namespace DAL
             }
         }
 
+        public IEnumerable<decimal> RetornaPrefeiturasPorUsuario(decimal SQ_USUARIO)
+        {
+            using (OracleConnection cnn = new OracleConnection(Properties.Settings.Default.ConnectionString))
+            {
+                return cnn.Query<decimal>("select SQ_PREFEITURA from SIG_USUARIO_PREFEITURA Where SQ_USUARIO=:SQ_USUARIO ", new { SQ_USUARIO = SQ_USUARIO });
+            }
+            
+
+        }
+
         public void AtualizarSenha(string senha, decimal SQ_USUARIO)
         {
             using (OracleConnection cnn = new OracleConnection(Properties.Settings.Default.ConnectionString))

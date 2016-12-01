@@ -1,16 +1,21 @@
 ﻿using siva.api.Filters;
+using siva.api.Models;
 using System;
 using System.Web.Mvc;
+using System.Linq;
 
 namespace siva.api.Controllers
 {
     public class UsuarioController : BaseController
     {
         private readonly BLL.BLLUsuario bpUsuario;
+        private readonly BLL.BLLPrefeitura bpPrefeitura;
 
         public UsuarioController()
         {
-            this.bpUsuario = new BLL.BLLUsuario();
+            bpUsuario = new BLL.BLLUsuario();
+            bpPrefeitura = new BLL.BLLPrefeitura();
+
         }
 
         [SessionExpire]
@@ -51,6 +56,45 @@ namespace siva.api.Controllers
                 throw;
             }
             
+        }
+
+        [SessionExpire]
+        public ActionResult VincularPrefeitura(decimal Id)
+        {
+            try
+            {
+                var usuarioDb = bpUsuario.Selecionar(Id);
+                var prefeturasDb = bpPrefeitura.Listar().ToList();
+                var usuarioPrefeituraDb = bpUsuario.RetornaPrefeiturasPorUsuario(Id).ToList();
+
+                var usuarioPrefeituraViewModel = new UsuarioPrefeituraViewModel()
+                {
+                    Usuario = usuarioDb,
+                    PrefeituraList = prefeturasDb,
+                    UsuarioPrefeituraList = usuarioPrefeituraDb
+
+                };
+
+                return View(usuarioPrefeituraViewModel);
+
+            }
+            catch (Exception )
+            {
+
+                throw;
+            }            
+        }
+
+        public JsonResult Vincular(decimal[] prefeiturasSelecionadas)
+        {
+            try
+            {
+                return Json(new { Result = "Ok" });
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
         }
 
         [SessionExpire]

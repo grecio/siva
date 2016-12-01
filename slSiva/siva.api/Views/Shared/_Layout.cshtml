@@ -7,19 +7,24 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Solução Tributos </title>
+    
     <!-- Bootstrap-->
     <link href="~/Content/vendors/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    
     <!-- Font Awesome-->
     <link href="~/Content/vendors/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+    
     <!-- Custom Theme Style-->
     <link href="~/Content/build/css/custom.min.css" rel="stylesheet">
 
     <!-- FullCalendar -->
     <link href="~/Content/vendors/fullcalendar/dist/fullcalendar.min.css" rel="stylesheet">
 
+    <!--calendar-->
     <link href="~/Content/vendors/fullcalendar/dist/fullcalendar.print.css" rel="stylesheet" media="print">
 
-
+    <!-- Switchery -->
+    <link href="~/Content/vendors/switchery/dist/switchery.min.css" rel="stylesheet">
 
 </head>
 <body class="nav-md">
@@ -48,6 +53,14 @@
                                     <ul class="nav child_menu">
                                         <li>@Html.ActionLink("Usuários", "Index", "Usuario")</li>
                                         <li>@Html.ActionLink("Prefeituras", "Index", "Prefeituras")</li>                                        
+                                        <li><a href="/contadores">Contadores</a></li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <a><i class="fa fa-edit"></i> Segucança <span class="fa fa-chevron-down"></span></a>
+                                    <ul class="nav child_menu">
+                                        <li>@Html.ActionLink("Grupos de Usuários", "Index", "Usuario")</li>
+                                        <li>@Html.ActionLink("Permissões", "Index", "Prefeituras")</li>
                                         <li><a href="/contadores">Contadores</a></li>
                                     </ul>
                                 </li>
@@ -113,6 +126,9 @@
     <script src="~/Content/vendors/nprogress/nprogress.js"></script>
     <!-- validator -->
     <script src="~/Content/vendors/validator/validator.js"></script>
+
+    <!-- Switchery -->
+    <script src="~/Content/vendors/switchery/dist/switchery.min.js"></script>
 
     <!-- Custom Theme Scripts -->
     <script src="~/Content/build/js/custom.min.js"></script>

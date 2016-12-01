@@ -1,0 +1,158 @@
+﻿@model siva.api.Models.UsuarioPrefeituraViewModel
+
+<div role="main" class="right_col">
+    <div>
+        <div class="page-title">
+            <div class="title_left">
+                <h3>Vincular Prefeituras</h3>
+            </div>
+        </div>
+        <div class="clearfix"></div>
+        <div class="row">
+            <div class="col-md-12 col-sm-12 col-xs-12">
+                <div class="x_panel">
+                    <div class="x_content">
+                        <div class="panel panel-default">
+                            <!-- Default panel contents -->
+                            <div class="panel-heading">Dados do Usuário</div>
+                            <!-- List group -->
+                            <ul class="list-group">
+                                <li class="list-group-item">
+                                    <div class="item form-group">
+                                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="prefeito">
+                                            Nome
+                                        </label>
+                                        <div class="col-md-6 col-sm-6 col-xs-12">
+                                            @Model.Usuario.NM_USUARIO
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="list-group-item">
+                                    <div class="item form-group">
+                                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="prefeito">
+                                            Login
+                                        </label>
+                                        <div class="col-md-6 col-sm-6 col-xs-12">
+                                            @Model.Usuario.LOGIN
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="list-group-item">
+                                    <div class="item form-group">
+                                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="secretarioTributacao">
+                                            Criado em:
+                                        </label>
+                                        <div class="col-md-6 col-sm-6 col-xs-12">
+                                            @Model.Usuario.DT_INCLUSAO.ToString("dd/MM/yyyy hh:mm:ss")
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                        <br />
+                        <div class="panel panel-default">
+                            <!-- Default panel contents -->
+                            <div class="panel-heading">Vincular Prefeituras</div>
+                            <div class="panel-body">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <ul class="list-group">
+
+                                            @{
+                                                for (var i = 0; i < Model.PrefeituraList.Count; i++)
+                                                {
+
+                                                    var prefeitura = Model.PrefeituraList[i];
+
+                                                    <li class="list-group-item">
+                                                        <label>
+                                                            @Html.Raw(prefeitura.NM_PREFEITURA)
+                                                            @Html.CheckBox("prefeiturasSelecionadas", new { value = prefeitura.SQ_PREFEITURA, @checked = true, @class = "js-switch" })
+                                                        </label>
+                                                    </li>
+                                                }
+                                            }
+
+                                        </ul>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="ln_solid"></div>
+                        <div class="form-group">
+                            <div class="col-md-6">
+                                <a href="@Url.Action("Index")" class="btn btn-danger">Cancelar</a>
+                                <button id="cmdVincular" type="button" class="btn btn-success">Vincular</button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+
+    <!--Datatables-->
+    <script src="~/Content/vendors/datatables.net/js/jquery.dataTables.min.js"></script>
+    <script src="~/Content/vendors/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Content/vendors/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Content/vendors/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Content/vendors/datatables.net-buttons/js/buttons.flash.min.js"></script>
+    <script src="~/Content/vendors/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Content/vendors/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Content/vendors/datatables.net-fixedheader/js/dataTables.fixedHeader.min.js"></script>
+    <script src="~/Content/vendors/datatables.net-keytable/js/dataTables.keyTable.min.js"></script>
+    <script src="~/Content/vendors/datatables.net-responsive/js/dataTables.responsive.min.js"></script>
+    <script src="~/Content/vendors/datatables.net-responsive-bs/js/responsive.bootstrap.js"></script>
+    <script src="~/Content/vendors/datatables.net-scroller/js/datatables.scroller.min.js"></script>
+    <script src="~/Content/vendors/jszip/dist/jszip.min.js"></script>
+    <script src="~/Content/vendors/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Content/vendors/pdfmake/build/vfs_fonts.js"></script>
+
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+
+
+            $("#cmdVincular").on('click', function () {
+
+                var _self = $(this);
+
+                var prefeiturasSelecionadas = [];
+
+                $("input[name='prefeiturasSelecionadas']:checked").each(function () {
+                    prefeiturasSelecionadas.push($(this).val());
+                });
+                
+
+                return alert(prefeiturasSelecionadas.length)
+        
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("Vincular", "Usuario")',
+                    dataType: "json",
+                    success: function (data) {
+                        if (data.ex != null) {
+                            return alert(data.ex);
+                        }
+
+                        if (data.result != null) {
+
+                            document.location.href = '@Url.Action("Index", "Usuario")';
+                        }
+
+                    },
+                    data: { PREFEITURAS_SELECIONADAS: prefeiturasSelecionadas }
+                });
+
+            });
+
+        });
+
+    </script>
+
+}

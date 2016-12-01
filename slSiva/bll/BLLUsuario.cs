@@ -37,6 +37,14 @@ namespace BLL
             }
         }
 
+        public IEnumerable<decimal> RetornaPrefeiturasPorUsuario(decimal SQ_USUARIO)
+        {
+            using (var dao = new DAL.DbUsuario())
+            {
+                return dao.RetornaPrefeiturasPorUsuario(SQ_USUARIO);
+            }
+        }
+
         public void AtualizarSenha(string Senha, decimal SQ_USUARIO)
         {
             using (var dao = new DAL.DbUsuario())
@@ -71,5 +79,6 @@ namespace BLL
                 dao.Excluir(SQ_USUARIO);
             }
         }
+
     }
 }

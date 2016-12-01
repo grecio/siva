@@ -35,6 +35,7 @@ namespace siva.api.Controllers
             return View(UsuarioLogado);
         }
 
+        
         [SessionExpire]
         public ActionResult Selecionar(decimal Id)
         {
@@ -68,7 +69,6 @@ namespace siva.api.Controllers
                 return RedirectToAction("Index");
             }
         }
-
 
         [SessionExpire]
         [HttpPost]

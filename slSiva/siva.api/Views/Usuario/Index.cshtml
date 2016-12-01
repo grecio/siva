@@ -40,11 +40,10 @@
                                                 </button>
                                                 <ul class="dropdown-menu" role="menu">
                                                     <li>
-                                                        <a class="cmdExcluir" data-key="@row.SQ_USUARIO"> Excluir Usuário</a>
-                                                    </li>
-                                                    <li class="divider"></li>
-                                                    <li>
-                                                        <a href="#">Vincular Prefeituras </a>
+                                                        <a class="cmdExcluir" data-key="@row.SQ_USUARIO"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Excluir</a>
+                                                    </li>                                                    
+                                                    <li>                                                        
+                                                        <a href="@Url.Action("VincularPrefeitura", new {Id = row.SQ_USUARIO })" class="cmdVincularPrefeitura" data-key="@row.SQ_USUARIO"><span class="glyphicon glyphicon-th-list" aria-hidden="true"></span> Vincular Prefeituras</a>
                                                     </li>
                                                 </ul>
                                             </div>
@@ -99,7 +98,6 @@
                 var _self = $(this);
 
                 if (confirm('deseja realmente excluir?')) {
-
 
                     $.ajax({
                         type: "POST",
