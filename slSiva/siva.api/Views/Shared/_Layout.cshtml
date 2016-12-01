@@ -1,4 +1,7 @@
-﻿<!DOCTYPE html>
+﻿@{
+    var usuarioLogado = (Session["UsuarioLogado"] as Dominio.Usuario);
+ }
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -7,13 +10,13 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Solução Tributos </title>
-    
+
     <!-- Bootstrap-->
     <link href="~/Content/vendors/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+
     <!-- Font Awesome-->
     <link href="~/Content/vendors/font-awesome/css/font-awesome.min.css" rel="stylesheet">
-    
+
     <!-- Custom Theme Style-->
     <link href="~/Content/build/css/custom.min.css" rel="stylesheet">
 
@@ -34,13 +37,22 @@
                 <div class="left_col scroll-view">
                     <div style="border: 0;" class="navbar nav_title"><a href="@Url.Action("Index", "Principal")" class="site_title"><span>SIVA</span></a></div>
                     <div class="clearfix"></div><br>
+                    <div class="profile">
+                        <div class="profile_pic">                            
+                            <img src="~/Content/images/user.png" alt="..." class="img-circle profile_img">
+                        </div>
+                        <div class="profile_info">
+                            <span>Bem vindo,</span>
+                            <h2>@Html.Raw(usuarioLogado.LOGIN)</h2>
+                        </div>
+                    </div>                    
+                    <div class="clearfix"></div><br>
                     <!-- sidebar menu-->
                     <div id="sidebar-menu" class="main_menu_side hidden-print main_menu">
                         <div class="menu_section">
-                            <h3>Menu geral</h3>
                             <ul class="nav side-menu">
                                 <li>
-                                    <a><i class="fa fa-home"></i> Consultas <span class="fa fa-chevron-down"></span></a>
+                                    <a><i class="fa fa-table"></i> Consultas <span class="fa fa-chevron-down"></span></a>
                                     <ul class="nav child_menu">
                                         <li><a href="index.html">Guia Mensal</a></li>
                                         <li><a href="index2.html">Informativo Fiscal</a></li>
@@ -52,16 +64,15 @@
                                     <a><i class="fa fa-edit"></i> Cadastros <span class="fa fa-chevron-down"></span></a>
                                     <ul class="nav child_menu">
                                         <li>@Html.ActionLink("Usuários", "Index", "Usuario")</li>
-                                        <li>@Html.ActionLink("Prefeituras", "Index", "Prefeituras")</li>                                        
+                                        <li>@Html.ActionLink("Prefeituras", "Index", "Prefeituras")</li>
                                         <li><a href="/contadores">Contadores</a></li>
                                     </ul>
                                 </li>
                                 <li>
-                                    <a><i class="fa fa-edit"></i> Segucança <span class="fa fa-chevron-down"></span></a>
+                                    <a><i class="fa fa-laptop"></i> Segurança <span class="fa fa-chevron-down"></span></a>
                                     <ul class="nav child_menu">
                                         <li>@Html.ActionLink("Grupos de Usuários", "Index", "Usuario")</li>
                                         <li>@Html.ActionLink("Permissões", "Index", "Prefeituras")</li>
-                                        <li><a href="/contadores">Contadores</a></li>
                                     </ul>
                                 </li>
                             </ul>
@@ -80,7 +91,7 @@
                         <div class="nav toggle"><a id="menu_toggle"><i class="fa fa-bars"></i></a></div>
                         <ul class="nav navbar-nav navbar-right">
                             <li>
-                                <a href="javascript:;" data-toggle="dropdown" aria-expanded="false" class="user-profile dropdown-toggle"><img src="~/Content/images/img.jpg" alt="">@Html.DisplayFor(item => (Session["UsuarioLogado"] as Dominio.Usuario).NM_USUARIO)<span class="fa fa-angle-down"></span></a>
+                                <a href="javascript:;" data-toggle="dropdown" aria-expanded="false" class="user-profile dropdown-toggle"><img src="~/Content/images/user.png" alt="">@Html.DisplayFor(item => usuarioLogado.LOGIN)<span class="fa fa-angle-down"></span></a>
                                 <ul class="dropdown-menu dropdown-usermenu pull-right">
                                     <li><a href="Usuario/AlterarSenha">Alterar Senha</a></li>
                                     <li><a href="javascript:;">Ajuda</a></li>
