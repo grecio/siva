@@ -54,8 +54,7 @@ namespace siva.api.Controllers
             catch (Exception ex)
             {
                 throw;
-            }
-            
+            }            
         }
 
         [SessionExpire]

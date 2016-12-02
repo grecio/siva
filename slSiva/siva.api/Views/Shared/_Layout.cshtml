@@ -29,6 +29,9 @@
     <!-- Switchery -->
     <link href="~/Content/vendors/switchery/dist/switchery.min.css" rel="stylesheet">
 
+    <!-- Select2 -->
+    <link href="~/Content/vendors/select2/dist/css/select2.min.css" rel="stylesheet">
+
 </head>
 <body class="nav-md">
     <div class="container body">
@@ -54,7 +57,7 @@
                                 <li>
                                     <a><i class="fa fa-table"></i> Consultas <span class="fa fa-chevron-down"></span></a>
                                     <ul class="nav child_menu">
-                                        <li><a href="index.html">Guia Mensal</a></li>
+                                        <li><a href="@Url.Action("Index", "Gim")">Guia Mensal</a></li>
                                         <li><a href="index2.html">Informativo Fiscal</a></li>
                                         <li><a href="index3.html">Conhecimento de Transporte</a></li>
                                         <li><a href="index3.html">DAS</a></li>
@@ -65,14 +68,16 @@
                                     <ul class="nav child_menu">
                                         <li>@Html.ActionLink("Usuários", "Index", "Usuario")</li>
                                         <li>@Html.ActionLink("Prefeituras", "Index", "Prefeituras")</li>
-                                        <li><a href="/contadores">Contadores</a></li>
+                                        <li><a href="#" onclick="javascript: return alert('em desenvolvimento');" >Contadores</a></li>
                                     </ul>
                                 </li>
                                 <li>
                                     <a><i class="fa fa-laptop"></i> Segurança <span class="fa fa-chevron-down"></span></a>
                                     <ul class="nav child_menu">
-                                        <li>@Html.ActionLink("Grupos de Usuários", "Index", "Usuario")</li>
-                                        <li>@Html.ActionLink("Permissões", "Index", "Prefeituras")</li>
+                                        <li><a href="#" onclick="javascript:return alert('Em desenvolvimento')">Grupos de Usuários</a></li>
+                                        <li><a href="#" onclick="javascript:return alert('Em desenvolvimento')">Permissões</a></li>
+                                        @*<li>@Html.ActionLink("Grupos de Usuários", "Index", "Usuario")</li>
+                                        <li>@Html.ActionLink("Permissões", "Index", "Prefeituras")</li>*@
                                     </ul>
                                 </li>
                             </ul>
@@ -147,13 +152,16 @@
     <!--mascaras-->
     <script src="~/Scripts/jquery.meiomask.js"></script>
 
+    <!-- Select2 -->
+    <script src="~/Content/vendors/select2/dist/js/select2.full.min.js"></script>
+
     <script type="text/javascript">
 
         $(document).ready(function () {
 
             $('input[data-mask]').each(function () {
                 var input = $(this);
-                input.setMask(input.data('mask'), { autoTab: false });
+                input.setMask(input.data('mask'), { autoTab: true });
             });
 
         });
