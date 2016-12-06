@@ -12,5 +12,15 @@ namespace Dominio
         public string NM_USUARIO_INCLUSAO { get; set; }
         public DateTime DT_ALTERACAO { get; set; }
         public string NM_USUARIO_ALTERACAO { get; set; }
+        public string ADMINISTRADOR { get; set; }
+        
+        public string EhAdministrador
+        {
+            get
+            {
+                return ADMINISTRADOR == "S" ? "Sim" : "Não";
+            }
+        }
+              
     }
 }

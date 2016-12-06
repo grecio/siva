@@ -80,6 +80,10 @@
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\framework\Framework.csproj">
+      <Project>{CDA58391-12ED-4F44-A5A5-2159727B6A2A}</Project>
+      <Name>Framework</Name>
+    </ProjectReference>
     <ProjectReference Include="..\presenter\Dominio.csproj">
       <Project>{0373cb03-5c3d-4246-aa2c-34d66f244ff2}</Project>
       <Name>Dominio</Name>

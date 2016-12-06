@@ -64,10 +64,13 @@
 
                                                     var prefeitura = Model.PrefeituraList[i];
 
+                                                    var permissao = Model.UsuarioPrefeituraList.Contains(prefeitura.SQ_PREFEITURA);
+
+
                                                     <li class="list-group-item">
                                                         <label>
                                                             @Html.Raw(prefeitura.NM_PREFEITURA)
-                                                            @Html.CheckBox("prefeiturasSelecionadas", new { value = prefeitura.SQ_PREFEITURA, @checked = true, @class = "js-switch" })
+                                                            @Html.CheckBox("prefeiturasSelecionadas", permissao ,   new { value = prefeitura.SQ_PREFEITURA, @class = "js-switch" })
                                                         </label>
                                                     </li>
                                                 }
@@ -83,7 +86,7 @@
                         <div class="form-group">
                             <div class="col-md-6">
                                 <a href="@Url.Action("Index")" class="btn btn-danger">Cancelar</a>
-                                <button id="cmdVincular" type="button" class="btn btn-success">Vincular</button>
+                                <button id="cmdVincular" type="button" class="btn btn-success" data-key="@Model.Usuario.SQ_USUARIO">Vincular</button>
                             </div>
                         </div>
 
@@ -122,15 +125,24 @@
 
                 var _self = $(this);
 
-                var prefeiturasSelecionadas = [];
+                var prefeiturasSel = [];
 
                 $("input[name='prefeiturasSelecionadas']:checked").each(function () {
-                    prefeiturasSelecionadas.push($(this).val());
+
+                    prefeiturasSel.push($(this).val());
+
                 });
                 
+                var UsuarioPrefeituraViewModel = {
 
-                return alert(prefeiturasSelecionadas.length)
-        
+                    Usuario: {
+                        SQ_USUARIO: _self.data('key')
+                    },
+                    UsuarioPrefeituraList: prefeiturasSel
+
+                };
+
+                       
                 $.ajax({
                     type: "POST",
                     url: '@Url.Action("Vincular", "Usuario")',
@@ -140,13 +152,13 @@
                             return alert(data.ex);
                         }
 
-                        if (data.result != null) {
+                        if (data.Result != null) {
 
                             document.location.href = '@Url.Action("Index", "Usuario")';
                         }
 
                     },
-                    data: { PREFEITURAS_SELECIONADAS: prefeiturasSelecionadas }
+                    data: { UsuarioPrefeituraViewModel }
                 });
 
             });

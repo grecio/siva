@@ -56,6 +56,17 @@ namespace BLL
             }
         }
 
+        public void VincularPrefeituras(UsuarioPrefeitura usuarioPrefeitura)
+        {
+            using (var dao = new DAL.DbUsuario())
+            {
+
+                Validador.Validar(usuarioPrefeitura.Usuario.SQ_USUARIO > 0, "Informe o usuário");
+                
+                dao.VincularPrefeituras(usuarioPrefeitura);
+            }
+        }
+
         public void Incluir(Usuario usuario)
         {
             using (var dao = new DAL.DbUsuario())

@@ -19,7 +19,7 @@
                         <div class="clearfix"></div>
                     </div>
                     <div class="x_content">
-                        <form class="form-horizontal form-label-left" method="post" action="@Url.Action("Registrar")" novalidate>
+                        <form class="form-horizontal form-label-left" method="post" action="@Url.Action("Cadastrar")" novalidate>
 
                             <div class="item form-group">
                                 <label class="control-label col-md-3 col-sm-3 col-xs-12" for="nome">
@@ -45,6 +45,15 @@
                                 </label>
                                 <div class="col-md-6 col-sm-6 col-xs-12">
                                     <input id="senha" class="form-control col-md-7 col-xs-12" name="SENHA" placeholder="Informe a nova senha" required="required" type="password">
+                                </div>
+                            </div>
+
+                            <div class="item form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="administrador">
+                                    Administrador
+                                </label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">                                    
+                                    @Html.CheckBox("administrador", false, new { @class = "js-switch" })
                                 </div>
                             </div>
 

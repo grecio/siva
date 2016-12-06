@@ -14,3 +14,5 @@ C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.test\bin\Debug\Dapper.dll
 C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.test\bin\Debug\Dapper.xml
 C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.test\bin\Debug\Dominio.dll
 C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.test\bin\Debug\Dominio.pdb
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.test\bin\Debug\Framework.dll
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.test\bin\Debug\Framework.pdb

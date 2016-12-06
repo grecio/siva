@@ -3,6 +3,8 @@ using siva.api.Models;
 using System;
 using System.Web.Mvc;
 using System.Linq;
+using Dominio;
+using System.Collections.Generic;
 
 namespace siva.api.Controllers
 {
@@ -84,10 +86,26 @@ namespace siva.api.Controllers
             }            
         }
 
-        public JsonResult Vincular(decimal[] prefeiturasSelecionadas)
+        [HttpPost]
+        [SessionExpire]        
+        public JsonResult Vincular(UsuarioPrefeituraViewModel usuarioPrefeituraViewModel)
         {
             try
             {
+                var usuarioPrefeitura = new UsuarioPrefeitura();
+
+
+                usuarioPrefeitura.Usuario = usuarioPrefeituraViewModel.Usuario;
+                usuarioPrefeitura.PrefeituraList = new List<Prefeitura>();
+
+                foreach (var sqPrefeitura in usuarioPrefeituraViewModel.UsuarioPrefeituraList)
+                {
+                    usuarioPrefeitura.PrefeituraList.Add(new Prefeitura() { SQ_PREFEITURA = sqPrefeitura });
+                }
+
+                bpUsuario.VincularPrefeituras(usuarioPrefeitura);
+                                
+                                                
                 return Json(new { Result = "Ok" });
             }
             catch (Exception ex)
@@ -98,10 +116,15 @@ namespace siva.api.Controllers
 
         [SessionExpire]
         [HttpPost]
-        public ActionResult Registrar([System.Web.Http.FromBody]Dominio.Usuario usuario)
+        public ActionResult Cadastrar([System.Web.Http.FromBody]Dominio.Usuario usuario)
         {
             try
             {
+
+                var admin = Convert.ToBoolean(usuario.ADMINISTRADOR);
+
+                usuario.ADMINISTRADOR = admin ? "S" : "N";
+                   
                 bpUsuario.Incluir(usuario);
 
                 return RedirectToAction("Index");
