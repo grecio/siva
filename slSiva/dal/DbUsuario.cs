@@ -55,76 +55,90 @@ namespace DAL
         public void VincularPrefeituras(UsuarioPrefeitura usuarioPrefeitura)
         {
 
-            using (TransactionScope scope = new TransactionScope())
+            using (OracleConnection dbConnection = new OracleConnection(Properties.Settings.Default.ConnectionString))
             {
-                using (OracleConnection dbConnection = new OracleConnection(Properties.Settings.Default.ConnectionString))
+
+                dbConnection.Open();
+
+                using (var trn = dbConnection.BeginTransaction())
                 {
                     try
                     {
-                        dbConnection.Execute(@"DELETE FROM SIG_USUARIO_PREFEITURA WHERE SQ_USUARIO = :SQ_USUARIO", new { SQ_USUARIO = usuarioPrefeitura.Usuario.SQ_USUARIO });
+                        dbConnection.Execute(@"DELETE FROM SIG_USUARIO_PREFEITURA WHERE SQ_USUARIO = :SQ_USUARIO", new { SQ_USUARIO = usuarioPrefeitura.Usuario.SQ_USUARIO }, trn);
 
 
                         foreach (var prefeitura in usuarioPrefeitura.PrefeituraList)
                         {
-                            dbConnection.Execute(@"INSERT INTO SIG_USUARIO_PREFEITURA (SQ_USUARIO, SQ_PREFEITURA) VALUES (:SQ_USUARIO, :SQ_PREFEITURA)", new { usuarioPrefeitura.Usuario.SQ_USUARIO, prefeitura.SQ_PREFEITURA });
+                            dbConnection.Execute(@"INSERT INTO SIG_USUARIO_PREFEITURA (SQ_USUARIO, SQ_PREFEITURA) VALUES (:SQ_USUARIO, :SQ_PREFEITURA)", new { usuarioPrefeitura.Usuario.SQ_USUARIO, prefeitura.SQ_PREFEITURA }, trn);
                         }
 
-                        scope.Complete();
+                        trn.Commit();
+
                     }
                     catch (Exception e)
                     {
-
+                        trn.Rollback();
                         throw e;
                     }
                 }
             }
-
         }
 
         public void Excluir(decimal seqUsuario)
         {
 
-            using (TransactionScope scope = new TransactionScope())
+            using (OracleConnection dbConnection = new OracleConnection(Properties.Settings.Default.ConnectionString))
             {
-                using (OracleConnection dbConnection = new OracleConnection(Properties.Settings.Default.ConnectionString))
+                dbConnection.Open();
+
+                using (var trn = dbConnection.BeginTransaction())
                 {
                     try
                     {
-                        dbConnection.Execute(@"DELETE FROM SIG_USUARIO_PREFEITURA WHERE SQ_USUARIO = :SQ_USUARIO", new { SQ_USUARIO = seqUsuario });
-                        
-                        dbConnection.Execute(@"DELETE FROM SIG_USUARIO WHERE(SQ_USUARIO = :SQ_USUARIO)", new { SQ_USUARIO = seqUsuario });
+                        dbConnection.Execute(@"DELETE FROM SIG_USUARIO_PREFEITURA WHERE SQ_USUARIO = :SQ_USUARIO", new { SQ_USUARIO = seqUsuario }, trn);
 
-                        scope.Complete();
+                        dbConnection.Execute(@"DELETE FROM SIG_USUARIO WHERE(SQ_USUARIO = :SQ_USUARIO)", new { SQ_USUARIO = seqUsuario }, trn);
+
+                        trn.Commit();
+
                     }
                     catch (Exception e)
                     {
 
+                        trn.Rollback();
+
                         throw e;
                     }
                 }
-            }        
+
+
+            }
+
         }
 
         public void Incluir(Usuario usuario)
         {
 
-            using (TransactionScope scope = new TransactionScope())
+            using (OracleConnection dbConnection = new OracleConnection(Properties.Settings.Default.ConnectionString))
             {
-                using (OracleConnection dbConnection = new OracleConnection(Properties.Settings.Default.ConnectionString))
+
+                dbConnection.Open();
+
+                using (var trn = dbConnection.BeginTransaction())
                 {
                     try
                     {
 
-                        usuario.SQ_USUARIO = dbConnection.ExecuteScalar<decimal>(@"SELECT SQ_USUARIO FROM SIG_USUARIO WHERE LOGIN = :LOGIN ", new { usuario.LOGIN });
+                        usuario.SQ_USUARIO = dbConnection.ExecuteScalar<decimal>(@"SELECT SQ_USUARIO FROM SIG_USUARIO WHERE LOGIN = :LOGIN ", new { usuario.LOGIN }, trn);
 
                         Validador.Validar(!(usuario.SQ_USUARIO > 0), "Já existe um usuário com o login informado");
 
-                        dbConnection.Execute(@"INSERT INTO sig_usuario (NM_USUARIO, LOGIN, SENHA, DT_INCLUSAO, NM_USUARIO_INCLUSAO, ADMINISTRADOR) VALUES(:NM_USUARIO, :LOGIN, :SENHA, SYSDATE, USER, :ADMINISTRADOR)", usuario);
+                        dbConnection.Execute(@"INSERT INTO sig_usuario (NM_USUARIO, LOGIN, SENHA, DT_INCLUSAO, NM_USUARIO_INCLUSAO, ADMINISTRADOR) VALUES(:NM_USUARIO, :LOGIN, :SENHA, SYSDATE, USER, :ADMINISTRADOR)", usuario, trn);
 
                         if (usuario.ADMINISTRADOR == "S")
                         {
 
-                            usuario.SQ_USUARIO = dbConnection.ExecuteScalar<decimal>(@"SELECT SQ_USUARIO FROM SIG_USUARIO WHERE LOGIN = :LOGIN AND SENHA = :SENHA", new { usuario.LOGIN, usuario.SENHA });
+                            usuario.SQ_USUARIO = dbConnection.ExecuteScalar<decimal>(@"SELECT SQ_USUARIO FROM SIG_USUARIO WHERE LOGIN = :LOGIN AND SENHA = :SENHA", new { usuario.LOGIN, usuario.SENHA }, trn);
 
                             dbConnection.Execute(@"DELETE FROM SIG_USUARIO_PREFEITURA WHERE SQ_USUARIO = :SQ_USUARIO", new { usuario.SQ_USUARIO });
 
@@ -133,23 +147,25 @@ namespace DAL
 
                             foreach (var prefeitura in prefeituras)
                             {
-                                dbConnection.Execute(@"INSERT INTO SIG_USUARIO_PREFEITURA (SQ_USUARIO, SQ_PREFEITURA) VALUES (:SQ_USUARIO, :SQ_PREFEITURA)", new { usuario.SQ_USUARIO, prefeitura.SQ_PREFEITURA });
+                                dbConnection.Execute(@"INSERT INTO SIG_USUARIO_PREFEITURA (SQ_USUARIO, SQ_PREFEITURA) VALUES (:SQ_USUARIO, :SQ_PREFEITURA)", new { usuario.SQ_USUARIO, prefeitura.SQ_PREFEITURA }, trn);
                             }
 
                         }
 
-                        scope.Complete();
+                        trn.Commit();
                     }
-                    catch (Exception e)
+                    catch
                     {
+                        trn.Rollback();
                         throw;
                     }
                 }
+
             }
         }
 
         #region IDisposable Support
-        private bool disposedValue = false; // To detect redundant calls
+        private bool disposedValue = false;
 
         protected virtual void Dispose(bool disposing)
         {
@@ -160,27 +176,16 @@ namespace DAL
                     GC.Collect();
                 }
 
-                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-                // TODO: set large fields to null.
-
                 disposedValue = true;
             }
         }
 
-        // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
-        // ~DbUsuario() {
-        //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-        //   Dispose(false);
-        // }
-
-        // This code added to correctly implement the disposable pattern.
         public void Dispose()
         {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             Dispose(true);
-            // TODO: uncomment the following line if the finalizer is overridden above.
-            // GC.SuppressFinalize(this);
+            GC.SuppressFinalize(this);
         }
         #endregion
     }
 }
+

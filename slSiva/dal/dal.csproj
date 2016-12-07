@@ -54,6 +54,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DbContador.cs" />
     <Compile Include="DbPrefeitura.cs" />
     <Compile Include="DbUsuario.cs" />
     <Compile Include="OracleDynamicParameters.cs" />
