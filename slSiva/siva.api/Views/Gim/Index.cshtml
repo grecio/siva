@@ -18,7 +18,7 @@
                         <div class="clearfix"></div>
                     </div>
                     <div class="x_content">
-                        <form class="form-horizontal form-label-left" method="post" action="@Url.Action("Registrar")" novalidate>
+                        <form class="form-horizontal form-label-left" method="post" action="@Url.Action("Consultar")" novalidate>
 
                             <div class="item form-group">
                                 <label class="control-label col-md-3 col-sm-3 col-xs-12" for="ie">
@@ -33,11 +33,8 @@
                             <div class="form-group">
                                 <label class="control-label col-md-3 col-sm-3 col-xs-12">Período</label>
                                 <div class="col-md-3 col-sm-3 col-xs-12">
-                                    <select class="select2_single form-control" tabindex="-1">
-                                        <option></option>
-                                        <option value="AK">2013/01</option>
-                                        <option value="HI">2013/02</option>
-                                        <option value="CA">2013/03</option>                                        
+                                    <select class="select2_single form-control" tabindex="-1" name="referencia">
+                                        <option></option>                                        
                                     </select>
                                 </div>
                             </div>
@@ -59,51 +56,69 @@
 @section scripts {
 
 
-
-    <!-- validator -->
-    <script>
+    <script type="text/javascript">
 
 
-        // initialize the validator function
-        validator.message.date = 'not a real date';
+        $(document).ready(function () {
 
-        // validate a field on "blur" event, a 'select' on 'change' event & a '.reuired' classed multifield on 'keyup':
-        $('form')
-          .on('blur', 'input[required], input.optional, select.required', validator.checkField)
-          .on('change', 'select.required', validator.checkField);
 
-        $('.multi.required').on('blur', 'input', function () {
-            validator.checkField.apply($(this).siblings().last()[0]);
+            validator.message.date = 'not a real date';            
+            $('form')
+              .on('blur', 'input[required], input.optional, select.required', validator.checkField)
+              .on('change', 'select.required', validator.checkField);
+
+            $('.multi.required').on('blur', 'input', function () {
+                validator.checkField.apply($(this).siblings().last()[0]);
+            });
+
+            $('form').submit(function (e) {
+
+                e.preventDefault();
+
+                var submit = true;
+
+                // evaluate the form using generic validaing
+                if (!validator.checkAll($(this))) {
+                    submit = false;
+                }
+
+                if (submit)
+                    this.submit();
+
+                return false;
+            });
+
+            $(".select2_single").select2({
+                placeholder: "Selecione um período (padrão AAAA/MM)",
+                allowClear: true
+            });
+
+            $("#ie").on('change', function postinput() {
+                
+                var _self = $(this);
+                
+
+                if ($.trim(_self.val()).length > 0) {
+                    
+
+                    $.ajax({
+                        url: '@Url.Action("PreencherReferencia")',
+                        data: { ie: _self.val() },
+                        type: 'post'
+                    }).done(function (data) {
+                        
+                        $(".select2_single").select2({
+                            data: data.referenciasList
+                        });                        
+
+                    }).fail(function () {
+                        alert('Não foi possível obter as referências.');
+                    });
+                }
+            });
+
         });
 
-        $('form').submit(function (e) {
-
-            e.preventDefault();
-
-            var submit = true;
-
-            // evaluate the form using generic validaing
-            if (!validator.checkAll($(this))) {
-                submit = false;
-            }
-
-            if (submit)
-                this.submit();
-
-            return false;
-        });
-
-        $(".select2_single").select2({
-            placeholder: "Selecione um período (padrão AAAA/MM)",
-            allowClear: true
-        });
-
-        $('#cmdConsultar').on('click', function (e) {
-
-            e.preventDefault();
-
-            return alert('Em desenvolvimento');
-        });
 
         @Html.Raw(TempData["msg"])
 

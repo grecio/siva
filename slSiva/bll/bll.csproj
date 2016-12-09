@@ -41,6 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BLLContador.cs" />
+    <Compile Include="BLLGim.cs" />
     <Compile Include="BLLPrefeitura.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="BLLUsuario.cs" />

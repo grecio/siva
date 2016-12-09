@@ -1,89 +1,72 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
 using System.Web.Mvc;
+using siva.api.Filters;
+using System.Collections;
+using System.Collections.Generic;
+using siva.api.Models;
 
 namespace siva.api.Controllers
 {
-    public class GimController : Controller
+    public class GimController : BaseController
     {
-        // GET: Gim
+        private readonly BLL.BLLGim bpGim;
+
+        public GimController()
+        {
+            bpGim = new BLL.BLLGim();
+        }
+
+        [SessionExpire]
         public ActionResult Index()
         {
             return View();
         }
 
-        // GET: Gim/Details/5
-        public ActionResult Details(int id)
-        {
-            return View();
-        }
-
-        // GET: Gim/Create
-        public ActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: Gim/Create
-        [HttpPost]
-        public ActionResult Create(FormCollection collection)
+        [SessionExpire]
+        public JsonResult PreencherReferencia(string ie)
         {
             try
             {
-                // TODO: Add insert logic here
+                var referenciasList = bpGim.RetornarReferenciaPorInscricao(ie);
 
-                return RedirectToAction("Index");
+                var lista = new ArrayList();
+
+                foreach (var item in referenciasList)
+                {
+                    lista.Add(new { id = item.NU_REFERENCIA, text = item.NU_REFERENCIA });
+                }
+
+                return Json(new { result = "ok", referenciasList = lista });
             }
-            catch
+            catch (Exception ex)
             {
-                return View();
+                return Json(new { ex = ex.Message });
             }
         }
 
-        // GET: Gim/Edit/5
-        public ActionResult Edit(int id)
-        {
-            return View();
-        }
-
-        // POST: Gim/Edit/5
-        [HttpPost]
-        public ActionResult Edit(int id, FormCollection collection)
-        {
-            try
-            {
-                // TODO: Add update logic here
-
-                return RedirectToAction("Index");
-            }
-            catch
-            {
-                return View();
-            }
-        }
-
-        // GET: Gim/Delete/5
-        public ActionResult Delete(int id)
-        {
-            return View();
-        }
-
-        // POST: Gim/Delete/5
-        [HttpPost]
-        public ActionResult Delete(int id, FormCollection collection)
+        [SessionExpire]
+        public ActionResult Consultar(string ie, decimal referencia)
         {
             try
             {
-                // TODO: Add delete logic here
+                var gimList = bpGim.RetornaGIMPorInscricaoReferencia(ie, referencia);
 
-                return RedirectToAction("Index");
+                var lista = new List<GIMViewModel>();
+
+                foreach (var item in gimList)
+                {
+                    lista.Add(new GIMViewModel() { Gim = item });
+                }
+
+                return View(lista);
+
+
             }
             catch
             {
-                return View();
+                throw;
             }
         }
+
     }
 }
