@@ -28,6 +28,15 @@ namespace BLL
             }
         }
 
+        public IEnumerable<Contribuinte> RetornaContribuintePorContador(decimal SQ_CONTADOR)
+        {
+            Validador.Validar(SQ_CONTADOR > 0, "Informe o contador.");
+
+            using (var dao = new DAL.DbContador())
+            {
+                return dao.RetornaContribuintePorContador(SQ_CONTADOR);
+            }
+        }
 
         public void Excluir(decimal SQ_CONTADOR)
         {

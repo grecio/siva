@@ -7,7 +7,7 @@
     <div>
         <div class="page-title">
             <div class="title_left">
-                <h3>Contadores</h3>
+                <h3>Cadastro de Contadores</h3>
             </div>
         </div>
         <div class="clearfix"></div>
@@ -19,7 +19,7 @@
                         <div class="clearfix"></div>
                     </div>
                     <div class="x_content">
-                        <form class="form-horizontal form-label-left" method="post" action="@Url.Action("Incluir")" novalidate>
+                        <form class="form-horizontal form-label-left" method="post" action="@Url.Action("Cadastrar")" novalidate>
 
                             <div class="item form-group">
                                 <label class="control-label col-md-3 col-sm-3 col-xs-12" for="nome">
@@ -35,7 +35,7 @@
                                     Nº CRC <span class="required">*</span>
                                 </label>
                                 <div class="col-md-6 col-sm-6 col-xs-12">
-                                    <input id="crc" class="form-control col-md-7 col-xs-12" name="NU_CRC" placeholder="Informe o Nº CRC" required="required" type="text">
+                                    <input id="crc" class="form-control col-md-7 col-xs-12" name="NU_CRC" placeholder="Informe o Nº CRC" required="required" type="text" data-mask="integer">
                                 </div>
                             </div>
 
@@ -71,7 +71,7 @@
                                     CEP
                                 </label>
                                 <div class="col-md-6 col-sm-6 col-xs-12">
-                                    <input id="cep" class="form-control col-md-7 col-xs-12" name="NU_CEP" placeholder="Informe o CEP" type="text">
+                                    <input id="cep" class="form-control col-md-7 col-xs-12" name="NU_CEP" placeholder="Informe o CEP" type="text" data-mask="cep">
                                 </div>
                             </div>
 
@@ -108,8 +108,8 @@
                             <div class="ln_solid"></div>
                             <div class="form-group">
                                 <div class="col-md-6 col-md-offset-3">
-                                    <a href="@Url.Action("Index")" class="btn btn-danger">Cancelar</a>                                    
                                     <button id="cmdCadastrar" type="submit" class="btn btn-success">Cadastrar</button>
+                                    <a href="@Url.Action("Index")" class="btn btn-danger">Cancelar</a>
                                 </div>
                             </div>
                         </form>

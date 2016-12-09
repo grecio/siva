@@ -183,8 +183,7 @@
                     mask: '9999 9999 9999 9999'
                 }, // credit card
                 'integer': {
-                    mask: '999999999999',
-                    type: 'reverse'                    
+                    mask: '999999999999'                    
                 },
                 'decimal': {
                     mask: '99,999999999999',

@@ -27,6 +27,16 @@ namespace DAL
             }
         }
 
+        public IEnumerable<Contribuinte> RetornaContribuintePorContador(decimal SQ_CONTADOR)
+        { 
+            using (OracleConnection cnn = new OracleConnection(Properties.Settings.Default.ConnectionString))
+            {
+                return cnn.Query<Contribuinte>(@"SELECT CM.* FROM ADM_OBJETOS.CAD_CONTRIBUINTE_MUNICIPAL CM
+                                                    INNER JOIN ADM_OBJETOS.CAD_CONTADOR_CONTRIBUINTE CC ON CC.SQ_CONTRIBUINTE = CM.SQ_CONTRIBUINTE
+                                                WHERE CC.SQ_CONTADOR = :SQ_CONTADOR", new { SQ_CONTADOR = SQ_CONTADOR });
+            }
+        }
+
         public void Incluir(Contador contador)
         {
             using (OracleConnection dbConnection = new OracleConnection(Properties.Settings.Default.ConnectionString))
@@ -38,8 +48,27 @@ namespace DAL
                     try
                     {
 
-                        dbConnection.Execute(@"INSERT INTO CAD_CONTADOR (NU_CRC, NM_CONTADOR, NM_LOGRADOURO, NU_LOGRADOURO, NM_COMPLEMENTO, NU_CEP, NM_BAIRRO, NU_TELEFONE, NM_EMAIL_COMERCIAL) 
-                                                VALUES (:NU_CRC, :NM_CONTADOR, :NM_LOGRADOURO, :NM_COMPLEMENTO, :NU_CEP, :NM_BAIRRO, :NU_TELEFONE, NM_EMAIL_COMERCIAL)", contador, trn);
+                        dbConnection.Execute(@"INSERT INTO 
+                                                CAD_CONTADOR 
+                                                    (NU_CRC, 
+                                                    NM_CONTADOR, 
+                                                    NM_LOGRADOURO,
+                                                    NU_LOGRADOURO, 
+                                                    NM_COMPLEMENTO, 
+                                                    NU_CEP, 
+                                                    NM_BAIRRO, 
+                                                    NU_TELEFONE, 
+                                                    NM_EMAIL_COMERCIAL) 
+                                                VALUES     
+                                                    (:NU_CRC, 
+                                                     :NM_CONTADOR, 
+                                                     :NM_LOGRADOURO, 
+                                                     :NU_LOGRADOURO,
+                                                     :NM_COMPLEMENTO, 
+                                                     :NU_CEP, 
+                                                     :NM_BAIRRO, 
+                                                     :NU_TELEFONE, 
+                                                     :NM_EMAIL_COMERCIAL)", contador, trn);
 
                         trn.Commit();
 

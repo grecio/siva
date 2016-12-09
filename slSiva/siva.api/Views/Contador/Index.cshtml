@@ -43,12 +43,12 @@
                                                 <ul class="dropdown-menu" role="menu">
                                                     <li>
                                                         <a href="@Url.Action("Selecionar", new { Id = row.SQ_CONTADOR })" class="cmdSel" data-key="@row.SQ_CONTADOR"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span> Exibir</a>
+                                                    </li>                                                    
+                                                    <li>
+                                                        <a class="cmdExcluir" data-key="@row.SQ_CONTADOR"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Excluir</a>                                                        
                                                     </li>
                                                     <li>
-                                                        <a href="@Url.Action("Editar", new { Id = row.SQ_CONTADOR })" class="cmdEdit" data-key="@row.SQ_CONTADOR"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span> Editar</a> 
-                                                    </li>
-                                                    <li>
-                                                        <a href="@Url.Action("Excluir", new { Id = row.SQ_CONTADOR })" class="cmdDel" data-key="@row.SQ_CONTADOR"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Excluir</a>
+                                                        <a href="@Url.Action("ExibirContribuinte", new {Id = row.SQ_CONTADOR })" class="cmdVincularContribuinte" data-key="@row.SQ_CONTADOR"><span class="glyphicon glyphicon-th-list" aria-hidden="true"></span> Exibir Empresas</a>
                                                     </li>
                                                 </ul>
                                             </div>
@@ -100,6 +100,36 @@
                 if (confirm('deseja realmente excluir?')) {
 
                     document.location.href = _self.attr('href');
+                }
+
+            });
+
+            $(".cmdExcluir").on('click', function () {
+
+                var _self = $(this);
+
+                if (confirm('deseja realmente excluir?')) {
+
+                    $.ajax({
+                        type: "POST",
+                        url: '@Url.Action("Excluir", "Contador")',
+                        dataType: "json",
+                        success: function (data) {
+
+                            if (data.ex != null) {
+                                return alert(data.ex);
+                            }
+
+                            if (data.result != null) {
+
+                                document.location.href = '@Url.Action("Index", "Contador")';
+
+                            }
+
+                        },
+                        data: { SQ_USUARIO: _self.data('key') }
+                    });
+
                 }
 
             });

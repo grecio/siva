@@ -1,0 +1,150 @@
+﻿@model siva.api.Models.ContadorViewModel
+
+<div role="main" class="right_col">
+    <div>
+        <div class="page-title">
+            <div class="title_left">
+                <h3>Cadastro de Contadores</h3>
+            </div>
+        </div>
+        <div class="clearfix"></div>
+        <div class="row">
+            <div class="col-md-12 col-sm-12 col-xs-12">
+                <div class="x_panel">
+                    <div class="x_title">
+                        <h2>Exibir</h2>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="x_content">
+                        <div class="panel panel-default">
+                            <!-- Default panel contents -->
+                            <div class="panel-heading">Descritivo</div>
+                            <div class="panel-body">
+                                <p>@Model.Contador.NM_CONTADOR</p>
+                            </div>
+
+                            <!-- List group -->
+                            <ul class="list-group">
+                                <li class="list-group-item">
+                                    <div class="item form-group">
+                                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="prefeito">
+                                            CRC
+                                        </label>
+                                        <div class="col-md-6 col-sm-6 col-xs-12">
+                                            @Model.Contador.NU_CRC
+                                        </div>
+                                    </div>
+                                </li>
+
+                                @if (Model.EnderecoDesnormalizado)
+                                {
+                                    <li class="list-group-item">
+                                        <div class="item form-group">
+                                            <label class="control-label col-md-3 col-sm-3 col-xs-12" for="secretarioTributacao">
+                                                Endereço Completo
+                                            </label>
+                                            <div class="col-md-6 col-sm-6 col-xs-12">
+                                                @Model.Contador.NM_LOGRADOURO
+                                            </div>
+                                        </div>
+                                    </li>
+                                }
+                                else
+                                {
+                                    <li class="list-group-item">
+                                        <div class="item form-group">
+                                            <label class="control-label col-md-3 col-sm-3 col-xs-12" for="secretarioTributacao">
+                                                Logradouro
+                                            </label>
+                                            <div class="col-md-6 col-sm-6 col-xs-12">
+                                                @Model.Contador.NM_LOGRADOURO
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <div class="item form-group">
+                                            <label class="control-label col-md-3 col-sm-3 col-xs-12" for="contador">
+                                                Nº
+                                            </label>
+                                            <div class="col-md-6 col-sm-6 col-xs-12">
+                                                @Model.Contador.NU_LOGRADOURO
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <div class="item form-group">
+                                            <label class="control-label col-md-3 col-sm-3 col-xs-12" for="logradouro">
+                                                CEP
+                                            </label>
+                                            <div class="col-md-6 col-sm-6 col-xs-12">
+                                                @Model.Contador.NU_CEP
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li class="list-group-item">
+
+                                        <div class="item form-group">
+                                            <label class="control-label col-md-3 col-sm-3 col-xs-3" for="numero">
+                                                Bairro
+                                            </label>
+                                            <div class="col-md-6 col-sm-6 col-xs-12">
+                                                @Model.Contador.NM_BAIRRO
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <div class="item form-group">
+                                            <label class="control-label col-md-3 col-sm-3 col-xs-12" for="complemento">
+                                                Telefone
+                                            </label>
+                                            <div class="col-md-6 col-sm-6 col-xs-12">
+                                                @Model.Contador.NU_TELEFONE
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <div class="item form-group">
+                                            <label class="control-label col-md-3 col-sm-3 col-xs-12" for="contato">
+                                                E-mail
+                                            </label>
+                                            <div class="col-md-6 col-sm-6 col-xs-12">
+                                                @Model.Contador.NM_EMAIL_COMERCIAL
+                                            </div>
+                                        </div>
+                                    </li>
+                                }
+                                                              
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-6">
+                            <a href="@Url.Action("Index")" class="btn btn-danger">Cancelar</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+
+    <!--Datatables-->
+    <script src="~/Content/vendors/datatables.net/js/jquery.dataTables.min.js"></script>
+    <script src="~/Content/vendors/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Content/vendors/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Content/vendors/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Content/vendors/datatables.net-buttons/js/buttons.flash.min.js"></script>
+    <script src="~/Content/vendors/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Content/vendors/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Content/vendors/datatables.net-fixedheader/js/dataTables.fixedHeader.min.js"></script>
+    <script src="~/Content/vendors/datatables.net-keytable/js/dataTables.keyTable.min.js"></script>
+    <script src="~/Content/vendors/datatables.net-responsive/js/dataTables.responsive.min.js"></script>
+    <script src="~/Content/vendors/datatables.net-responsive-bs/js/responsive.bootstrap.js"></script>
+    <script src="~/Content/vendors/datatables.net-scroller/js/datatables.scroller.min.js"></script>
+    <script src="~/Content/vendors/jszip/dist/jszip.min.js"></script>
+    <script src="~/Content/vendors/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Content/vendors/pdfmake/build/vfs_fonts.js"></script>
+
+}

@@ -1,10 +1,10 @@
-﻿@model siva.api.Models.UsuarioPrefeituraViewModel
+﻿@model siva.api.Models.ContadorContribuinteViewModel
 
 <div role="main" class="right_col">
     <div>
         <div class="page-title">
             <div class="title_left">
-                <h3>Cadastro de Usuários \ Vincular Prefeituras</h3>
+                <h3>Cadastro de Contadores \ Exibir Contribuintes</h3>
             </div>
         </div>
         <div class="clearfix"></div>
@@ -14,7 +14,7 @@
                     <div class="x_content">
                         <div class="panel panel-default">
                             <!-- Default panel contents -->
-                            <div class="panel-heading">Dados do Usuário</div>
+                            <div class="panel-heading">Dados do Contador</div>
                             <!-- List group -->
                             <ul class="list-group">
                                 <li class="list-group-item">
@@ -23,27 +23,27 @@
                                             Nome
                                         </label>
                                         <div class="col-md-6 col-sm-6 col-xs-12">
-                                            @Model.Usuario.NM_USUARIO
+                                            @Model.Contador.NM_CONTADOR
                                         </div>
                                     </div>
                                 </li>
                                 <li class="list-group-item">
                                     <div class="item form-group">
                                         <label class="control-label col-md-3 col-sm-3 col-xs-12" for="prefeito">
-                                            Login
+                                            CRC
                                         </label>
                                         <div class="col-md-6 col-sm-6 col-xs-12">
-                                            @Model.Usuario.LOGIN
+                                            @Model.Contador.NU_CRC
                                         </div>
                                     </div>
                                 </li>
                                 <li class="list-group-item">
                                     <div class="item form-group">
                                         <label class="control-label col-md-3 col-sm-3 col-xs-12" for="secretarioTributacao">
-                                            Criado em:
+                                            Contato
                                         </label>
                                         <div class="col-md-6 col-sm-6 col-xs-12">
-                                            @Model.Usuario.DT_INCLUSAO.ToString("dd/MM/yyyy hh:mm:ss")
+                                            @Model.Contador.NU_TELEFONE
                                         </div>
                                     </div>
                                 </li>
@@ -52,28 +52,24 @@
                         <br />
                         <div class="panel panel-default">
                             <!-- Default panel contents -->
-                            <div class="panel-heading">Vincular Prefeituras</div>
+                            <div class="panel-heading">Contribuintes</div>
                             <div class="panel-body">
                                 <div class="row">
                                     <div class="col-md-12">
                                         <ul class="list-group">
 
                                             @{
-                                                for (var i = 0; i < Model.PrefeituraList.Count; i++)
+
+                                                var contribuintes = Model.ContribuinteList.ToList();
+
+                                                foreach (var item in contribuintes)
                                                 {
-
-                                                    var prefeitura = Model.PrefeituraList[i];
-
-                                                    var permissao = Model.UsuarioPrefeituraList.Contains(prefeitura.SQ_PREFEITURA);
-
-
                                                     <li class="list-group-item">
                                                         <label>
-                                                            @Html.Raw(prefeitura.NM_PREFEITURA)
-                                                            @Html.CheckBox("prefeiturasSelecionadas", permissao ,   new { value = prefeitura.SQ_PREFEITURA, @class = "js-switch" })
+                                                            @Html.Raw(item.NM_FANTASIA)                                                            
                                                         </label>
                                                     </li>
-                                                }
+                                                }                                                
                                             }
 
                                         </ul>
@@ -85,8 +81,7 @@
                         <div class="ln_solid"></div>
                         <div class="form-group">
                             <div class="col-md-6">
-                                <a href="@Url.Action("Index")" class="btn btn-danger">Cancelar</a>
-                                <button id="cmdVincular" type="button" class="btn btn-success" data-key="@Model.Usuario.SQ_USUARIO">Vincular</button>
+                                <a href="@Url.Action("Index")" class="btn btn-danger">Cancelar</a>                                
                             </div>
                         </div>
 
@@ -115,56 +110,6 @@
     <script src="~/Content/vendors/jszip/dist/jszip.min.js"></script>
     <script src="~/Content/vendors/pdfmake/build/pdfmake.min.js"></script>
     <script src="~/Content/vendors/pdfmake/build/vfs_fonts.js"></script>
-
-    <script type="text/javascript">
-
-        $(document).ready(function () {
-
-
-            $("#cmdVincular").on('click', function () {
-
-                var _self = $(this);
-
-                var prefeiturasSel = [];
-
-                $("input[name='prefeiturasSelecionadas']:checked").each(function () {
-
-                    prefeiturasSel.push($(this).val());
-
-                });
-                
-                var UsuarioPrefeituraViewModel = {
-
-                    Usuario: {
-                        SQ_USUARIO: _self.data('key')
-                    },
-                    UsuarioPrefeituraList: prefeiturasSel
-
-                };
-
-                       
-                $.ajax({
-                    type: "POST",
-                    url: '@Url.Action("Vincular", "Usuario")',
-                    dataType: "json",
-                    success: function (data) {
-                        if (data.ex != null) {
-                            return alert(data.ex);
-                        }
-
-                        if (data.Result != null) {
-
-                            document.location.href = '@Url.Action("Index", "Usuario")';
-                        }
-
-                    },
-                    data: { UsuarioPrefeituraViewModel }
-                });
-
-            });
-
-        });
-
-    </script>
+    
 
 }

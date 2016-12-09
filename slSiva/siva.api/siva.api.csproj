@@ -145,6 +145,8 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Models\ContadorContribuinteViewModel.cs" />
+    <Compile Include="Models\ContadorViewModel.cs" />
     <Compile Include="Models\UsuarioPrefeituraViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -3104,6 +3106,8 @@
     <Content Include="Views\Gim\Index.cshtml" />
     <Content Include="Views\Contador\Index.cshtml" />
     <Content Include="Views\Contador\Novo.cshtml" />
+    <Content Include="Views\Contador\ExibirContribuinte.cshtml" />
+    <Content Include="Views\Contador\Selecionar.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="Content\vendors\moment\moment.d.ts" />

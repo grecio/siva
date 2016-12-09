@@ -7,7 +7,7 @@
     <div>
         <div class="page-title">
             <div class="title_left">
-                <h3>Prefeituras</h3>
+                <h3>Cadastro de Prefeituras</h3>
             </div>
         </div>
         <div class="clearfix"></div>
@@ -114,9 +114,9 @@
 
                             <div class="ln_solid"></div>
                             <div class="form-group">
-                                <div class="col-md-6 col-md-offset-3">
-                                    <button id="cmdCancelar" type="button" class="btn btn-danger">Cancelar</button>
-                                    <button id="send" type="submit" class="btn btn-success">Cadastrar</button>                                    
+                                <div class="col-md-6 col-md-offset-3">                                    
+                                    <button id="send" type="submit" class="btn btn-success">Cadastrar</button>
+                                    <a href="@Url.Action("Index")" class="btn btn-danger">Cancelar</a>                                    
                                 </div>
                             </div>
                         </form>
@@ -136,43 +136,39 @@
 
         $(document).ready(function () {
 
-            $("#cmdCancelar").on('click', function () {
+            // initialize the validator function
+            validator.message.date = 'not a real date';
 
-                document.location.href = '@Url.Action("Index", "Prefeituras")';
+            // validate a field on "blur" event, a 'select' on 'change' event & a '.reuired' classed multifield on 'keyup':
+            $('form')
+              .on('blur', 'input[required], input.optional, select.required', validator.checkField)
+              .on('change', 'select.required', validator.checkField);
 
+            $('.multi.required').on('blur', 'input', function () {
+                validator.checkField.apply($(this).siblings().last()[0]);
             });
 
+
+            $('form').submit(function (e) {
+
+                e.preventDefault();
+
+                var submit = true;
+
+                // evaluate the form using generic validaing
+                if (!validator.checkAll($(this))) {
+                    submit = false;
+                }
+
+                if (submit)
+                    this.submit();
+
+                return false;
+            });
+
+
         });
 
-        // initialize the validator function
-        validator.message.date = 'not a real date';
-
-        // validate a field on "blur" event, a 'select' on 'change' event & a '.reuired' classed multifield on 'keyup':
-        $('form')
-          .on('blur', 'input[required], input.optional, select.required', validator.checkField)
-          .on('change', 'select.required', validator.checkField);
-
-        $('.multi.required').on('blur', 'input', function () {
-            validator.checkField.apply($(this).siblings().last()[0]);
-        });
-
-
-        $('form').submit(function (e) {
-
-            e.preventDefault();
-
-            var submit = true;
-
-            // evaluate the form using generic validaing
-            if (!validator.checkAll($(this))) {
-                submit = false;
-            }
-
-            if (submit)
-                this.submit();
-
-            return false;
-        });
 
         @Html.Raw(TempData["msg"])
 
