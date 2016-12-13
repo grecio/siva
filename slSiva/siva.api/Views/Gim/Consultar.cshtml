@@ -1,4 +1,4 @@
-﻿@model List<siva.api.Models.GIMViewModel>
+﻿@model List<siva.api.Models.GIMReferenciaViewModel>
 
 <div role="main" class="right_col">
     <div>
@@ -30,7 +30,7 @@
                             </thead>
                             <tbody>
 
-                                @foreach (siva.api.Models.GIMViewModel row in Model)
+                                @foreach (siva.api.Models.GIMReferenciaViewModel row in Model)
                                 {
                                     <tr>
                                         <td>@row.Gim.NU_REFERENCIA</td>
@@ -47,9 +47,8 @@
                                                     <span class="sr-only">Toggle Dropdown</span>
                                                 </button>
                                                 <ul class="dropdown-menu" role="menu">
-                                                    <li>
-                                                        <a href="#" class="cmdDetalharGIM"><span class="glyphicon glyphicon glyphicon-file" aria-hidden="true"></span>Detalhar GIM</a>
-                                                        @*<a href="@Url.Action("Emitir", new { Id = row.Gim.CD_GUIA })" class="cmdEmitir"><span class="glyphicon glyphicon glyphicon-file" aria-hidden="true"></span>Detalhar GIM</a>*@
+                                                    <li>                                                        
+                                                        <a href="@Url.Action("Emitir", new { Ie = row.Gim.NU_INSCRICAO_ESTADUAL, Referencia = row.Gim.NU_REFERENCIA })" class="cmdEmitir"><span class="glyphicon glyphicon glyphicon-file" aria-hidden="true"></span>Detalhar GIM</a>
                                                     </li>                                                    
                                                 </ul>
                                             </div>

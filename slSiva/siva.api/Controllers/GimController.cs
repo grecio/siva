@@ -3,6 +3,7 @@ using System.Web.Mvc;
 using siva.api.Filters;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using siva.api.Models;
 
 namespace siva.api.Controllers
@@ -51,11 +52,11 @@ namespace siva.api.Controllers
             {
                 var gimList = bpGim.RetornaGIMPorInscricaoReferencia(ie, referencia);
 
-                var lista = new List<GIMViewModel>();
+                var lista = new List<GIMReferenciaViewModel>();
 
                 foreach (var item in gimList)
                 {
-                    lista.Add(new GIMViewModel() { Gim = item });
+                    lista.Add(new GIMReferenciaViewModel() { Gim = item });
                 }
 
                 return View(lista);
@@ -64,6 +65,30 @@ namespace siva.api.Controllers
             }
             catch
             {
+                throw;
+            }
+        }
+
+        [SessionExpire]
+        public ActionResult Emitir(string ie, decimal referencia)
+        {
+            try
+            {
+                var gim = bpGim.RetornaConsultaGuiaMensal(ie, referencia);
+                var detalhe = bpGim.RetornaConsultaGuiaMensalDetalhe(ie, referencia).ToList();
+
+                var gimviewModel = new GIMViewModel()
+                {
+                    GIM = gim,
+                    GIMDetalhe = detalhe
+                };
+
+                return View(gimviewModel);
+
+            }
+            catch
+            {
+
                 throw;
             }
         }

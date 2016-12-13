@@ -147,6 +147,7 @@
     </Compile>
     <Compile Include="Models\ContadorContribuinteViewModel.cs" />
     <Compile Include="Models\ContadorViewModel.cs" />
+    <Compile Include="Models\GIMReferenciaViewModel.cs" />
     <Compile Include="Models\GIMViewModel.cs" />
     <Compile Include="Models\UsuarioPrefeituraViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -3110,6 +3111,7 @@
     <Content Include="Views\Contador\ExibirContribuinte.cshtml" />
     <Content Include="Views\Contador\Selecionar.cshtml" />
     <Content Include="Views\Gim\Consultar.cshtml" />
+    <Content Include="Views\Gim\Emitir.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="Content\vendors\moment\moment.d.ts" />

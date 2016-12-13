@@ -43,6 +43,7 @@
     <Compile Include="Contador.cs" />
     <Compile Include="Contribuinte.cs" />
     <Compile Include="GIM.cs" />
+    <Compile Include="GIMReferencia.cs" />
     <Compile Include="Prefeitura.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Referencia.cs" />
