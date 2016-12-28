@@ -1,0 +1,300 @@
+﻿@model siva.api.Models.InformativoFiscalViewModel
+
+<div role="main" class="right_col">
+    <div>
+        <div class="page-title">
+            <div class="title_left">
+                <h3>Informativo Fiscal \ Detalhamento</h3>
+            </div>
+        </div>
+        <div class="clearfix"></div>
+        <div class="row">
+            <div class="col-md-12 col-sm-12 col-xs-12">
+                <div class="x_panel">
+                    <div class="x_content">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">Informativo Fiscal</div>
+                            <div class="panel-body">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <label>Referência</label>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <label>Data Envio</label>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <span>@Model.Informativo.NU_REFERENCIA</span>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <span>@Model.Informativo.DT_ENVIO.ToString("dd/MM/yyyy")</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="panel panel-default">
+                            <div class="panel-heading">Dados Cadastrais</div>
+                            <div class="panel-body">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <label>Inscrição Estadual</label>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <label>Razão Social</label>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <span>@Model.Informativo.NU_INSCRICAO_ESTADUAL</span>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <span>@Model.Informativo.NM_RAZAO_SOCIAL</span>
+                                    </div>
+                                </div>
+                                <br />
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <label>Endereço Completo</label>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12">@Model.Informativo.NM_LOGRADOURO</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="panel panel-default">
+                            <div class="panel-heading">Estoques</div>
+                            <div class="panel-body">
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <div class="panel panel-default">
+                                            <div class="panel-heading">Estoque Inicial</div>
+                                            <div class="panel-body">
+                                                <div class="row">
+                                                    <div class="col-sm-10">ESTOQUE INICIAL TRIBUTADO</div>
+                                                    <div class="col-sm-1">[1.1.1]</div>
+                                                    <div class="col-sm-1">@Model.Informativo.CAMPO_0111.ToString("C2")</div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-sm-10">ESTOQUE INICIAL NÃO-TRIBUTADO/ISENTO</div>
+                                                    <div class="col-sm-1">[1.1.2]</div>
+                                                    <div class="col-sm-1">@Model.Informativo.CAMPO_0112.ToString("C2")</div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-sm-10">ESTOQUE INICIAL TRIBUTADO</div>
+                                                    <div class="col-sm-1">[1.2.1]</div>
+                                                    <div class="col-sm-1">@Model.Informativo.CAMPO_0121.ToString("C2")</div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-sm-10">ESTOQUE INICIAL NÃO-TRIBUTADO/ISENTO</div>
+                                                    <div class="col-sm-1">[1.2.2]</div>
+                                                    <div class="col-sm-1">@Model.Informativo.CAMPO_0122.ToString("C2")</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <div class="panel panel-default">
+                                            <div class="panel-heading">Estoque Final</div>
+                                            <div class="panel-body">
+                                                <div class="row">
+                                                    <div class="col-sm-10">ESTOQUE FINAL TRIBUTADO</div>
+                                                    <div class="col-sm-1">[2.1.1]</div>
+                                                    <div class="col-sm-1">@Model.Informativo.CAMPO_0211.ToString("C2")</div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-sm-10">ESTOQUE FINAL NÃO-TRIBUTADO/ISENTO</div>
+                                                    <div class="col-sm-1">[2.1.2]</div>
+                                                    <div class="col-sm-1">@Model.Informativo.CAMPO_0212.ToString("C2")</div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-sm-10">ESTOQUE FINAL TRIBUTADO</div>
+                                                    <div class="col-sm-1">[2.2.1]</div>
+                                                    <div class="col-sm-1">@Model.Informativo.CAMPO_0221.ToString("C2")</div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-sm-10">ESTOQUE FINAL NÃO-TRIBUTADO/ISENTO</div>
+                                                    <div class="col-sm-1">[2.2.2]</div>
+                                                    <div class="col-sm-1">@Model.Informativo.CAMPO_0222.ToString("C2")</div>
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <div class="panel panel-default">
+                                            <div class="panel-heading">Outras Informações</div>
+                                            <div class="panel-body">
+                                                <div class="row">
+                                                    <div class="col-sm-10">COMPRAS E TRANSFERÊNCIAS NO PAÍS DE MATÉRIA-PRIMA E DEMAIS INSUMOS</div>
+                                                    <div class="col-sm-1">[3]</div>
+                                                    <div class="col-sm-1">@Model.Informativo.CAMPO_03.ToString("C2")</div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-sm-10">PRODUÇÃO PRÓPRIA</div>
+                                                    <div class="col-sm-1">[4]</div>
+                                                    <div class="col-sm-1">@Model.Informativo.CAMPO_04.ToString("C2")</div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-sm-10">IMPORTAÇÕES DE MATÉRIA-PRIMA E DEMAIS INSUMOS</div>
+                                                    <div class="col-sm-1">[5]</div>
+                                                    <div class="col-sm-1">@Model.Informativo.CAMPO_05.ToString("C2")</div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-sm-10">APURADAS MEDIANTE AÇÃO FISCAL</div>
+                                                    <div class="col-sm-1">[6]</div>
+                                                    <div class="col-sm-1">@Model.Informativo.CAMPO_06.ToString("C2")</div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-sm-10">APURADAS MEDIANTE DENÚNCIA ESPONTÂNEA</div>
+                                                    <div class="col-sm-1">[7]</div>
+                                                    <div class="col-sm-1">@Model.Informativo.CAMPO_07.ToString("C2")</div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-sm-10">TOTAL DAS ENTRADAS</div>
+                                                    <div class="col-sm-1">[8]</div>
+                                                    <div class="col-sm-1">@Model.Informativo.CAMPO_08.ToString("C2")</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="panel panel-default">
+                            <div class="panel-heading">Saídas</div>
+                            <div class="panel-body">
+                                <div class="row">
+                                    <div class="col-sm-10">VENDAS E TRANSFERÊNCIAS NO PAÍS</div>
+                                    <div class="col-sm-1">[9]</div>
+                                    <div class="col-sm-1">@Model.Informativo.CAMPO_09.ToString("C2")</div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-10">EXPORTAÇÕES</div>
+                                    <div class="col-sm-1">[10]</div>
+                                    <div class="col-sm-1">@Model.Informativo.CAMPO_10.ToString("C2")</div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-10">APURADAS MEDIANTE AÇÃO FISCAL</div>
+                                    <div class="col-sm-1">[11]</div>
+                                    <div class="col-sm-1">@Model.Informativo.CAMPO_11.ToString("C2")</div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-10">APURADAS MEDIANTE DENÚNCIA ESPONTÂNEA</div>
+                                    <div class="col-sm-1">[12]</div>
+                                    <div class="col-sm-1">@Model.Informativo.CAMPO_12.ToString("C2")</div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-10">TOTAL DAS SAÍDAS</div>
+                                    <div class="col-sm-1">[13]</div>
+                                    <div class="col-sm-1">@Model.Informativo.CAMPO_13.ToString("C2")</div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-10">VALOR ADICIONADO (SAÍDAS - ENTRADAS)</div>
+                                    <div class="col-sm-1">[14]</div>
+                                    <div class="col-sm-1">@Model.Informativo.CAMPO_14.ToString("C2")</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="panel panel-default">
+                            <div class="panel-heading">Outras Informações</div>
+                            <div class="panel-body">
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <div class="panel panel-default">
+                                            <div class="panel-heading">Ativo Fixo</div>
+                                            <div class="panel-body">
+                                                <div class="row">
+                                                    <div class="col-sm-10">COMPRAS E TRANSFERÊNCIAS NO PAÍS</div>
+                                                    <div class="col-sm-1">[15.1]</div>
+                                                    <div class="col-sm-1">@Model.Informativo.CAMPO_151.ToString("C2")</div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-sm-10">ENTRADAS DO EXTERIOR</div>
+                                                    <div class="col-sm-1">[15.2]</div>
+                                                    <div class="col-sm-1">@Model.Informativo.CAMPO_152.ToString("C2")</div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-sm-10">ESTOQUE FINAL DO ATIVO FIXO</div>
+                                                    <div class="col-sm-1">[15.3]</div>
+                                                    <div class="col-sm-1">@Model.Informativo.CAMPO_153.ToString("C2")</div>
+                                                </div>                                                
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <div class="panel panel-default">
+                                            <div class="panel-heading">Materiais de Consumo</div>
+                                            <div class="panel-body">
+                                                <div class="row">
+                                                    <div class="col-sm-10">COMPRAS E TRANSFERÊNCIAS NO PAÍS</div>
+                                                    <div class="col-sm-1">[16.1]</div>
+                                                    <div class="col-sm-1">@Model.Informativo.CAMPO_161.ToString("C2")</div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-sm-10">ENTRADAS DO EXTERIOR</div>
+                                                    <div class="col-sm-1">[16.2]</div>
+                                                    <div class="col-sm-1">@Model.Informativo.CAMPO_162.ToString("C2")</div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-sm-10">ESTOQUE FINAL DE MATERIAIS DE CONSUMO</div>
+                                                    <div class="col-sm-1">[16.3]</div>
+                                                    <div class="col-sm-1">@Model.Informativo.CAMPO_163.ToString("C2")</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <div class="panel panel-default">
+                                            <div class="panel-heading">Total das Despesas Com</div>
+                                            <div class="panel-body">
+                                                <div class="row">
+                                                    <div class="col-sm-10">ENERGIA, ÁGUA E TELEFONE</div>
+                                                    <div class="col-sm-1">[17.1]</div>
+                                                    <div class="col-sm-1">@Model.Informativo.CAMPO_171.ToString("C2")</div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-sm-10">ALUGUEL</div>
+                                                    <div class="col-sm-1">[17.2]</div>
+                                                    <div class="col-sm-1">@Model.Informativo.CAMPO_172.ToString("C2")</div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-sm-10">FOLHA DE PAGAMENTO (INCLUSIVE PRÓ-LABORE E PREST. DE SERVIÇOS)</div>
+                                                    <div class="col-sm-1">[17.3]</div>
+                                                    <div class="col-sm-1">@Model.Informativo.CAMPO_173.ToString("C2")</div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-sm-10">ENCARGOS, CONTRIBUIÇÕES E DESPESAS TRIBUTÁRIAS (INCLUSIVE ICMS)</div>
+                                                    <div class="col-sm-1">[17.4]</div>
+                                                    <div class="col-sm-1">@Model.Informativo.CAMPO_174.ToString("C2")</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <br />
+                    <a href="@Url.Action("Consultar", new { ie = Model.Informativo.NU_INSCRICAO_ESTADUAL})" class="btn btn-primary">Voltar</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

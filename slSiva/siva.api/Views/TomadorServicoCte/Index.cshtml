@@ -1,0 +1,100 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div role="main" class="right_col">
+    <div>
+        <div class="page-title">
+            <div class="title_left">
+                <h3>CTE - Tomador do Serviço</h3>
+            </div>
+        </div>
+        <div class="clearfix"></div>
+        <div class="row">
+            <div class="col-md-12 col-sm-12 col-xs-12">
+                <div class="x_panel">
+                    <div class="x_title">
+                        <h2>Consulta</h2>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="x_content">
+                        <form class="form-horizontal form-label-left" method="post" action="@Url.Action("Consultar")" novalidate>
+
+                            <div class="item form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12">
+                                    CNPJ <span class="required">*</span>
+                                </label>
+                                <div class="col-md-2">
+                                    <input id="cnpj" class="form-control" name="CNPJ" placeholder="Informe o CNPJ" required="required" type="text" data-mask="cnpj">
+                                </div>
+                            </div>
+
+                            <div class="item form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12">
+                                    Período <span class="required">*</span>
+                                </label>
+                                <div class="col-md-1">
+                                    <input id="data_inicial" class="form-control date-picker" name="dataInicial" placeholder="Informe a Data Inicial" required="required" type="text" data-mask="date">
+                                </div>
+                                <div class="col-md-1">
+                                    <input id="data_final" class="form-control date-picker" name="dataFinal" placeholder="Informe a Data Final" required="required" type="text" data-mask="date">
+                                </div>
+                            </div>
+
+                            <div class="ln_solid"></div>
+                            <div class="form-group">
+                                <div class="col-md-6 col-md-offset-3">
+                                    <button id="cmdConsultar" type="submit" class="btn btn-success" onclick="alert('em desenvolvimento'); return false;">Consultar</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+
+
+
+    <script type="text/javascript">
+
+
+        $(document).ready(function () {
+
+            $('form')
+              .on('blur', 'input[required], input.optional, select.required', validator.checkField)
+              .on('change', 'select.required', validator.checkField);
+
+            $('.multi.required').on('blur', 'input', function () {
+                validator.checkField.apply($(this).siblings().last()[0]);
+            });
+
+            $('form').submit(function (e) {
+
+                e.preventDefault();
+
+                var submit = true;
+
+                if (!validator.checkAll($(this))) {
+                    submit = false;
+                }
+
+                if (submit)
+                {
+                    this.submit();
+                }
+
+
+                return false;
+            });
+        });
+
+
+        @Html.Raw(TempData["msg"])
+
+    </script>
+
+}

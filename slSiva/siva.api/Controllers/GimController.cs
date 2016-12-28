@@ -46,7 +46,7 @@ namespace siva.api.Controllers
         }
 
         [SessionExpire]
-        public ActionResult Consultar(string ie, decimal referencia)
+        public ActionResult Consultar(string ie, decimal? referencia)
         {
             try
             {
@@ -78,9 +78,9 @@ namespace siva.api.Controllers
                 var detalhe = bpGim.RetornaConsultaGuiaMensalDetalhe(ie, referencia).ToList();
 
                 var gimviewModel = new GIMViewModel()
-                {
-                    GIM = gim,
-                    GIMDetalhe = detalhe
+                {                    
+                    Gim = gim,
+                    GimDetalhe = detalhe
                 };
 
                 return View(gimviewModel);

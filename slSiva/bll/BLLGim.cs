@@ -10,7 +10,7 @@ namespace BLL
 {
     public class BLLGim
     {
-        public IEnumerable<Referencia> RetornarReferenciaPorInscricao(string ie)
+        public IEnumerable<Referencia.GIM> RetornarReferenciaPorInscricao(string ie)
         {
             using (var dao = new DAL.DbGIM())
             {
@@ -18,10 +18,9 @@ namespace BLL
             }
         }
 
-        public IEnumerable<GIMReferencia> RetornaGIMPorInscricaoReferencia(string ie, decimal referencia)
+        public IEnumerable<GIMReferencia> RetornaGIMPorInscricaoReferencia(string ie, decimal? referencia)
         {
-            Validador.Validar(!string.IsNullOrWhiteSpace(ie), "Informe a inscrição estadual.");
-            Validador.Validar(referencia > 0, "Informe a referencia.");
+            Validador.Validar(!string.IsNullOrWhiteSpace(ie), "Informe a inscrição estadual.");            
 
             using (var dao = new DAL.DbGIM())
             {
@@ -42,8 +41,7 @@ namespace BLL
 
         public IEnumerable<GIMDetalhe> RetornaConsultaGuiaMensalDetalhe(string ie, decimal referencia)
         {
-            Validador.Validar(!string.IsNullOrWhiteSpace(ie), "Informe a inscrição estadual.");
-            Validador.Validar(referencia > 0, "Informe a referencia.");
+            Validador.Validar(!string.IsNullOrWhiteSpace(ie), "Informe a inscrição estadual.");            
 
             using (var dao = new DAL.DbGIM())
             {

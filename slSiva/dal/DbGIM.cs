@@ -12,7 +12,7 @@ namespace DAL
 {
     public class DbGIM : IDisposable
     {
-        public IEnumerable<Referencia> RetornarReferenciaPorInscricao(string ie)
+        public IEnumerable<Referencia.GIM> RetornarReferenciaPorInscricao(string ie)
         {
             using (OracleConnection cnn = new OracleConnection(Properties.Settings.Default.ConnectionString))
             {
@@ -21,18 +21,26 @@ namespace DAL
                 parameters.Add("pErro", dbType: OracleDbType.Varchar2, direction: ParameterDirection.Output);
                 parameters.Add("pCursor", dbType: OracleDbType.RefCursor, direction: ParameterDirection.Output);
 
-                return cnn.Query<Referencia>("ADM_OBJETOS.GIMPKG_GUIA_INFORMATIVA_MENSAL.SP_GIM_RETORNA_REFERENCIA", param: parameters, commandType: CommandType.StoredProcedure);
+                return cnn.Query<Referencia.GIM>("ADM_OBJETOS.GIMPKG_GUIA_INFORMATIVA_MENSAL.SP_GIM_RETORNA_REFERENCIA", param: parameters, commandType: CommandType.StoredProcedure);
             }
         }
 
-
-        public IEnumerable<GIMReferencia> RetornaGIMPorInscricaoReferencia(string ie, decimal referencia)
+        public IEnumerable<GIMReferencia> RetornaGIMPorInscricaoReferencia(string ie, decimal? referencia)
         {
             using (OracleConnection cnn = new OracleConnection(Properties.Settings.Default.ConnectionString))
             {
                 var parameters = new OracleDynamicParameters();
                 parameters.Add("pNuInscricao", ie);
-                parameters.Add("pReferencia", referencia);
+                if (referencia.HasValue)
+                {
+                    parameters.Add("pReferencia", referencia.Value);
+                }
+
+                else
+                {
+                    parameters.Add("pReferencia", null);
+                }
+
                 parameters.Add("pErro", dbType: OracleDbType.Varchar2, direction: ParameterDirection.Output);
                 parameters.Add("pCursor", dbType: OracleDbType.RefCursor, direction: ParameterDirection.Output);
 
@@ -56,11 +64,23 @@ namespace DAL
 
         public IEnumerable<GIMDetalhe> RetornaConsultaGuiaMensalDetalhe(string ie, decimal referencia)
         {
+
+
+
             using (OracleConnection cnn = new OracleConnection(Properties.Settings.Default.ConnectionString))
             {
                 var parameters = new OracleDynamicParameters();
                 parameters.Add("pNuInscricao", ie);
-                parameters.Add("pReferencia", referencia);
+
+                if (referencia == 0)
+                {
+                    parameters.Add("pReferencia", null);
+                }
+                else
+                {
+                    parameters.Add("pReferencia", referencia);
+                }
+                
                 parameters.Add("pErro", dbType: OracleDbType.Varchar2, direction: ParameterDirection.Output);
                 parameters.Add("pCursor", dbType: OracleDbType.RefCursor, direction: ParameterDirection.Output);
 

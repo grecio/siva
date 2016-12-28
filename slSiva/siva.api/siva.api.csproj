@@ -133,12 +133,20 @@
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\ContadorController.cs" />
+    <Compile Include="Controllers\DestinatarioCteController.cs" />
+    <Compile Include="Controllers\EmitenteCteController.cs" />
     <Compile Include="Controllers\GimController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\InformativoFiscalController.cs" />
     <Compile Include="Controllers\LoginController.cs" />
     <Compile Include="Controllers\LogoutController.cs" />
     <Compile Include="Controllers\PrefeiturasController.cs" />
     <Compile Include="Controllers\PrincipalController.cs" />
+    <Compile Include="Controllers\RemetenteCteController.cs" />
+    <Compile Include="Controllers\SessionExpiresAttribute.cs" />
+    <Compile Include="Controllers\TomadorExpedidorCteController.cs" />
+    <Compile Include="Controllers\TomadorRecebedorCteController.cs" />
+    <Compile Include="Controllers\TomadorServicoCteController.cs" />
     <Compile Include="Controllers\UsuarioController.cs" />
     <Compile Include="Controllers\ValuesController.cs" />
     <Compile Include="Filters\SessionExpireAttribute.cs" />
@@ -148,6 +156,7 @@
     <Compile Include="Models\ContadorContribuinteViewModel.cs" />
     <Compile Include="Models\ContadorViewModel.cs" />
     <Compile Include="Models\GIMReferenciaViewModel.cs" />
+    <Compile Include="Models\InformativoFiscalViewModel.cs" />
     <Compile Include="Models\GIMViewModel.cs" />
     <Compile Include="Models\UsuarioPrefeituraViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -3112,6 +3121,15 @@
     <Content Include="Views\Contador\Selecionar.cshtml" />
     <Content Include="Views\Gim\Consultar.cshtml" />
     <Content Include="Views\Gim\Emitir.cshtml" />
+    <Content Include="Views\InformativoFiscal\Index.cshtml" />
+    <Content Include="Views\InformativoFiscal\Consultar.cshtml" />
+    <Content Include="Views\InformativoFiscal\Emitir.cshtml" />
+    <Content Include="Views\RemetenteCte\Index.cshtml" />
+    <Content Include="Views\DestinatarioCte\Index.cshtml" />
+    <Content Include="Views\EmitenteCte\Index.cshtml" />
+    <Content Include="Views\TomadorServicoCte\Index.cshtml" />
+    <Content Include="Views\TomadorExpedidorCte\Index.cshtml" />
+    <Content Include="Views\TomadorRecebedorCte\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="Content\vendors\moment\moment.d.ts" />

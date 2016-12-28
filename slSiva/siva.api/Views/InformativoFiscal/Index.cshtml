@@ -1,0 +1,129 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div role="main" class="right_col">
+    <div>
+        <div class="page-title">
+            <div class="title_left">
+                <h3>Informativo Fiscal</h3>
+            </div>
+        </div>
+        <div class="clearfix"></div>
+        <div class="row">
+            <div class="col-md-12 col-sm-12 col-xs-12">
+                <div class="x_panel">
+                    <div class="x_title">
+                        <h2>Consulta</h2>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="x_content">
+                        <form class="form-horizontal form-label-left" method="post" action="@Url.Action("Consultar")" novalidate>
+
+                            <div class="item form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="ie">
+                                    Inscrição Estadual <span class="required">*</span>
+                                </label>
+                                <div class="col-md-3 col-sm-3 col-xs-12">
+                                    <input id="ie" class="form-control col-md-7 col-xs-12" name="IE" placeholder="Informe a inscrição estadual" required="required" type="text" data-mask="ie">
+                                </div>
+                            </div>
+
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12">
+                                    Período
+                                </label>
+                                <div class="col-md-3 col-sm-3 col-xs-12">
+                                    <select class="select2_single form-control" tabindex="-1" name="referencia" id="referencia">
+                                        <option value=""></option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="ln_solid"></div>
+                            <div class="form-group">
+                                <div class="col-md-6 col-md-offset-3">
+                                    <button id="cmdConsultar" type="submit" class="btn btn-success">Consultar</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+
+
+    <script type="text/javascript">
+
+
+        $(document).ready(function () {
+
+            $('form')
+              .on('blur', 'input[required], input.optional, select.required', validator.checkField)
+              .on('change', 'select.required', validator.checkField);
+
+            $('.multi.required').on('blur', 'input', function () {
+                validator.checkField.apply($(this).siblings().last()[0]);
+            });
+
+            $('form').submit(function (e) {
+
+                e.preventDefault();
+
+                var submit = true;
+
+                if (!validator.checkAll($(this))) {
+                    submit = false;
+                }
+
+                if (submit)
+                {
+                    this.submit();
+                }
+
+
+                return false;
+            });
+
+            $(".select2_single").select2({
+                placeholder: "Selecione um período (padrão AAAA/MM)",
+                allowClear: true
+            });
+
+            $("#ie").on('change', function postinput() {
+
+                var _self = $(this);
+
+
+                if ($.trim(_self.val()).length > 0) {
+
+
+                    $.ajax({
+                        url: '@Url.Action("PreencherReferencia")',
+                        data: { ie: _self.val() },
+                        type: 'post'
+                    }).done(function (data) {
+
+                        $(".select2_single").select2({
+                            data: data.referenciasList
+                        });
+
+                    }).fail(function () {
+                        alert('Não foi possível obter as referências.');
+                    });
+                }
+            });
+
+        });
+
+
+        @Html.Raw(TempData["msg"])
+
+    </script>
+
+}
