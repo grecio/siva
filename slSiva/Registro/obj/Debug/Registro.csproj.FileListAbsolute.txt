@@ -1,0 +1,8 @@
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\Registro\bin\Debug\Registro.exe.config
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\Registro\bin\Debug\Registro.exe
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\Registro\bin\Debug\Registro.pdb
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\Registro\bin\Debug\itextsharp.dll
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\Registro\bin\Debug\itextsharp.xml
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\Registro\obj\Debug\Registro.csprojResolveAssemblyReference.cache
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\Registro\obj\Debug\Registro.exe
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\Registro\obj\Debug\Registro.pdb

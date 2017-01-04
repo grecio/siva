@@ -1,0 +1,4649 @@
+
+/****************************************************************************/
+/* Objetivo    : Carregar Dados do PGDAS                                    */
+/* Modulo      : PGDAS                                                      */
+/****************************************************************************/
+
+/***************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <string.h> 
+#include <dirent.h>
+#include <limits.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <math.h>
+
+/***************************************************/
+#include "sqlca.h"
+#include "oraca.h"
+
+EXEC ORACLE OPTION (ORACA=YES);
+EXEC ORACLE OPTION (PREFETCH=60000);
+/***************************************************/
+#define MAXFILENAMESIZE 255
+#define MAXPROGNAMESIZE 50
+
+/***************************************************/
+#define DATE_TIME_MASK 	"%Y/%m/%d %H:%M:%S"
+#define DATE_MASK      	"%Y/%m/%d"
+#define TIME_MASK      	"%H:%M:%S"
+#define DATE_STR_MASK   "%Y%m"
+
+#define ErroSQL sqlca.sqlcode
+#define NRowsFetched sqlca.sqlerrd[2]
+#define NoDataFound 1403 
+
+char *t_mask_ptr = TIME_MASK;
+char *dt_mask_ptr = DATE_TIME_MASK;
+char *dt_str_mask_ptr = DATE_STR_MASK;
+/*
+#define DT_MASK       givemetime(dt_mask_ptr)
+#define D_MASK        givemetime(d_mask_ptr)
+#define T_MASK        givemetime(t_mask_ptr)
+#define DT_STR_MASK   givemetime(dt_str_mask_ptr)
+*/
+/***************************************************/
+extern int errno;
+char * uppern(char *, int);
+char * givemetime(char *);
+char log_file [MAXFILENAMESIZE];
+char prog_name[MAXPROGNAMESIZE];
+int  formato              = 0;
+char S                    [4096];
+char V                    [4096];
+char Line [4096];
+char Separator[1]      = "|";
+int  Nsq_arquivo        = 0;   
+int  Nsq_registro       = 0; 
+int  Nsq_atividade      = 0;
+int  Nsq_filial         = 0;
+int  Nsq_ativ_rec       = 0;
+int  cd_versao          = 0;
+char sql                  [255];
+int  Ord = 0;
+char Field[4096];
+int  FieldSize = 0;
+int  Pos = 0;
+int  ctl = 0;
+char DataHora             [18];
+int  nPesquisaArquivo     = 0;
+char vNomeArquivo         [255];
+char cmdsolaris           [255];
+int  resCmd               = 0;
+int  nTipo                = 0;
+int  nControleProcesso    = 0;
+char Status               [05];
+char vAux                 [03];
+char vSubject             [255];
+int  nEnviaEmailProblema  = 0;
+int  nEnviaEmailOcorrencia= 0;
+int  EncFimLinha          = 0; 
+int  qt_limite_ultrapassados_pa=0; 
+char cPassword            [50];
+char Vnu_cnpj_matriz[14+1];  
+char Ncd_municipio[4+1];
+char   Vid_declaracao[17+1];
+char   vTipoRegistro[5];
+
+char cNomArquivo[254+1];
+char cTipArquivo[1+1];
+char cTipRegistro[19+1];
+int  nQtdLido             = 0; 
+int  nQtdGravado          = 0;  
+char cMsg [255];
+int  nExecCommit          = 0;
+int  nVersaoPgdasD        = 0;
+signed int proc_num_pid   = 0;
+char cStatus              [04];
+unsigned long int    nTotalRegInformado = 0;
+unsigned long int    ct_lidos           = 0;
+unsigned long int    ct_lidos_contrib   = 0;
+int    nEncMunicipioRN    = 0;
+int    nEncCnpjRN         = 0;
+
+/***************************************************/
+void ProcessarIdentContribuinte (char *buf_aux);
+char *CurrentDateTime (char *DataHora, int formato);
+void GravarIdentArquivo (char *buf_aux);
+int StatusProcUnixPid(int N);
+int CmdUnix (char *tipoParm, int numPid);
+void Move_Files_Erro();
+void Move_Files();
+void Close_Input_Output_Files();
+char *mExtractFieldFloatOcorrencias (const char *Line, char *Separator, int Ord, char *Field, int FieldSize);
+char *mExtractFieldOcorrencias (const char *Line, char *Separator, int Ord, char *Field, int FieldSize);
+char *mExtractFieldFloat (const char *Line, char *Separator, int Ord, char *Field, int FieldSize);
+char *mExtractField (const char *Line, char *Separator, int Ord, char *Field, int FieldSize);
+void ProcessarRegistros();
+void Get_Password();
+/***************************************************/
+char prog_name			[MAXPROGNAMESIZE];
+
+struct dirent *p = NULL;
+          
+char input_file_name            [MAXFILENAMESIZE];  
+char proc_input_file_name       [MAXFILENAMESIZE];  
+char erro_input_file_name       [MAXFILENAMESIZE];  
+char controle_file_name         [MAXFILENAMESIZE];
+char log_file                   [MAXFILENAMESIZE];
+char prog_name                  [MAXPROGNAMESIZE];
+char file_email                 [MAXPROGNAMESIZE];
+
+#define ERRO                  	-1
+/***************************************************/
+FILE *fp_input       = NULL;
+FILE *fp_output      = NULL;
+FILE *fp_controle          = NULL;
+FILE *fp_problemas_email   = NULL;
+FILE *fp_ocorrencias_email = NULL;
+   
+/***************************************************/
+/* Informacoes sobre o arquivo de log              */
+/***************************************************/
+#define FILE_LOG   0
+#define STDOUT_LOG 1
+int log_mode = STDOUT_LOG | FILE_LOG;   
+
+/************************************************************/
+/* Variaveis globais                                        */
+/************************************************************/
+
+char *InstanciaBD;
+char *usuario;
+char *password;
+
+/***************************************************/
+int main(int argc, char *argv[])
+{
+
+#if VERSAO_PRODUCAO
+    char *log_dir       = "/sistemas/INCORPORACAO/SIMPLES_NACIONAL/PGDAS/LOG";
+    char *in_file_dir   = "/sistemas/INCORPORACAO/SIMPLES_NACIONAL/PGDAS/PENDENTE"; 
+    char *base_file_dir = "/sistemas/INCORPORACAO/SIMPLES_NACIONAL/PGDAS/";
+    
+    InstanciaBD = "genipabu";
+    usuario 	= "CARGA_PGDAS";
+    password    = "carga"; 
+ 	
+#endif
+
+#if VERSAO_TESTE
+    char *log_dir       = "/sistemas/INCORPORACAO/SIMPLES_NACIONAL/PGDAS/LOG";
+    char *in_file_dir   = "/sistemas/INCORPORACAO/SIMPLES_NACIONAL/PGDAS/PENDENTE"; 
+    char *base_file_dir = "/sistemas/INCORPORACAO/SIMPLES_NACIONAL/PGDAS/";
+    
+    InstanciaBD  = "genipabu";
+    usuario      = "CARGA_PGDAS";
+    password     = "carga";
+#endif
+
+  time_t t_i = 0, t_f = 0, t_c = 0;
+  DIR *dp;
+  
+  int i = 0;
+
+  /* Abre arquivo de log e grava nele algumas linhas */
+  Open_Log(argv[0], log_dir);   
+  
+  if((dp = opendir(in_file_dir)) == NULL)
+    {
+      fprintf(stderr,"Falha na abertura do diretorio %s.\nErrno %d \n", 
+                      in_file_dir, errno);
+      exit(1);
+    }
+  
+  /* Efetuando conexao com o banco */
+  printf("==============================================================================================================================================\n");
+
+  Get_Password();
+
+  fprintf(fp_output,"%s - Efetuando conexao com o BD user: %s --> instancia: %s\n",CurrentDateTime(DataHora,1),usuario,InstanciaBD);
+  printf("%s - Efetuando conexao com o BD user: %s --> instancia: %s\n",CurrentDateTime(DataHora,1),usuario,InstanciaBD);
+
+  if(ConectaBD(usuario, cPassword, InstanciaBD) != 0)
+    {   
+    fprintf(fp_output,"%s - Erro ao tentar conexao com o banco de dados - sqlcode = %d.\n",CurrentDateTime(DataHora,1),
+                          sqlca.sqlcode);
+    printf("%s - Erro ao tentar conexao com o banco de dados - sqlcode = %d.\n",CurrentDateTime(DataHora,1),
+                          sqlca.sqlcode);						  
+      exit(1);
+    }
+  
+  fprintf(fp_output,"Conectado ao BD com sucesso.\n");
+
+  sprintf(sql, "ALTER SESSION SET NLS_DATE_FORMAT='YYYYMMDDHH24MISS'");
+  
+  EXEC SQL EXECUTE IMMEDIATE :sql;	 
+
+  cStatus[0]     = '\0';
+
+  EXEC SQL   
+		select NU_PID,ST_PROCESSO||chr(0)
+		into   :proc_num_pid,:cStatus
+		from   adm_objetos.PGDAS_NIGHT_BATCH_QUEUE;
+
+   if (strncmp(cStatus,"ON",2)==0)
+      {
+	   if (StatusProcUnixPid(proc_num_pid) ==0)
+	      {
+           printf("Existe um processo em execucao!!!.\n");
+ 
+           closedir(dp);
+		   
+           DesconectaBD();		   
+	       
+		   exit(0);
+          }
+       else
+          {
+           proc_num_pid = getpid(); 
+
+           EXEC SQL 
+             UPDATE adm_objetos.PGDAS_NIGHT_BATCH_QUEUE
+	         SET DT_ULT_EXECUCAO = SYSDATE,
+	             NU_PID          = :proc_num_pid;     
+				 
+           EXEC SQL COMMIT;	  
+          }		  
+      }	
+   else
+      {
+	   if (strncmp(cStatus,"OFF",3)==0)
+          {
+           proc_num_pid = getpid(); 
+
+           printf("Processo colocado em execucao - PID: %d .\n",proc_num_pid);
+		   
+           EXEC SQL 
+             UPDATE adm_objetos.PGDAS_NIGHT_BATCH_QUEUE
+	         SET DT_ULT_EXECUCAO = SYSDATE,
+			     ST_PROCESSO     = 'ON',
+	             NU_PID          = :proc_num_pid;     
+
+		   if (sqlca.sqlcode != 0)
+			  {
+			   sql_error(sqlca.sqlerrm.sqlerrmc);
+			  }
+				 
+           EXEC SQL COMMIT;	  		  
+		  }
+	   else
+	     {
+           printf("Status do processo em execucao não foi identificado - !!!.\n");
+	       exit(1);		 
+		 }
+	  }
+  
+  while((p = readdir(dp)) != NULL)
+    {
+	 nVersaoPgdasD = 0;
+	 if(strncmp(p->d_name,"90-0000-PUB-PGDASD",18)==0)
+	   {
+		nVersaoPgdasD = 1;
+	   }
+	  
+   if((strncmp(p->d_name,"90-0000-PUB-PGDASD",18)==0)||(strncmp(p->d_name,"90-0000-PUB-DAS",15)==0)||(strncmp(p->d_name,"01-1814-DAS",11)==0)||(strncmp(p->d_name,"01-1810-DAS",11)==0)||(strncmp(p->d_name,"02-7657-DAS",11)==0) )
+     {
+      sprintf(input_file_name,"%s/%s", in_file_dir, p->d_name);
+      sprintf(proc_input_file_name,"%s/PROCESSADO/%s", base_file_dir, p->d_name);
+      sprintf(erro_input_file_name,"%s/PROBLEMA/%s", base_file_dir, p->d_name);
+	  
+      sprintf(vNomeArquivo,"%s",p->d_name);
+
+      sprintf(cNomArquivo,"%s",p->d_name);
+      sprintf(cTipArquivo,"D");	  
+	    
+      /* Procura arquivo na tabela */
+      EXEC SQL 	 
+	 SELECT COUNT(*) 
+	 INTO   :nPesquisaArquivo
+        FROM  adm_objetos.PGDAS_ARQUIVO_DIGITAL
+        WHERE  NM_ARQUIVO = :vNomeArquivo;
+     
+      if (sqlca.sqlcode != 0)
+         {
+       	  sql_error(sqlca.sqlerrm.sqlerrmc);
+         }
+
+      if (nPesquisaArquivo > 0) 
+         {
+          Move_Files_Erro();
+          fprintf(fp_output,"%s - Arquivo duplicado : %s.\n",CurrentDateTime(DataHora,1),p->d_name);
+          fprintf(fp_output,"%s - Arquivo movido p/ diretorio erro : %s.\n",CurrentDateTime(DataHora,1),p->d_name);
+		  
+         }
+	  else
+	     {
+          fprintf(fp_output,"=============================================================================================\n");
+          fprintf(fp_output,"Abrindo arquivo de entrada : %s.\n", input_file_name);
+          if ((fp_input=fopen(input_file_name,"r")) == NULL)
+             {
+              fprintf(fp_output,"Erro na abertura do arquivo de entrada %s.\n",input_file_name);
+              fprintf(fp_output,"errno = %d .\n",errno);
+	     
+              Move_Files_Erro();
+			  		  					
+			  EXEC SQL 
+				 UPDATE adm_objetos.PGDAS_NIGHT_BATCH_QUEUE
+				 SET ST_PROCESSO = 'OFF';     
+					 
+			  EXEC SQL COMMIT;	
+							
+              DesconectaBD();
+              
+              exit(1);
+             }
+         else 
+             {
+			  nTotalRegInformado = 0;
+			  ct_lidos           = 0;
+	          fprintf(fp_output,"%s - Processando arquivo : %s.\n",CurrentDateTime(DataHora,1),input_file_name);
+	          Processa_Arquivo(in_file_dir);
+	          Close_Input_Output_Files();  
+			  if (nTotalRegInformado == ct_lidos)
+			     {
+	              Move_Files();
+                  EXEC SQL COMMIT; 
+                 }	
+               else
+                 {
+				  if (nTotalRegInformado > 0)
+					 {
+
+					  fprintf(fp_output,"%s - Arquivo processado com sucesso => Numero de linhas do arquivo divergente da quantidade especificada no arquivo (linha ZZZZZ) - Nome Arquivo: %s - Total Reg. Informado : %lu - Total Reg. Lidos: %lu.\n",CurrentDateTime(DataHora,1),p->d_name,nTotalRegInformado,ct_lidos);
+
+	  	              Move_Files();
+					  
+					  sprintf(cMsg,"Arquivo processado com sucesso => Numero de linhas do arquivo divergente da quantidade especificada no arquivo (linha ZZZZZ) - Nome Arquivo: %s - Total Reg. Informado : %lu - Total Reg. Lidos: %lu.\n",p->d_name,nTotalRegInformado,ct_lidos);
+
+					  EXEC SQL COMMIT; 
+				     }
+				  else
+				     {
+					  EXEC SQL ROLLBACK;
+					  
+					  fprintf(fp_output,"%s - Erro => Arquivo incompleto movido p/ diretorio erro: %s - TotalRegInformado : %lu - ct_lidos: %lu.\n",CurrentDateTime(DataHora,1),p->d_name,nTotalRegInformado,ct_lidos);
+					  
+					  Move_Files_Erro();
+					  
+					  EXEC SQL COMMIT; 
+				     }
+                 }				  
+             }
+         }
+     }
+    }
+
+
+  closedir(dp);
+    
+  t_f = time(NULL); 
+  t_c = t_f - t_i;
+  
+  EXEC SQL 
+	 UPDATE adm_objetos.PGDAS_NIGHT_BATCH_QUEUE
+	 SET ST_PROCESSO = 'OFF';     
+		 
+  EXEC SQL COMMIT;	   
+  
+  DesconectaBD();
+  
+  sprintf(cmdsolaris,"gzip %s/PROCESSADO/*-PGDAS*.txt", base_file_dir);     
+
+  resCmd = system(cmdsolaris);  
+  
+  sprintf(cmdsolaris,"gzip %s/PROCESSADO/*-DAS*.txt", base_file_dir);       
+
+  resCmd = system(cmdsolaris);  
+  
+  exit(0);
+}
+
+/***************************************/
+/*   Fun��o Gravar Informa��o Perfil   */
+/***************************************/
+void ProcessarInformPerfil (char *buf_aux)
+{
+  int   cd_receita_principal=0;
+  float vl_principal; 
+  int   cd_receita_multa=0; 
+  float vl_multa; 
+  int   cd_receita_juros=0; 
+  float vl_juros; 
+  char  sg_uf_icms[10+1]; 
+  int   cd_municipio_iss=0;
+
+  cd_receita_principal  = atol(mExtractField(buf_aux,Separator,2,Field,FieldSize));
+  vl_principal          = atof(mExtractFieldFloat(buf_aux,Separator,3,Field,FieldSize)); 
+  cd_receita_multa      = atol(mExtractField(buf_aux,Separator,4,Field,FieldSize));
+  vl_multa              = atof(mExtractFieldFloat(buf_aux,Separator,5,Field,FieldSize));
+  cd_receita_juros      = atol(mExtractField(buf_aux,Separator,6,Field,FieldSize));
+  vl_juros              = atof(mExtractFieldFloat(buf_aux,Separator,7,Field,FieldSize));
+  strcpy(sg_uf_icms,mExtractField(buf_aux,Separator,8,Field,FieldSize));
+  cd_municipio_iss      = atol(mExtractField(buf_aux,Separator,9,Field,FieldSize));
+  
+  EXEC SQL  
+	INSERT INTO adm_objetos.PGDAS_04000_PERFIL
+			  (sq_arquivo, 
+			   sq_registro,
+			   cd_receita_principal,
+			   vl_principal,
+			   cd_receita_multa,
+			   vl_multa,
+			   cd_receita_juros,
+			   vl_juros,
+			   sg_uf_icms, 
+               cd_municipio_iss)
+	VALUES    (:Nsq_arquivo,
+	           :Nsq_registro,
+			   :cd_receita_principal,
+			   :vl_principal,
+			   :cd_receita_multa,
+			   :vl_multa,
+			   :cd_receita_juros,
+			   :vl_juros,
+			   :sg_uf_icms, 
+               :cd_municipio_iss);
+
+  if (sqlca.sqlcode != 0)
+	 {
+	  fprintf(fp_output,"%s - erro INSERT INTO PGDAS_04000_PERFIL.\n",CurrentDateTime(DataHora,1));
+	  sql_error(sqlca.sqlerrm.sqlerrmc);
+	 }     
+
+}  
+/*************************************************/
+/*   Fun��o Gravar Informa��o Folha de Salario   */
+/*************************************************/
+void ProcessarInformFolhaSalario (char *buf_aux)
+{
+  int   nu_periodo_apuracao   = 0; 
+  float vl_pago_folha_salario = 0;  
+  int y                       = 1;
+  int x                       = 0;
+
+  EncFimLinha = 0;
+
+  while (EncFimLinha == 0) {
+     y++;
+     x++;
+     if (x == 1) 
+        {
+         nu_periodo_apuracao = atol(mExtractFieldOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+        }
+     else
+        {
+	     if (x == 2)
+            {	  
+	         vl_pago_folha_salario = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+	         x = 0;
+ 
+			 EXEC SQL  
+				INSERT INTO adm_objetos.PGDAS_03500_FOLHA_SALARIO
+						  (sq_arquivo, sq_registro, nu_periodo_apuracao, vl_pago_folha_salario)
+				VALUES    (:Nsq_arquivo,:Nsq_registro,:nu_periodo_apuracao,:vl_pago_folha_salario);
+	  
+			 if (sqlca.sqlcode != 0)
+				{
+				 fprintf(fp_output,"%s - erro INSERT INTO PGDAS_03500_FOLHA_SALARIO.\n",CurrentDateTime(DataHora,1));
+				 sql_error(sqlca.sqlerrm.sqlerrmc);
+				} 
+
+	        }
+       }
+
+     }
+
+}
+
+/*******************************************************************/
+/*   Fun��o Gravar Informa��o Reducao Receita Atividade Faixa C    */
+/*******************************************************************/
+void ProcessarInformReducaoReceitaAtivFxC (char *buf_aux)
+{
+  float vl_aliq_apurada_ativ;
+  float pc_aliq_apurada_cofins;
+  float vl_apurado_cofins;
+  float pc_aliq_apurada_csll;
+  float vl_apurado_csll;
+  float pc_aliq_apurada_icms;
+  float vl_apurado_icms;
+  float pc_aliq_apurada_inss;
+  float vl_apurado_inss;
+  float pc_aliq_apurada_ipi;
+  float vl_apurado_ipi;
+  float pc_aliq_apurada_irpj;
+  float vl_apurado_irpj;
+  float pc_aliq_apurada_iss;
+  float vl_apurado_iss;
+  float pc_aliq_apurada_pis;
+  float vl_apurado_pis;
+
+  vl_aliq_apurada_ativ       = atof(mExtractFieldFloat(buf_aux,Separator,2,Field,FieldSize)); 
+pc_aliq_apurada_cofins       = atof(mExtractFieldFloat(buf_aux,Separator,3,Field,FieldSize));
+vl_apurado_cofins            = atof(mExtractFieldFloat(buf_aux,Separator,4,Field,FieldSize));
+pc_aliq_apurada_csll         = atof(mExtractFieldFloat(buf_aux,Separator,5,Field,FieldSize));
+vl_apurado_csll              = atof(mExtractFieldFloat(buf_aux,Separator,6,Field,FieldSize));
+pc_aliq_apurada_icms         = atof(mExtractFieldFloat(buf_aux,Separator,7,Field,FieldSize));
+vl_apurado_icms              = atof(mExtractFieldFloat(buf_aux,Separator,8,Field,FieldSize));
+pc_aliq_apurada_inss         = atof(mExtractFieldFloat(buf_aux,Separator,9,Field,FieldSize));
+vl_apurado_inss              = atof(mExtractFieldFloat(buf_aux,Separator,10,Field,FieldSize));
+pc_aliq_apurada_ipi          = atof(mExtractFieldFloat(buf_aux,Separator,11,Field,FieldSize));
+vl_apurado_ipi               = atof(mExtractFieldFloat(buf_aux,Separator,12,Field,FieldSize));
+pc_aliq_apurada_irpj         = atof(mExtractFieldFloat(buf_aux,Separator,13,Field,FieldSize));
+vl_apurado_irpj              = atof(mExtractFieldFloat(buf_aux,Separator,14,Field,FieldSize));
+pc_aliq_apurada_iss          = atof(mExtractFieldFloat(buf_aux,Separator,15,Field,FieldSize));
+vl_apurado_iss               = atof(mExtractFieldFloat(buf_aux,Separator,16,Field,FieldSize));
+pc_aliq_apurada_pis          = atof(mExtractFieldFloat(buf_aux,Separator,17,Field,FieldSize));
+vl_apurado_pis               = atof(mExtractFieldFloat(buf_aux,Separator,18,Field,FieldSize));
+  
+  EXEC SQL  
+     INSERT INTO adm_objetos.pgdas_03132_red_rec_ativ_fx_c 
+			(
+			sq_arquivo,
+			sq_registro,
+			sq_atividade, 
+			sq_filial, 
+			vl_aliq_apurada_ativ,
+			pc_aliq_apurada_cofins,
+			vl_apurado_cofins,
+			pc_aliq_apurada_csll,
+			vl_apurado_csll,
+			pc_aliq_apurada_icms,
+			vl_apurado_icms,
+			pc_aliq_apurada_inss,
+			vl_apurado_inss,
+			pc_aliq_apurada_ipi,
+			vl_apurado_ipi,
+			pc_aliq_apurada_irpj,
+			vl_apurado_irpj,
+			pc_aliq_apurada_iss,
+			vl_apurado_iss,
+			pc_aliq_apurada_pis,
+			vl_apurado_pis
+			)
+     VALUES (
+			:Nsq_arquivo,
+			:Nsq_registro,
+			:Nsq_atividade,
+			:Nsq_filial,				 
+            :vl_aliq_apurada_ativ,
+			:pc_aliq_apurada_cofins,
+			:vl_apurado_cofins,
+			:pc_aliq_apurada_csll,
+			:vl_apurado_csll,
+			:pc_aliq_apurada_icms,
+			:vl_apurado_icms,
+			:pc_aliq_apurada_inss,
+			:vl_apurado_inss,
+			:pc_aliq_apurada_ipi,
+			:vl_apurado_ipi,
+			:pc_aliq_apurada_irpj,
+			:vl_apurado_irpj,
+			:pc_aliq_apurada_iss,
+			:vl_apurado_iss,
+			:pc_aliq_apurada_pis,
+			:vl_apurado_pis	 
+            );	 
+
+	if (sqlca.sqlcode != 0)
+	   {
+	    fprintf(fp_output,"%s - erro INSERT INTO pgdas_03132_red_rec_ativ_fx_c .\n",CurrentDateTime(DataHora,1));
+	    sql_error(sqlca.sqlerrm.sqlerrmc);
+	   } 
+			   
+}
+/*****************************************************/
+/*   Fun��o Gravar Informa��o Isencao Atividade Faixa C     */
+/****************************************************/
+void ProcessarInformIsencaoAtividadeFxC (char *buf_aux)
+{
+  float vl_aliq_apurada_ativ;
+  float pc_aliq_apurada_cofins;
+  float vl_apurado_cofins;
+  float pc_aliq_apurada_csll;
+  float vl_apurado_csll;
+  float pc_aliq_apurada_icms;
+  float vl_apurado_icms;
+  float pc_aliq_apurada_inss;
+  float vl_apurado_inss;
+  float pc_aliq_apurada_ipi;
+  float vl_apurado_ipi;
+  float pc_aliq_apurada_irpj;
+  float vl_apurado_irpj;
+  float pc_aliq_apurada_iss;
+  float vl_apurado_iss;
+  float pc_aliq_apurada_pis;
+  float vl_apurado_pis;
+
+ vl_aliq_apurada_ativ         = atof(mExtractFieldFloat(buf_aux,Separator,2,Field,FieldSize));
+ pc_aliq_apurada_cofins       = atof(mExtractFieldFloat(buf_aux,Separator,3,Field,FieldSize));
+ vl_apurado_cofins            = atof(mExtractFieldFloat(buf_aux,Separator,4,Field,FieldSize));
+ pc_aliq_apurada_csll         = atof(mExtractFieldFloat(buf_aux,Separator,5,Field,FieldSize));
+ vl_apurado_csll              = atof(mExtractFieldFloat(buf_aux,Separator,6,Field,FieldSize));
+ pc_aliq_apurada_icms         = atof(mExtractFieldFloat(buf_aux,Separator,7,Field,FieldSize));
+ vl_apurado_icms              = atof(mExtractFieldFloat(buf_aux,Separator,8,Field,FieldSize));
+ pc_aliq_apurada_inss         = atof(mExtractFieldFloat(buf_aux,Separator,9,Field,FieldSize));
+ vl_apurado_inss              = atof(mExtractFieldFloat(buf_aux,Separator,10,Field,FieldSize));
+ pc_aliq_apurada_ipi          = atof(mExtractFieldFloat(buf_aux,Separator,11,Field,FieldSize));
+ vl_apurado_ipi               = atof(mExtractFieldFloat(buf_aux,Separator,12,Field,FieldSize));
+ pc_aliq_apurada_irpj         = atof(mExtractFieldFloat(buf_aux,Separator,13,Field,FieldSize));
+ vl_apurado_irpj              = atof(mExtractFieldFloat(buf_aux,Separator,14,Field,FieldSize));
+ pc_aliq_apurada_iss          = atof(mExtractFieldFloat(buf_aux,Separator,15,Field,FieldSize));
+ vl_apurado_iss               = atof(mExtractFieldFloat(buf_aux,Separator,16,Field,FieldSize));
+ pc_aliq_apurada_pis          = atof(mExtractFieldFloat(buf_aux,Separator,17,Field,FieldSize));
+ vl_apurado_pis               = atof(mExtractFieldFloat(buf_aux,Separator,18,Field,FieldSize));  
+  
+  EXEC SQL  
+     INSERT INTO adm_objetos.pgdas_03131_isencao_ativ_fx_c 
+               (
+			    sq_arquivo,
+				sq_registro,
+			    sq_atividade,
+			    sq_filial,				 
+                vl_aliq_apurada_ativ,
+				pc_aliq_apurada_cofins, 
+				vl_apurado_cofins, 
+				pc_aliq_apurada_csll, 
+				vl_apurado_csll, 
+				pc_aliq_apurada_icms, 
+				vl_apurado_icms, 
+				pc_aliq_apurada_inss, 
+				vl_apurado_inss, 
+				pc_aliq_apurada_ipi, 
+				vl_apurado_ipi, 
+				pc_aliq_apurada_irpj, 
+				vl_apurado_irpj, 
+				pc_aliq_apurada_iss, 
+				vl_apurado_iss, 
+				pc_aliq_apurada_pis, 
+				vl_apurado_pis
+			   )
+    VALUES (
+			:Nsq_arquivo,
+			:Nsq_registro,
+			:Nsq_atividade,
+			:Nsq_filial,				 
+            :vl_aliq_apurada_ativ,
+			:pc_aliq_apurada_cofins, 
+			:vl_apurado_cofins, 
+			:pc_aliq_apurada_csll, 
+			:vl_apurado_csll, 
+			:pc_aliq_apurada_icms, 
+			:vl_apurado_icms, 
+			:pc_aliq_apurada_inss, 
+			:vl_apurado_inss, 
+			:pc_aliq_apurada_ipi, 
+			:vl_apurado_ipi, 
+			:pc_aliq_apurada_irpj, 
+			:vl_apurado_irpj, 
+			:pc_aliq_apurada_iss, 
+			:vl_apurado_iss, 
+			:pc_aliq_apurada_pis, 
+			:vl_apurado_pis
+           );
+		   
+	if (sqlca.sqlcode != 0)
+	   {
+	    fprintf(fp_output,"%s - erro INSERT INTO pgdas_03131_isencao_ativ_fx_c .\n",CurrentDateTime(DataHora,1));
+	    sql_error(sqlca.sqlerrm.sqlerrmc);
+	   } 
+			   
+}
+/************************************************************/
+/*   Fun��o Gravar Informa��o Reducao Receita Atividade Faixa B    */
+/************************************************************/
+void ProcessarInformReducaoReceitaAtivFxB (char *buf_aux)
+{
+  float vl_aliq_apurada_ativ;
+  float pc_aliq_apurada_cofins;
+  float vl_apurado_cofins;
+  float pc_aliq_apurada_csll;
+  float vl_apurado_csll;
+  float pc_aliq_apurada_icms;
+  float vl_apurado_icms;
+  float pc_aliq_apurada_inss;
+  float vl_apurado_inss;
+  float pc_aliq_apurada_ipi;
+  float vl_apurado_ipi;
+  float pc_aliq_apurada_irpj;
+  float vl_apurado_irpj;
+  float pc_aliq_apurada_iss;
+  float vl_apurado_iss;
+  float pc_aliq_apurada_pis;
+  float vl_apurado_pis;
+
+  vl_aliq_apurada_ativ       = atof(mExtractFieldFloat(buf_aux,Separator,2,Field,FieldSize));
+pc_aliq_apurada_cofins       = atof(mExtractFieldFloat(buf_aux,Separator,3,Field,FieldSize));
+vl_apurado_cofins            = atof(mExtractFieldFloat(buf_aux,Separator,4,Field,FieldSize));
+pc_aliq_apurada_csll         = atof(mExtractFieldFloat(buf_aux,Separator,5,Field,FieldSize));
+vl_apurado_csll              = atof(mExtractFieldFloat(buf_aux,Separator,6,Field,FieldSize));
+pc_aliq_apurada_icms         = atof(mExtractFieldFloat(buf_aux,Separator,7,Field,FieldSize));
+vl_apurado_icms              = atof(mExtractFieldFloat(buf_aux,Separator,8,Field,FieldSize));
+pc_aliq_apurada_inss         = atof(mExtractFieldFloat(buf_aux,Separator,9,Field,FieldSize));
+vl_apurado_inss              = atof(mExtractFieldFloat(buf_aux,Separator,10,Field,FieldSize));
+pc_aliq_apurada_ipi          = atof(mExtractFieldFloat(buf_aux,Separator,11,Field,FieldSize));
+vl_apurado_ipi               = atof(mExtractFieldFloat(buf_aux,Separator,12,Field,FieldSize));
+pc_aliq_apurada_irpj         = atof(mExtractFieldFloat(buf_aux,Separator,13,Field,FieldSize));
+vl_apurado_irpj              = atof(mExtractFieldFloat(buf_aux,Separator,14,Field,FieldSize));
+pc_aliq_apurada_iss          = atof(mExtractFieldFloat(buf_aux,Separator,15,Field,FieldSize));
+vl_apurado_iss               = atof(mExtractFieldFloat(buf_aux,Separator,16,Field,FieldSize));
+pc_aliq_apurada_pis          = atof(mExtractFieldFloat(buf_aux,Separator,17,Field,FieldSize));
+vl_apurado_pis               = atof(mExtractFieldFloat(buf_aux,Separator,18,Field,FieldSize));
+  
+  EXEC SQL  
+     INSERT INTO adm_objetos.pgdas_03122_red_rec_ativ_fx_b 
+			(
+			sq_arquivo,
+			sq_registro,
+			sq_atividade, 
+			sq_filial, 
+			vl_aliq_apurada_ativ,
+			pc_aliq_apurada_cofins,
+			vl_apurado_cofins,
+			pc_aliq_apurada_csll,
+			vl_apurado_csll,
+			pc_aliq_apurada_icms,
+			vl_apurado_icms,
+			pc_aliq_apurada_inss,
+			vl_apurado_inss,
+			pc_aliq_apurada_ipi,
+			vl_apurado_ipi,
+			pc_aliq_apurada_irpj,
+			vl_apurado_irpj,
+			pc_aliq_apurada_iss,
+			vl_apurado_iss,
+			pc_aliq_apurada_pis,
+			vl_apurado_pis
+			)
+     VALUES (
+			:Nsq_arquivo,
+			:Nsq_registro,
+			:Nsq_atividade,
+			:Nsq_filial,
+			:vl_aliq_apurada_ativ,
+			:pc_aliq_apurada_cofins,
+			:vl_apurado_cofins,
+			:pc_aliq_apurada_csll,
+			:vl_apurado_csll,
+			:pc_aliq_apurada_icms,
+			:vl_apurado_icms,
+			:pc_aliq_apurada_inss,
+			:vl_apurado_inss,
+			:pc_aliq_apurada_ipi,
+			:vl_apurado_ipi,
+			:pc_aliq_apurada_irpj,
+			:vl_apurado_irpj,
+			:pc_aliq_apurada_iss,
+			:vl_apurado_iss,
+			:pc_aliq_apurada_pis,
+			:vl_apurado_pis	 
+            );	 
+
+	if (sqlca.sqlcode != 0)
+	   {
+	    fprintf(fp_output,"%s - erro INSERT INTO pgdas_03122_red_rec_ativ_fx_b .\n",CurrentDateTime(DataHora,1));
+	    sql_error(sqlca.sqlerrm.sqlerrmc);
+	   } 
+			   
+}
+/*****************************************************/
+/*   Fun��o Gravar Informa��o Isencao Atividade Faixa B     */
+/****************************************************/
+void ProcessarInformIsencaoAtividadeFxB (char *buf_aux)
+{
+  float vl_aliq_apurada_ativ;
+  float pc_aliq_apurada_cofins;
+  float vl_apurado_cofins;
+  float pc_aliq_apurada_csll;
+  float vl_apurado_csll;
+  float pc_aliq_apurada_icms;
+  float vl_apurado_icms;
+  float pc_aliq_apurada_inss;
+  float vl_apurado_inss;
+  float pc_aliq_apurada_ipi;
+  float vl_apurado_ipi;
+  float pc_aliq_apurada_irpj;
+  float vl_apurado_irpj;
+  float pc_aliq_apurada_iss;
+  float vl_apurado_iss;
+  float pc_aliq_apurada_pis;
+  float vl_apurado_pis;
+
+ vl_aliq_apurada_ativ              = atof(mExtractFieldFloat(buf_aux,Separator,2,Field,FieldSize));
+ pc_aliq_apurada_cofins            = atof(mExtractFieldFloat(buf_aux,Separator,3,Field,FieldSize));
+ vl_apurado_cofins                 = atof(mExtractFieldFloat(buf_aux,Separator,4,Field,FieldSize));
+ pc_aliq_apurada_csll              = atof(mExtractFieldFloat(buf_aux,Separator,5,Field,FieldSize));
+ vl_apurado_csll                   = atof(mExtractFieldFloat(buf_aux,Separator,6,Field,FieldSize));
+ pc_aliq_apurada_icms              = atof(mExtractFieldFloat(buf_aux,Separator,7,Field,FieldSize));
+ vl_apurado_icms                   = atof(mExtractFieldFloat(buf_aux,Separator,8,Field,FieldSize));
+ pc_aliq_apurada_inss              = atof(mExtractFieldFloat(buf_aux,Separator,9,Field,FieldSize));
+ vl_apurado_inss                   = atof(mExtractFieldFloat(buf_aux,Separator,10,Field,FieldSize));
+ pc_aliq_apurada_ipi               = atof(mExtractFieldFloat(buf_aux,Separator,11,Field,FieldSize));
+ vl_apurado_ipi                    = atof(mExtractFieldFloat(buf_aux,Separator,12,Field,FieldSize));
+ pc_aliq_apurada_irpj              = atof(mExtractFieldFloat(buf_aux,Separator,13,Field,FieldSize));
+ vl_apurado_irpj                   = atof(mExtractFieldFloat(buf_aux,Separator,14,Field,FieldSize));
+ pc_aliq_apurada_iss               = atof(mExtractFieldFloat(buf_aux,Separator,15,Field,FieldSize));
+ vl_apurado_iss                    = atof(mExtractFieldFloat(buf_aux,Separator,16,Field,FieldSize));
+ pc_aliq_apurada_pis               = atof(mExtractFieldFloat(buf_aux,Separator,17,Field,FieldSize));
+ vl_apurado_pis                    = atof(mExtractFieldFloat(buf_aux,Separator,18,Field,FieldSize));
+  
+  EXEC SQL  
+     INSERT INTO adm_objetos.pgdas_03121_isencao_ativ_fx_b
+				        (
+			            sq_arquivo,
+				        sq_registro,
+			            sq_atividade,
+			            sq_filial,				 
+                        vl_aliq_apurada_ativ, 
+						pc_aliq_apurada_cofins, 
+						vl_apurado_cofins, 
+						pc_aliq_apurada_csll, 
+						vl_apurado_csll, 
+						pc_aliq_apurada_icms, 
+						vl_apurado_icms, 
+						pc_aliq_apurada_inss, 
+						vl_apurado_inss, 
+						pc_aliq_apurada_ipi, 
+						vl_apurado_ipi, 
+						pc_aliq_apurada_irpj, 
+						vl_apurado_irpj, 
+						pc_aliq_apurada_iss, 
+						vl_apurado_iss, 
+						pc_aliq_apurada_pis, 
+						vl_apurado_pis
+                        ) 
+	 VALUES             (
+			            :Nsq_arquivo,
+				        :Nsq_registro,
+			            :Nsq_atividade,
+			            :Nsq_filial,				 
+                        :vl_aliq_apurada_ativ,
+						:pc_aliq_apurada_cofins, 
+						:vl_apurado_cofins, 
+						:pc_aliq_apurada_csll, 
+						:vl_apurado_csll, 
+						:pc_aliq_apurada_icms, 
+						:vl_apurado_icms, 
+						:pc_aliq_apurada_inss, 
+						:vl_apurado_inss, 
+						:pc_aliq_apurada_ipi, 
+						:vl_apurado_ipi, 
+						:pc_aliq_apurada_irpj, 
+						:vl_apurado_irpj, 
+						:pc_aliq_apurada_iss, 
+						:vl_apurado_iss, 
+						:pc_aliq_apurada_pis, 
+						:vl_apurado_pis	 
+	                    );
+
+	if (sqlca.sqlcode != 0)
+	   {
+	    fprintf(fp_output,"%s - erro INSERT INTO pgdas_03121_isencao_ativ_fx_b .\n",CurrentDateTime(DataHora,1));
+	    sql_error(sqlca.sqlerrm.sqlerrmc);
+	   } 
+			   
+}
+/************************************************************/
+/*   Fun��o Gravar Informa��o Reducao Receita Atividade Faixa A     */
+/************************************************************/
+void ProcessarInformReducaoReceitaAtivFxA (char *buf_aux)
+{
+  float vl_receita_atividade; 
+  float pc_reducao_icms_iss;
+  float vl_somatorio_aliquotas;
+  float vl_imposto;
+  float pc_aliq_apurada_cofins;
+  float vl_apurado_cofins;
+  float pc_aliq_apurada_csll;
+  float vl_apurado_csll;
+  float pc_aliq_apurada_icms;
+  float vl_apurado_icms;
+  float pc_aliq_apurada_inss;
+  float vl_apurado_inss;
+  float pc_aliq_apurada_ipi;
+  float vl_apurado_ipi;
+  float pc_aliq_apurada_irpj;
+  float vl_apurado_irpj;
+  float pc_aliq_apurada_iss;
+  float vl_apurado_iss;
+  float pc_aliq_apurada_pis;
+  float vl_apurado_pis;
+  float vl_diferenca_imposto;
+  int   nu_maior_tributo;
+  char  BuscaString[100];
+  
+  float vl_somatorio_aliquotas_b = 0;
+  float pc_aliq_apurada_cofins_b = 0;
+  float vl_apurado_cofins_b      = 0;
+  float pc_aliq_apurada_csll_b   = 0;
+  float vl_apurado_csll_b        = 0;
+  float pc_aliq_apurada_icms_b   = 0;
+  float vl_apurado_icms_b        = 0;
+  float pc_aliq_apurada_inss_b   = 0;
+  float vl_apurado_inss_b        = 0;
+  float pc_aliq_apurada_ipi_b    = 0;
+  float vl_apurado_ipi_b         = 0;
+  float pc_aliq_apurada_irpj_b   = 0;
+  float vl_apurado_irpj_b        = 0;
+  float pc_aliq_apurada_iss_b    = 0;
+  float vl_apurado_iss_b         = 0;
+  float pc_aliq_apurada_pis_b    = 0;
+  float vl_apurado_pis_b         = 0;
+  
+  float vl_somatorio_aliquotas_c = 0;
+  float pc_aliq_apurada_cofins_c = 0;
+  float vl_apurado_cofins_c      = 0;
+  float pc_aliq_apurada_csll_c   = 0;
+  float vl_apurado_csll_c        = 0;
+  float pc_aliq_apurada_icms_c   = 0;
+  float vl_apurado_icms_c        = 0;
+  float pc_aliq_apurada_inss_c   = 0;
+  float vl_apurado_inss_c        = 0;
+  float pc_aliq_apurada_ipi_c    = 0;
+  float vl_apurado_ipi_c         = 0;
+  float pc_aliq_apurada_irpj_c   = 0;
+  float vl_apurado_irpj_c        = 0;
+  float pc_aliq_apurada_iss_c    = 0;
+  float vl_apurado_iss_c         = 0;
+  float pc_aliq_apurada_pis_c    = 0;
+  float vl_apurado_pis_c         = 0;  
+
+  int   qt_tributos      = 0; 
+  int   y                = 1;
+  int   x                = 0;
+
+  if (cd_versao < 120)
+     {
+ 
+      vl_receita_atividade          = atof(mExtractFieldFloat(buf_aux,Separator,2,Field,FieldSize));   
+ 
+      pc_reducao_icms_iss           = atof(mExtractFieldFloat(buf_aux,Separator,3,Field,FieldSize));  
+	  
+	  int y                         = 3; 
+	    
+		if (qt_limite_ultrapassados_pa==0) 
+	        {
+	         y++; 
+	         vl_somatorio_aliquotas = atof(mExtractFieldFloat(buf_aux,Separator,y,Field,FieldSize));
+	        }
+	    else
+	        {
+	         if (qt_limite_ultrapassados_pa==1) 
+	            {
+	             y++;
+	             vl_somatorio_aliquotas = atof(mExtractFieldFloat(buf_aux,Separator,y,Field,FieldSize));
+	             y++;
+	             vl_somatorio_aliquotas_b = atof(mExtractFieldFloat(buf_aux,Separator,y,Field,FieldSize));
+	            }
+	         else
+	            {
+	             if (qt_limite_ultrapassados_pa==2) 
+	                {
+	                 y++;
+	                 vl_somatorio_aliquotas = atof(mExtractFieldFloat(buf_aux,Separator,y,Field,FieldSize));
+	                 y++;
+	                 vl_somatorio_aliquotas_b = atof(mExtractFieldFloat(buf_aux,Separator,y,Field,FieldSize));
+	                 y++;
+	                 vl_somatorio_aliquotas_c = atof(mExtractFieldFloat(buf_aux,Separator,y,Field,FieldSize));
+	                }
+	            }   
+	        }
+
+	  y++;
+	  vl_imposto = atof(mExtractFieldFloat(buf_aux,Separator,y,Field,FieldSize));
+	  
+	  y++;  
+	  qt_tributos = atol(mExtractFieldFloat(buf_aux,Separator,y,Field,FieldSize));
+
+	  int i = 0;
+
+	  char   sq_aliquota_tributo[2+1]; 
+	  float vl_perc_aliq_apurada = 0;
+	  float vl_calculado         = 0;
+
+	  for (x = 0; x <= qt_limite_ultrapassados_pa; x++)
+	      {
+	       for(i = 1; i <= qt_tributos; i++)
+	       {
+	            y++;
+	            strcpy(sq_aliquota_tributo,mExtractFieldOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+	  
+	            if ((strncmp(sq_aliquota_tributo,"1",2)==0)||(strncmp(sq_aliquota_tributo,"1A",2)==0))
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_irpj = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_irpj = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if ((strncmp(sq_aliquota_tributo,"2",2)==0)||(strncmp(sq_aliquota_tributo,"2A",2)==0))
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_csll = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_csll = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if ((strncmp(sq_aliquota_tributo,"3",2)==0)||(strncmp(sq_aliquota_tributo,"3A",2)==0))
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_cofins = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_cofins = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if ((strncmp(sq_aliquota_tributo,"4",2)==0)||(strncmp(sq_aliquota_tributo,"4A",2)==0))
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_pis = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_pis = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if ((strncmp(sq_aliquota_tributo,"5",2)==0)||(strncmp(sq_aliquota_tributo,"5A",2)==0))
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_inss = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_inss = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if ((strncmp(sq_aliquota_tributo,"6",2)==0)||(strncmp(sq_aliquota_tributo,"6A",2)==0))
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_icms = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_icms = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if ((strncmp(sq_aliquota_tributo,"7",2)==0)||(strncmp(sq_aliquota_tributo,"7A",2)==0))
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_ipi = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_ipi = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if ((strncmp(sq_aliquota_tributo,"8",2)==0)||(strncmp(sq_aliquota_tributo,"8A",2)==0))
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_iss = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_iss = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+	            else
+	            {
+			    if (strncmp(sq_aliquota_tributo,"1B",2)==0)
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_irpj_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_irpj_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if (strncmp(sq_aliquota_tributo,"2B",2)==0) 
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_csll_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_csll_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if (strncmp(sq_aliquota_tributo,"3B",2)==0) 
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_cofins_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_cofins_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if (strncmp(sq_aliquota_tributo,"4B",2)==0) 
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_pis_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_pis_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if (strncmp(sq_aliquota_tributo,"5B",2)==0)
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_inss_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_inss_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if (strncmp(sq_aliquota_tributo,"6B",2)==0) 
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_icms_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_icms_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if (strncmp(sq_aliquota_tributo,"7B",2)==0) 
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_ipi_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_ipi_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if (strncmp(sq_aliquota_tributo,"8B",2)==0) 
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_iss_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_iss_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }			   
+	            else
+	            {
+			    if (strncmp(sq_aliquota_tributo,"1C",2)==0)
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_irpj_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_irpj_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if (strncmp(sq_aliquota_tributo,"2C",2)==0) 
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_csll_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_csll_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if (strncmp(sq_aliquota_tributo,"3C",2)==0) 
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_cofins_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_cofins_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if (strncmp(sq_aliquota_tributo,"4C",2)==0) 
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_pis_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_pis_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if (strncmp(sq_aliquota_tributo,"5C",2)==0)
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_inss_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_inss_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if (strncmp(sq_aliquota_tributo,"6C",2)==0) 
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_icms_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_icms_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if (strncmp(sq_aliquota_tributo,"7C",2)==0) 
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_ipi_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_ipi_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if (strncmp(sq_aliquota_tributo,"8C",2)==0) 
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_iss_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_iss_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }			   
+				}
+			   }
+		       }
+			   }
+			   }
+			   }
+			   }
+			   }	   
+			   }
+		       }
+			   }
+			   }
+			   }
+			   }
+			   }
+			   }
+			   }
+			   }
+			   }
+			   }
+			   }
+			   }
+			   }
+			   
+
+	      } 
+
+	   }
+       y++;
+	   vl_diferenca_imposto          = atof(mExtractFieldFloat(buf_aux,Separator,y,Field,FieldSize)); 
+	   y++;
+	   nu_maior_tributo              = atol(mExtractField(buf_aux,Separator,y,Field,FieldSize));
+	   
+  	   EXEC SQL  
+		     INSERT INTO adm_objetos.pgdas_03112_red_rec_ativ_fx_a
+						        (
+					            sq_arquivo,
+						        sq_registro,
+					            sq_atividade,
+					            sq_filial,
+								vl_receita_atividade, 
+								pc_reducao_icms_iss, 
+								vl_somatorio_aliquotas, 
+								vl_imposto, 
+								pc_aliq_apurada_cofins, 
+								vl_apurado_cofins, 
+								pc_aliq_apurada_csll, 
+								vl_apurado_csll, 
+								pc_aliq_apurada_icms, 
+								vl_apurado_icms, 
+								pc_aliq_apurada_inss, 
+								vl_apurado_inss, 
+								pc_aliq_apurada_ipi, 
+								vl_apurado_ipi, 
+								pc_aliq_apurada_irpj, 
+								vl_apurado_irpj, 
+								pc_aliq_apurada_iss, 
+								vl_apurado_iss, 
+								pc_aliq_apurada_pis, 
+								vl_apurado_pis, 
+								vl_diferenca_imposto, 
+								nu_maior_tributo
+								)
+		     VALUES             (
+					            :Nsq_arquivo,
+						        :Nsq_registro,
+					            :Nsq_atividade,
+					            :Nsq_filial,
+								:vl_receita_atividade, 
+								:pc_reducao_icms_iss, 
+								:vl_somatorio_aliquotas, 
+								:vl_imposto, 
+								:pc_aliq_apurada_cofins, 
+								:vl_apurado_cofins, 
+								:pc_aliq_apurada_csll, 
+								:vl_apurado_csll, 
+								:pc_aliq_apurada_icms, 
+								:vl_apurado_icms, 
+								:pc_aliq_apurada_inss, 
+								:vl_apurado_inss, 
+								:pc_aliq_apurada_ipi, 
+								:vl_apurado_ipi, 
+								:pc_aliq_apurada_irpj, 
+								:vl_apurado_irpj, 
+								:pc_aliq_apurada_iss, 
+								:vl_apurado_iss, 
+								:pc_aliq_apurada_pis, 
+								:vl_apurado_pis, 
+								:vl_diferenca_imposto, 
+								:nu_maior_tributo	 
+			                    );
+				  
+	   if (sqlca.sqlcode != 0)
+		  {
+		   fprintf(fp_output,"%s - erro INSERT INTO pgdas_03112_red_rec_ativ_fx_a   .\n",CurrentDateTime(DataHora,1));
+		   sql_error(sqlca.sqlerrm.sqlerrmc);
+		  }  
+
+	   if (qt_limite_ultrapassados_pa > 0) 
+	      {
+			  EXEC SQL  
+			     INSERT INTO adm_objetos.pgdas_03122_red_rec_ativ_fx_b 
+							        (  
+			                        sq_arquivo,
+				                    sq_registro,
+									sq_atividade, 
+									sq_filial, 
+									vl_aliq_apurada_ativ,
+									pc_aliq_apurada_cofins, 
+									vl_apurado_cofins, 
+									pc_aliq_apurada_csll, 
+									vl_apurado_csll, 
+									pc_aliq_apurada_icms, 
+									vl_apurado_icms, 
+									pc_aliq_apurada_inss, 
+									vl_apurado_inss, 
+									pc_aliq_apurada_ipi, 
+									vl_apurado_ipi, 
+									pc_aliq_apurada_irpj, 
+									vl_apurado_irpj, 
+									pc_aliq_apurada_iss, 
+									vl_apurado_iss, 
+									pc_aliq_apurada_pis, 
+									vl_apurado_pis
+									)
+			     VALUES             (
+			                         :Nsq_arquivo,
+				                     :Nsq_registro,
+			                         :Nsq_atividade,
+			                         :Nsq_filial,				 
+                                     :vl_somatorio_aliquotas_b,
+			                         :pc_aliq_apurada_cofins_b, 
+			                         :vl_apurado_cofins_b, 
+			                         :pc_aliq_apurada_csll_b, 
+			                         :vl_apurado_csll_b, 
+			                         :pc_aliq_apurada_icms_b, 
+			                         :vl_apurado_icms_b, 
+			                         :pc_aliq_apurada_inss_b, 
+			                         :vl_apurado_inss_b, 
+			                         :pc_aliq_apurada_ipi_b, 
+			                         :vl_apurado_ipi_b, 
+			                         :pc_aliq_apurada_irpj_b, 
+			                         :vl_apurado_irpj_b, 
+			                         :pc_aliq_apurada_iss_b, 
+			                         :vl_apurado_iss_b, 
+			                         :pc_aliq_apurada_pis_b, 
+			                         :vl_apurado_pis_b	 
+				                    );
+				if (sqlca.sqlcode != 0)
+				   {
+				    fprintf(fp_output,"%s - erro INSERT INTO pgdas_03122_red_rec_ativ_fx_b ...\n",CurrentDateTime(DataHora,1));
+				    sql_error(sqlca.sqlerrm.sqlerrmc);
+				   } 
+									   
+	      }
+       if (qt_limite_ultrapassados_pa > 1) 
+	      {
+			  EXEC SQL  
+			     INSERT INTO adm_objetos.pgdas_03132_red_rec_ativ_fx_c
+							        (  
+			                        sq_arquivo,
+				                    sq_registro,
+									sq_atividade, 
+									sq_filial, 
+									vl_aliq_apurada_ativ,
+									pc_aliq_apurada_cofins, 
+									vl_apurado_cofins, 
+									pc_aliq_apurada_csll, 
+									vl_apurado_csll, 
+									pc_aliq_apurada_icms, 
+									vl_apurado_icms, 
+									pc_aliq_apurada_inss, 
+									vl_apurado_inss, 
+									pc_aliq_apurada_ipi, 
+									vl_apurado_ipi, 
+									pc_aliq_apurada_irpj, 
+									vl_apurado_irpj, 
+									pc_aliq_apurada_iss, 
+									vl_apurado_iss, 
+									pc_aliq_apurada_pis, 
+									vl_apurado_pis
+									)
+			     VALUES             (
+			                         :Nsq_arquivo,
+				                     :Nsq_registro,
+			                         :Nsq_atividade,
+			                         :Nsq_filial,				 
+                                     :vl_somatorio_aliquotas_c,
+			                         :pc_aliq_apurada_cofins_c, 
+			                         :vl_apurado_cofins_c, 
+			                         :pc_aliq_apurada_csll_c, 
+			                         :vl_apurado_csll_c, 
+			                         :pc_aliq_apurada_icms_c, 
+			                         :vl_apurado_icms_c, 
+			                         :pc_aliq_apurada_inss_c, 
+			                         :vl_apurado_inss_c, 
+			                         :pc_aliq_apurada_ipi_c, 
+			                         :vl_apurado_ipi_c, 
+			                         :pc_aliq_apurada_irpj_c, 
+			                         :vl_apurado_irpj_c, 
+			                         :pc_aliq_apurada_iss_c, 
+			                         :vl_apurado_iss_c, 
+			                         :pc_aliq_apurada_pis_c, 
+			                         :vl_apurado_pis_c	 
+				                    );
+				if (sqlca.sqlcode != 0)
+				   {
+				    fprintf(fp_output,"%s - erro INSERT INTO pgdas_03132_red_rec_ativ_fx_c .\n",CurrentDateTime(DataHora,1));
+				    sql_error(sqlca.sqlerrm.sqlerrmc);
+				   } 
+									   
+	      }
+	   
+	 }
+    else
+     {  
+
+	vl_receita_atividade            = atof(mExtractFieldFloat(buf_aux,Separator,2,Field,FieldSize)); 
+	pc_reducao_icms_iss             = atof(mExtractFieldFloat(buf_aux,Separator,3,Field,FieldSize)); 
+	vl_somatorio_aliquotas          = atof(mExtractFieldFloat(buf_aux,Separator,4,Field,FieldSize)); 
+	vl_imposto                      = atof(mExtractFieldFloat(buf_aux,Separator,5,Field,FieldSize)); 
+	pc_aliq_apurada_cofins          = atof(mExtractFieldFloat(buf_aux,Separator,6,Field,FieldSize)); 
+	vl_apurado_cofins               = atof(mExtractFieldFloat(buf_aux,Separator,7,Field,FieldSize)); 
+	pc_aliq_apurada_csll            = atof(mExtractFieldFloat(buf_aux,Separator,8,Field,FieldSize)); 
+	vl_apurado_csll                 = atof(mExtractFieldFloat(buf_aux,Separator,9,Field,FieldSize)); 
+	pc_aliq_apurada_icms            = atof(mExtractFieldFloat(buf_aux,Separator,10,Field,FieldSize)); 
+	vl_apurado_icms                 = atof(mExtractFieldFloat(buf_aux,Separator,11,Field,FieldSize)); 
+	pc_aliq_apurada_inss            = atof(mExtractFieldFloat(buf_aux,Separator,12,Field,FieldSize)); 
+	vl_apurado_inss                 = atof(mExtractFieldFloat(buf_aux,Separator,13,Field,FieldSize)); 
+	pc_aliq_apurada_ipi             = atof(mExtractFieldFloat(buf_aux,Separator,14,Field,FieldSize)); 
+	vl_apurado_ipi                  = atof(mExtractFieldFloat(buf_aux,Separator,15,Field,FieldSize)); 
+	pc_aliq_apurada_irpj            = atof(mExtractFieldFloat(buf_aux,Separator,16,Field,FieldSize)); 
+	vl_apurado_irpj                 = atof(mExtractFieldFloat(buf_aux,Separator,17,Field,FieldSize)); 
+	pc_aliq_apurada_iss             = atof(mExtractFieldFloat(buf_aux,Separator,18,Field,FieldSize)); 
+	vl_apurado_iss                  = atof(mExtractFieldFloat(buf_aux,Separator,19,Field,FieldSize)); 
+	pc_aliq_apurada_pis             = atof(mExtractFieldFloat(buf_aux,Separator,20,Field,FieldSize)); 
+	vl_apurado_pis                  = atof(mExtractFieldFloat(buf_aux,Separator,21,Field,FieldSize)); 
+	vl_diferenca_imposto            = atof(mExtractFieldFloat(buf_aux,Separator,22,Field,FieldSize)); 
+	nu_maior_tributo                = atol(mExtractFieldFloat(buf_aux,Separator,23,Field,FieldSize));   
+  
+  EXEC SQL  
+     INSERT INTO adm_objetos.pgdas_03112_red_rec_ativ_fx_a
+				        (
+			            sq_arquivo,
+				        sq_registro,
+			            sq_atividade,
+			            sq_filial,
+						vl_receita_atividade, 
+						pc_reducao_icms_iss, 
+						vl_somatorio_aliquotas, 
+						vl_imposto, 
+						pc_aliq_apurada_cofins, 
+						vl_apurado_cofins, 
+						pc_aliq_apurada_csll, 
+						vl_apurado_csll, 
+						pc_aliq_apurada_icms, 
+						vl_apurado_icms, 
+						pc_aliq_apurada_inss, 
+						vl_apurado_inss, 
+						pc_aliq_apurada_ipi, 
+						vl_apurado_ipi, 
+						pc_aliq_apurada_irpj, 
+						vl_apurado_irpj, 
+						pc_aliq_apurada_iss, 
+						vl_apurado_iss, 
+						pc_aliq_apurada_pis, 
+						vl_apurado_pis, 
+						vl_diferenca_imposto, 
+						nu_maior_tributo
+						)
+     VALUES             (
+			            :Nsq_arquivo,
+				        :Nsq_registro,
+			            :Nsq_atividade,
+			            :Nsq_filial,
+						:vl_receita_atividade, 
+						:pc_reducao_icms_iss, 
+						:vl_somatorio_aliquotas, 
+						:vl_imposto, 
+						:pc_aliq_apurada_cofins, 
+						:vl_apurado_cofins, 
+						:pc_aliq_apurada_csll, 
+						:vl_apurado_csll, 
+						:pc_aliq_apurada_icms, 
+						:vl_apurado_icms, 
+						:pc_aliq_apurada_inss, 
+						:vl_apurado_inss, 
+						:pc_aliq_apurada_ipi, 
+						:vl_apurado_ipi, 
+						:pc_aliq_apurada_irpj, 
+						:vl_apurado_irpj, 
+						:pc_aliq_apurada_iss, 
+						:vl_apurado_iss, 
+						:pc_aliq_apurada_pis, 
+						:vl_apurado_pis, 
+						:vl_diferenca_imposto, 
+						:nu_maior_tributo	 
+	                    );
+
+	if (sqlca.sqlcode != 0)
+	   {
+	    fprintf(fp_output,"%s - erro INSERT INTO pgdas_03112_red_rec_ativ_fx_a .\n",CurrentDateTime(DataHora,1));
+	    sql_error(sqlca.sqlerrm.sqlerrmc);
+	   } 
+			   
+    }
+}
+/********************************************************/
+/*   Fun��o Gravar Informa��o Isencao Por Atividade Faixa A     */
+/*******************************************************/
+void ProcessarInformIsencaoAtividadeFxA (char *buf_aux)
+{
+
+  float vl_receita_atividade;
+  float vl_somatorio_aliquotas = 0;
+  float vl_imposto = 0;
+  float pc_aliq_apurada_cofins = 0;
+  float vl_apurado_cofins = 0;
+  float pc_aliq_apurada_csll = 0;
+  float vl_apurado_csll = 0;
+  float pc_aliq_apurada_icms = 0;
+  float vl_apurado_icms = 0;
+  float pc_aliq_apurada_inss = 0;
+  float vl_apurado_inss = 0;
+  float pc_aliq_apurada_ipi = 0;
+  float vl_apurado_ipi = 0;
+  float pc_aliq_apurada_irpj = 0;
+  float vl_apurado_irpj = 0;
+  float pc_aliq_apurada_iss = 0;
+  float vl_apurado_iss = 0;
+  float pc_aliq_apurada_pis = 0;
+  float vl_apurado_pis = 0;
+  float vl_diferenca_imposto = 0;
+  int   nu_maior_tributo;
+  char  BuscaString[100];
+  int   qt_tributos = 0;
+  
+  float vl_somatorio_aliquotas_b = 0;
+  float pc_aliq_apurada_cofins_b = 0;
+  float vl_apurado_cofins_b      = 0;
+  float pc_aliq_apurada_csll_b   = 0;
+  float vl_apurado_csll_b        = 0;
+  float pc_aliq_apurada_icms_b   = 0;
+  float vl_apurado_icms_b        = 0;
+  float pc_aliq_apurada_inss_b   = 0;
+  float vl_apurado_inss_b        = 0;
+  float pc_aliq_apurada_ipi_b    = 0;
+  float vl_apurado_ipi_b         = 0;
+  float pc_aliq_apurada_irpj_b   = 0;
+  float vl_apurado_irpj_b        = 0;
+  float pc_aliq_apurada_iss_b    = 0;
+  float vl_apurado_iss_b         = 0;
+  float pc_aliq_apurada_pis_b    = 0;
+  float vl_apurado_pis_b         = 0;
+  
+  float vl_somatorio_aliquotas_c = 0;
+  float pc_aliq_apurada_cofins_c = 0;
+  float vl_apurado_cofins_c      = 0;
+  float pc_aliq_apurada_csll_c   = 0;
+  float vl_apurado_csll_c        = 0;
+  float pc_aliq_apurada_icms_c   = 0;
+  float vl_apurado_icms_c        = 0;
+  float pc_aliq_apurada_inss_c   = 0;
+  float vl_apurado_inss_c        = 0;
+  float pc_aliq_apurada_ipi_c    = 0;
+  float vl_apurado_ipi_c         = 0;
+  float pc_aliq_apurada_irpj_c   = 0;
+  float vl_apurado_irpj_c        = 0;
+  float pc_aliq_apurada_iss_c    = 0;
+  float vl_apurado_iss_c         = 0;
+  float pc_aliq_apurada_pis_c    = 0;
+  float vl_apurado_pis_c         = 0;  
+
+  if (cd_versao < 120)
+     {
+
+	  vl_receita_atividade         = atof(mExtractFieldFloat(buf_aux,Separator,2,Field,FieldSize));  
+	  
+	  int y                         = 2;
+	  int x                         = 0;
+	  int EncFimBusca               = 0;
+	  BuscaString[0]                = 0; 	 
+	    
+		if (qt_limite_ultrapassados_pa==0) 
+	        {
+	         y++; 
+	         vl_somatorio_aliquotas = atof(mExtractFieldFloat(buf_aux,Separator,y,Field,FieldSize));
+	        }
+	    else
+	        {
+	         if (qt_limite_ultrapassados_pa==1) 
+	            {
+	             y++;
+	             vl_somatorio_aliquotas = atof(mExtractFieldFloat(buf_aux,Separator,y,Field,FieldSize));
+	             y++;
+	             vl_somatorio_aliquotas_b = atof(mExtractFieldFloat(buf_aux,Separator,y,Field,FieldSize));
+	            }
+	         else
+	            {
+	             if (qt_limite_ultrapassados_pa==2) 
+	                {
+	                 y++;
+	                 vl_somatorio_aliquotas = atof(mExtractFieldFloat(buf_aux,Separator,y,Field,FieldSize));
+	                 y++;
+	                 vl_somatorio_aliquotas_b = atof(mExtractFieldFloat(buf_aux,Separator,y,Field,FieldSize));
+	                 y++;
+	                 vl_somatorio_aliquotas_c = atof(mExtractFieldFloat(buf_aux,Separator,y,Field,FieldSize));
+	                }
+	            }   
+	        }
+
+	  y++;
+	  vl_imposto = atof(mExtractFieldFloat(buf_aux,Separator,y,Field,FieldSize));
+	  
+	  y++;  
+	  qt_tributos = atol(mExtractFieldFloat(buf_aux,Separator,y,Field,FieldSize));
+
+	  int i = 0;
+
+	  char   sq_aliquota_tributo[2+1]; 
+	  float vl_perc_aliq_apurada = 0;
+	  float vl_calculado         = 0;
+
+	  for (x = 0; x <= qt_limite_ultrapassados_pa; x++)
+	      {
+	       for(i = 1; i <= qt_tributos; i++)
+	       {
+	            y++;
+	            strcpy(sq_aliquota_tributo,mExtractFieldOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+	  
+	            if ((strncmp(sq_aliquota_tributo,"1",2)==0)||(strncmp(sq_aliquota_tributo,"1A",2)==0))
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_irpj = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_irpj = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if ((strncmp(sq_aliquota_tributo,"2",2)==0)||(strncmp(sq_aliquota_tributo,"2A",2)==0))
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_csll = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_csll = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if ((strncmp(sq_aliquota_tributo,"3",2)==0)||(strncmp(sq_aliquota_tributo,"3A",2)==0))
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_cofins = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_cofins = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if ((strncmp(sq_aliquota_tributo,"4",2)==0)||(strncmp(sq_aliquota_tributo,"4A",2)==0))
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_pis = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_pis = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if ((strncmp(sq_aliquota_tributo,"5",2)==0)||(strncmp(sq_aliquota_tributo,"5A",2)==0))
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_inss = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_inss = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if ((strncmp(sq_aliquota_tributo,"6",2)==0)||(strncmp(sq_aliquota_tributo,"6A",2)==0))
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_icms = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_icms = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if ((strncmp(sq_aliquota_tributo,"7",2)==0)||(strncmp(sq_aliquota_tributo,"7A",2)==0))
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_ipi = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_ipi = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if ((strncmp(sq_aliquota_tributo,"8",2)==0)||(strncmp(sq_aliquota_tributo,"8A",2)==0))
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_iss = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_iss = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+	            else
+	            {
+			    if (strncmp(sq_aliquota_tributo,"1B",2)==0)
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_irpj_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_irpj_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if (strncmp(sq_aliquota_tributo,"2B",2)==0) 
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_csll_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_csll_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if (strncmp(sq_aliquota_tributo,"3B",2)==0) 
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_cofins_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_cofins_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if (strncmp(sq_aliquota_tributo,"4B",2)==0) 
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_pis_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_pis_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if (strncmp(sq_aliquota_tributo,"5B",2)==0)
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_inss_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_inss_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if (strncmp(sq_aliquota_tributo,"6B",2)==0) 
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_icms_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_icms_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if (strncmp(sq_aliquota_tributo,"7B",2)==0) 
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_ipi_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_ipi_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if (strncmp(sq_aliquota_tributo,"8B",2)==0) 
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_iss_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_iss_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }			   
+	            else
+	            {
+			    if (strncmp(sq_aliquota_tributo,"1C",2)==0)
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_irpj_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_irpj_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if (strncmp(sq_aliquota_tributo,"2C",2)==0) 
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_csll_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_csll_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if (strncmp(sq_aliquota_tributo,"3C",2)==0) 
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_cofins_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_cofins_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if (strncmp(sq_aliquota_tributo,"4C",2)==0) 
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_pis_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_pis_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if (strncmp(sq_aliquota_tributo,"5C",2)==0)
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_inss_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_inss_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if (strncmp(sq_aliquota_tributo,"6C",2)==0) 
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_icms_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_icms_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if (strncmp(sq_aliquota_tributo,"7C",2)==0) 
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_ipi_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_ipi_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if (strncmp(sq_aliquota_tributo,"8C",2)==0) 
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_iss_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_iss_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }			   
+				}
+			   }
+		       }
+			   }
+			   }
+			   }
+			   }
+			   }	   
+			   }
+		       }
+			   }
+			   }
+			   }
+			   }
+			   }
+			   }
+			   }
+			   }
+			   }
+			   }
+			   }
+			   }
+			   }
+			   
+
+	      } 
+
+	   }
+       y++;
+	   vl_diferenca_imposto          = atof(mExtractFieldFloat(buf_aux,Separator,y,Field,FieldSize)); 
+	   y++;
+	   nu_maior_tributo              = atol(mExtractField(buf_aux,Separator,y,Field,FieldSize));
+	   
+  	   EXEC SQL  
+		  INSERT INTO adm_objetos.pgdas_03111_isenc_ativ_fx_a 
+							        (
+			                        sq_arquivo,
+			                        sq_registro,
+									sq_atividade, 
+									sq_filial, 
+									vl_receita_atividade, 
+									vl_somatorio_aliquotas, 
+									vl_imposto, 
+									pc_aliq_apurada_cofins, 
+									vl_apurado_cofins, 
+									pc_aliq_apurada_csll, 
+									vl_apurado_csll, 
+									pc_aliq_apurada_icms, 
+									vl_apurado_icms, 
+									pc_aliq_apurada_inss, 
+									vl_apurado_inss, 
+									pc_aliq_apurada_ipi, 
+									vl_apurado_ipi, 
+									pc_aliq_apurada_irpj, 
+									vl_apurado_irpj, 
+									pc_aliq_apurada_iss, 
+									vl_apurado_iss, 
+									pc_aliq_apurada_pis, 
+									vl_apurado_pis, 
+									vl_diferenca_imposto, 
+									nu_maior_tributo
+									)
+						     VALUES (
+			                        :Nsq_arquivo,
+				                    :Nsq_registro,
+			                        :Nsq_atividade,
+			                        :Nsq_filial,
+									:vl_receita_atividade, 
+									:vl_somatorio_aliquotas, 
+									:vl_imposto, 
+									:pc_aliq_apurada_cofins, 
+									:vl_apurado_cofins, 
+									:pc_aliq_apurada_csll, 
+									:vl_apurado_csll, 
+									:pc_aliq_apurada_icms, 
+									:vl_apurado_icms, 
+									:pc_aliq_apurada_inss, 
+									:vl_apurado_inss, 
+									:pc_aliq_apurada_ipi, 
+									:vl_apurado_ipi, 
+									:pc_aliq_apurada_irpj, 
+									:vl_apurado_irpj, 
+									:pc_aliq_apurada_iss, 
+									:vl_apurado_iss, 
+									:pc_aliq_apurada_pis, 
+									:vl_apurado_pis, 
+									:vl_diferenca_imposto, 
+									:nu_maior_tributo				 
+							        );
+				  
+	   if (sqlca.sqlcode != 0)
+		  {
+		   fprintf(fp_output,"%s - erro INSERT INTO pgdas_03111_isenc_ativ_fx_a  .\n",CurrentDateTime(DataHora,1));
+		   sql_error(sqlca.sqlerrm.sqlerrmc);
+		  }  					  
+
+	   if (qt_limite_ultrapassados_pa > 0) 
+	      {
+			  EXEC SQL  
+			     INSERT INTO adm_objetos.pgdas_03121_isencao_ativ_fx_b  
+							        (  
+			                        sq_arquivo,
+				                    sq_registro,
+									sq_atividade, 
+									sq_filial, 
+									vl_aliq_apurada_ativ,
+									pc_aliq_apurada_cofins, 
+									vl_apurado_cofins, 
+									pc_aliq_apurada_csll, 
+									vl_apurado_csll, 
+									pc_aliq_apurada_icms, 
+									vl_apurado_icms, 
+									pc_aliq_apurada_inss, 
+									vl_apurado_inss, 
+									pc_aliq_apurada_ipi, 
+									vl_apurado_ipi, 
+									pc_aliq_apurada_irpj, 
+									vl_apurado_irpj, 
+									pc_aliq_apurada_iss, 
+									vl_apurado_iss, 
+									pc_aliq_apurada_pis, 
+									vl_apurado_pis
+									)
+			     VALUES             (
+			                         :Nsq_arquivo,
+				                     :Nsq_registro,
+			                         :Nsq_atividade,
+			                         :Nsq_filial,				 
+                                     :vl_somatorio_aliquotas_b,
+			                         :pc_aliq_apurada_cofins_b, 
+			                         :vl_apurado_cofins_b, 
+			                         :pc_aliq_apurada_csll_b, 
+			                         :vl_apurado_csll_b, 
+			                         :pc_aliq_apurada_icms_b, 
+			                         :vl_apurado_icms_b, 
+			                         :pc_aliq_apurada_inss_b, 
+			                         :vl_apurado_inss_b, 
+			                         :pc_aliq_apurada_ipi_b, 
+			                         :vl_apurado_ipi_b, 
+			                         :pc_aliq_apurada_irpj_b, 
+			                         :vl_apurado_irpj_b, 
+			                         :pc_aliq_apurada_iss_b, 
+			                         :vl_apurado_iss_b, 
+			                         :pc_aliq_apurada_pis_b, 
+			                         :vl_apurado_pis_b	 
+				                    );
+				if (sqlca.sqlcode != 0)
+				   {
+				    fprintf(fp_output,"%s - erro INSERT INTO pgdas_03121_isencao_ativ_fx_b  .\n",CurrentDateTime(DataHora,1));
+				    sql_error(sqlca.sqlerrm.sqlerrmc);
+				   } 
+									   
+	      }
+       if (qt_limite_ultrapassados_pa > 1) 
+	      {
+			  EXEC SQL  
+			     INSERT INTO adm_objetos.pgdas_03131_isencao_ativ_fx_c
+							        (  
+			                        sq_arquivo,
+				                    sq_registro,
+									sq_atividade, 
+									sq_filial, 
+									vl_aliq_apurada_ativ,
+									pc_aliq_apurada_cofins, 
+									vl_apurado_cofins, 
+									pc_aliq_apurada_csll, 
+									vl_apurado_csll, 
+									pc_aliq_apurada_icms, 
+									vl_apurado_icms, 
+									pc_aliq_apurada_inss, 
+									vl_apurado_inss, 
+									pc_aliq_apurada_ipi, 
+									vl_apurado_ipi, 
+									pc_aliq_apurada_irpj, 
+									vl_apurado_irpj, 
+									pc_aliq_apurada_iss, 
+									vl_apurado_iss, 
+									pc_aliq_apurada_pis, 
+									vl_apurado_pis
+									)
+			     VALUES             (
+			                         :Nsq_arquivo,
+				                     :Nsq_registro,
+			                         :Nsq_atividade,
+			                         :Nsq_filial,				 
+                                     :vl_somatorio_aliquotas_c,
+			                         :pc_aliq_apurada_cofins_c, 
+			                         :vl_apurado_cofins_c, 
+			                         :pc_aliq_apurada_csll_c, 
+			                         :vl_apurado_csll_c, 
+			                         :pc_aliq_apurada_icms_c, 
+			                         :vl_apurado_icms_c, 
+			                         :pc_aliq_apurada_inss_c, 
+			                         :vl_apurado_inss_c, 
+			                         :pc_aliq_apurada_ipi_c, 
+			                         :vl_apurado_ipi_c, 
+			                         :pc_aliq_apurada_irpj_c, 
+			                         :vl_apurado_irpj_c, 
+			                         :pc_aliq_apurada_iss_c, 
+			                         :vl_apurado_iss_c, 
+			                         :pc_aliq_apurada_pis_c, 
+			                         :vl_apurado_pis_c	 
+				                    );
+				if (sqlca.sqlcode != 0)
+				   {
+				    fprintf(fp_output,"%s - erro INSERT INTO pgdas_03131_isencao_ativ_fx_c  .\n",CurrentDateTime(DataHora,1));
+				    sql_error(sqlca.sqlerrm.sqlerrmc);
+				   } 
+									   
+	      }
+	   
+	 }
+    else
+     {  
+		  vl_receita_atividade          = atof(mExtractFieldFloat(buf_aux,Separator,2,Field,FieldSize)); 
+		  vl_somatorio_aliquotas        = atof(mExtractFieldFloat(buf_aux,Separator,3,Field,FieldSize)); 
+		  vl_imposto                    = atof(mExtractFieldFloat(buf_aux,Separator,4,Field,FieldSize)); 
+		  pc_aliq_apurada_cofins        = atof(mExtractFieldFloat(buf_aux,Separator,5,Field,FieldSize)); 
+		  vl_apurado_cofins             = atof(mExtractFieldFloat(buf_aux,Separator,6,Field,FieldSize)); 
+		  pc_aliq_apurada_csll          = atof(mExtractFieldFloat(buf_aux,Separator,7,Field,FieldSize)); 
+		  vl_apurado_csll               = atof(mExtractFieldFloat(buf_aux,Separator,8,Field,FieldSize)); 
+		  pc_aliq_apurada_icms          = atof(mExtractFieldFloat(buf_aux,Separator,9,Field,FieldSize)); 
+		  vl_apurado_icms               = atof(mExtractFieldFloat(buf_aux,Separator,10,Field,FieldSize)); 
+		  pc_aliq_apurada_inss          = atof(mExtractFieldFloat(buf_aux,Separator,11,Field,FieldSize)); 
+		  vl_apurado_inss               = atof(mExtractFieldFloat(buf_aux,Separator,12,Field,FieldSize)); 
+		  pc_aliq_apurada_ipi           = atof(mExtractFieldFloat(buf_aux,Separator,13,Field,FieldSize)); 
+		  vl_apurado_ipi                = atof(mExtractFieldFloat(buf_aux,Separator,14,Field,FieldSize)); 
+		  pc_aliq_apurada_irpj          = atof(mExtractFieldFloat(buf_aux,Separator,15,Field,FieldSize)); 
+		  vl_apurado_irpj               = atof(mExtractFieldFloat(buf_aux,Separator,16,Field,FieldSize)); 
+		  pc_aliq_apurada_iss           = atof(mExtractFieldFloat(buf_aux,Separator,17,Field,FieldSize)); 
+		  vl_apurado_iss                = atof(mExtractFieldFloat(buf_aux,Separator,18,Field,FieldSize)); 
+		  pc_aliq_apurada_pis           = atof(mExtractFieldFloat(buf_aux,Separator,19,Field,FieldSize)); 
+		  vl_apurado_pis                = atof(mExtractFieldFloat(buf_aux,Separator,20,Field,FieldSize)); 
+		  vl_diferenca_imposto          = atof(mExtractFieldFloat(buf_aux,Separator,21,Field,FieldSize)); 
+		  nu_maior_tributo              = atol(mExtractFieldFloat(buf_aux,Separator,22,Field,FieldSize));   
+		  
+		  EXEC SQL  
+		     INSERT INTO adm_objetos.pgdas_03111_isenc_ativ_fx_a
+						        (
+					            sq_arquivo,
+						        sq_registro,
+					            sq_atividade,
+					            sq_filial,
+								vl_receita_atividade, 
+								vl_somatorio_aliquotas, 
+								vl_imposto, 
+								pc_aliq_apurada_cofins, 
+								vl_apurado_cofins, 
+								pc_aliq_apurada_csll, 
+								vl_apurado_csll, 
+								pc_aliq_apurada_icms, 
+								vl_apurado_icms, 
+								pc_aliq_apurada_inss, 
+								vl_apurado_inss, 
+								pc_aliq_apurada_ipi, 
+								vl_apurado_ipi, 
+								pc_aliq_apurada_irpj, 
+								vl_apurado_irpj, 
+								pc_aliq_apurada_iss, 
+								vl_apurado_iss, 
+								pc_aliq_apurada_pis, 
+								vl_apurado_pis, 
+								vl_diferenca_imposto, 
+								nu_maior_tributo
+								) 
+			 VALUES             (
+					            :Nsq_arquivo,
+						        :Nsq_registro,
+					            :Nsq_atividade,
+					            :Nsq_filial,
+								:vl_receita_atividade, 
+								:vl_somatorio_aliquotas, 
+								:vl_imposto, 
+								:pc_aliq_apurada_cofins, 
+								:vl_apurado_cofins, 
+								:pc_aliq_apurada_csll, 
+								:vl_apurado_csll, 
+								:pc_aliq_apurada_icms, 
+								:vl_apurado_icms, 
+								:pc_aliq_apurada_inss, 
+								:vl_apurado_inss, 
+								:pc_aliq_apurada_ipi, 
+								:vl_apurado_ipi, 
+								:pc_aliq_apurada_irpj, 
+								:vl_apurado_irpj, 
+								:pc_aliq_apurada_iss, 
+								:vl_apurado_iss, 
+								:pc_aliq_apurada_pis, 
+								:vl_apurado_pis, 
+								:vl_diferenca_imposto, 
+								:nu_maior_tributo	 
+			                    );
+
+			if (sqlca.sqlcode != 0)
+			   {
+			    fprintf(fp_output,"%s - erro INSERT INTO pgdas_03111_isenc_ativ_fx_a .\n",CurrentDateTime(DataHora,1));
+			    sql_error(sqlca.sqlerrm.sqlerrmc);
+			   } 
+			   							   
+	}
+}
+/********************************************************/
+/*   Fun��o Gravar Informa��o Receita Por Atividade Faixa C     */
+/*******************************************************/
+void ProcessarInformRecAtividadeFxC (char *buf_aux)
+{
+  float vl_aliq_apurada_ativ;
+  float pc_aliq_apurada_cofins;
+  float vl_apurado_cofins;
+  float pc_aliq_apurada_csll;
+  float vl_apurado_csll;
+  float pc_aliq_apurada_icms;
+  float vl_apurado_icms;
+  float pc_aliq_apurada_inss;
+  float vl_apurado_inss;
+  float pc_aliq_apurada_ipi;
+  float vl_apurado_ipi;
+  float pc_aliq_apurada_irpj;
+  float vl_apurado_irpj;
+  float pc_aliq_apurada_iss;
+  float vl_apurado_iss;
+  float pc_aliq_apurada_pis;
+  float vl_apurado_pis;
+
+  vl_aliq_apurada_ativ            = atof(mExtractFieldFloat(buf_aux,Separator,2,Field,FieldSize)); 
+  pc_aliq_apurada_cofins          = atof(mExtractFieldFloat(buf_aux,Separator,3,Field,FieldSize)); 
+  vl_apurado_cofins               = atof(mExtractFieldFloat(buf_aux,Separator,4,Field,FieldSize)); 
+  pc_aliq_apurada_csll            = atof(mExtractFieldFloat(buf_aux,Separator,5,Field,FieldSize)); 
+  vl_apurado_csll                 = atof(mExtractFieldFloat(buf_aux,Separator,6,Field,FieldSize)); 
+  pc_aliq_apurada_icms            = atof(mExtractFieldFloat(buf_aux,Separator,7,Field,FieldSize)); 
+  vl_apurado_icms                 = atof(mExtractFieldFloat(buf_aux,Separator,8,Field,FieldSize)); 
+  pc_aliq_apurada_inss            = atof(mExtractFieldFloat(buf_aux,Separator,9,Field,FieldSize)); 
+  vl_apurado_inss                 = atof(mExtractFieldFloat(buf_aux,Separator,10,Field,FieldSize)); 
+  pc_aliq_apurada_ipi             = atof(mExtractFieldFloat(buf_aux,Separator,11,Field,FieldSize)); 
+  vl_apurado_ipi                  = atof(mExtractFieldFloat(buf_aux,Separator,12,Field,FieldSize)); 
+  pc_aliq_apurada_irpj            = atof(mExtractFieldFloat(buf_aux,Separator,13,Field,FieldSize)); 
+  vl_apurado_irpj                 = atof(mExtractFieldFloat(buf_aux,Separator,14,Field,FieldSize)); 
+  pc_aliq_apurada_iss             = atof(mExtractFieldFloat(buf_aux,Separator,15,Field,FieldSize)); 
+  vl_apurado_iss                  = atof(mExtractFieldFloat(buf_aux,Separator,16,Field,FieldSize)); 
+  pc_aliq_apurada_pis             = atof(mExtractFieldFloat(buf_aux,Separator,17,Field,FieldSize)); 
+  vl_apurado_pis                  = atof(mExtractFieldFloat(buf_aux,Separator,18,Field,FieldSize));   
+  
+  EXEC SQL  
+     INSERT INTO adm_objetos.pgdas_03130_rec_ativ_fx_c
+				        (  
+                        sq_arquivo,
+                        sq_registro,
+                        sq_atividade,
+                        sq_filial,
+                        vl_aliq_apurada_ativ,
+						pc_aliq_apurada_cofins, 
+						vl_apurado_cofins, 
+						pc_aliq_apurada_csll, 
+						vl_apurado_csll, 
+						pc_aliq_apurada_icms, 
+						vl_apurado_icms, 
+						pc_aliq_apurada_inss, 
+						vl_apurado_inss, 
+						pc_aliq_apurada_ipi, 
+						vl_apurado_ipi, 
+						pc_aliq_apurada_irpj, 
+						vl_apurado_irpj, 
+						pc_aliq_apurada_iss, 
+						vl_apurado_iss, 
+						pc_aliq_apurada_pis, 
+						vl_apurado_pis
+						)
+     VALUES             (
+			             :Nsq_arquivo,
+				         :Nsq_registro,
+			             :Nsq_atividade,
+			             :Nsq_filial,
+						 :vl_aliq_apurada_ativ,
+                         :pc_aliq_apurada_cofins, 
+                         :vl_apurado_cofins, 
+                         :pc_aliq_apurada_csll, 
+                         :vl_apurado_csll, 
+                         :pc_aliq_apurada_icms, 
+                         :vl_apurado_icms, 
+                         :pc_aliq_apurada_inss, 
+                         :vl_apurado_inss, 
+                         :pc_aliq_apurada_ipi, 
+                         :vl_apurado_ipi, 
+                         :pc_aliq_apurada_irpj, 
+                         :vl_apurado_irpj, 
+                         :pc_aliq_apurada_iss, 
+                         :vl_apurado_iss, 
+                         :pc_aliq_apurada_pis, 
+                         :vl_apurado_pis	 
+	                    );
+	if (sqlca.sqlcode != 0)
+	   {
+	    fprintf(fp_output,"%s - erro INSERT INTO pgdas_03130_rec_ativ_fx_c .\n",CurrentDateTime(DataHora,1));
+	    sql_error(sqlca.sqlerrm.sqlerrmc);
+	   } 
+			   
+}
+/****************************************************************/
+/*   Fun��o Gravar Informa��o Receita Por Atividade Faixa B     */
+/****************************************************************/
+void ProcessarInformRecAtividadeFxB (char *buf_aux)
+{
+
+  float vl_aliq_apurada_ativ;
+  float pc_aliq_apurada_cofins;
+  float vl_apurado_cofins;
+  float pc_aliq_apurada_csll;
+  float vl_apurado_csll;
+  float pc_aliq_apurada_icms;
+  float vl_apurado_icms;
+  float pc_aliq_apurada_inss;
+  float vl_apurado_inss;
+  float pc_aliq_apurada_ipi;
+  float vl_apurado_ipi;
+  float pc_aliq_apurada_irpj;
+  float vl_apurado_irpj;
+  float pc_aliq_apurada_iss;
+  float vl_apurado_iss;
+  float pc_aliq_apurada_pis;
+  float vl_apurado_pis;
+  
+  vl_aliq_apurada_ativ            = atof(mExtractFieldFloat(buf_aux,Separator,2,Field,FieldSize)); 
+  pc_aliq_apurada_cofins          = atof(mExtractFieldFloat(buf_aux,Separator,3,Field,FieldSize)); 
+  vl_apurado_cofins               = atof(mExtractFieldFloat(buf_aux,Separator,4,Field,FieldSize)); 
+  pc_aliq_apurada_csll            = atof(mExtractFieldFloat(buf_aux,Separator,5,Field,FieldSize)); 
+  vl_apurado_csll                 = atof(mExtractFieldFloat(buf_aux,Separator,6,Field,FieldSize)); 
+  pc_aliq_apurada_icms            = atof(mExtractFieldFloat(buf_aux,Separator,7,Field,FieldSize)); 
+  vl_apurado_icms                 = atof(mExtractFieldFloat(buf_aux,Separator,8,Field,FieldSize)); 
+  pc_aliq_apurada_inss            = atof(mExtractFieldFloat(buf_aux,Separator,9,Field,FieldSize)); 
+  vl_apurado_inss                 = atof(mExtractFieldFloat(buf_aux,Separator,10,Field,FieldSize)); 
+  pc_aliq_apurada_ipi             = atof(mExtractFieldFloat(buf_aux,Separator,11,Field,FieldSize)); 
+  vl_apurado_ipi                  = atof(mExtractFieldFloat(buf_aux,Separator,12,Field,FieldSize)); 
+  pc_aliq_apurada_irpj            = atof(mExtractFieldFloat(buf_aux,Separator,13,Field,FieldSize)); 
+  vl_apurado_irpj                 = atof(mExtractFieldFloat(buf_aux,Separator,14,Field,FieldSize)); 
+  pc_aliq_apurada_iss             = atof(mExtractFieldFloat(buf_aux,Separator,15,Field,FieldSize)); 
+  vl_apurado_iss                  = atof(mExtractFieldFloat(buf_aux,Separator,16,Field,FieldSize)); 
+  pc_aliq_apurada_pis             = atof(mExtractFieldFloat(buf_aux,Separator,17,Field,FieldSize)); 
+  vl_apurado_pis                  = atof(mExtractFieldFloat(buf_aux,Separator,18,Field,FieldSize));  
+
+  EXEC SQL  
+     INSERT INTO adm_objetos.pgdas_03120_rec_ativ_fx_b 
+				        (  
+                        sq_arquivo,
+                        sq_registro,
+                        sq_atividade,
+                        sq_filial,
+                        vl_aliq_apurada_ativ,
+						pc_aliq_apurada_cofins, 
+						vl_apurado_cofins, 
+						pc_aliq_apurada_csll, 
+						vl_apurado_csll, 
+						pc_aliq_apurada_icms, 
+						vl_apurado_icms, 
+						pc_aliq_apurada_inss, 
+						vl_apurado_inss, 
+						pc_aliq_apurada_ipi, 
+						vl_apurado_ipi, 
+						pc_aliq_apurada_irpj, 
+						vl_apurado_irpj, 
+						pc_aliq_apurada_iss, 
+						vl_apurado_iss, 
+						pc_aliq_apurada_pis, 
+						vl_apurado_pis
+						)
+     VALUES             (
+			             :Nsq_arquivo,
+				         :Nsq_registro,
+			             :Nsq_atividade,
+			             :Nsq_filial,
+						 :vl_aliq_apurada_ativ,
+                         :pc_aliq_apurada_cofins, 
+                         :vl_apurado_cofins, 
+                         :pc_aliq_apurada_csll, 
+                         :vl_apurado_csll, 
+                         :pc_aliq_apurada_icms, 
+                         :vl_apurado_icms, 
+                         :pc_aliq_apurada_inss, 
+                         :vl_apurado_inss, 
+                         :pc_aliq_apurada_ipi, 
+                         :vl_apurado_ipi, 
+                         :pc_aliq_apurada_irpj, 
+                         :vl_apurado_irpj, 
+                         :pc_aliq_apurada_iss, 
+                         :vl_apurado_iss, 
+                         :pc_aliq_apurada_pis, 
+                         :vl_apurado_pis	 
+	                    );
+	if (sqlca.sqlcode != 0)
+	   {
+	    fprintf(fp_output,"%s - erro INSERT INTO pgdas_03120_rec_ativ_fx_b .\n",CurrentDateTime(DataHora,1));
+	    sql_error(sqlca.sqlerrm.sqlerrmc);
+	   } 
+			   
+}
+/************************************************************/
+/*   Fun��o Gravar Informa��o Receita Por Atividade Faixa A */
+/************************************************************/
+void ProcessarInformRecAtividadeFxA (char *buf_aux)
+{
+
+  char  sg_uf[2+1]; 
+  int   cd_municipio;
+  float vl_receita_atividade;
+  int   fg_cofins = 0;
+  int   fg_csll   = 0;
+  int   fg_icms   = 0;
+  int   fg_inss   = 0;
+  int   fg_ipi    = 0;
+  int   fg_irpj   = 0;
+  int   fg_iss    = 0;
+  int   fg_pis    = 0;
+  float vl_somatorio_aliquotas = 0;
+  float vl_imposto = 0;
+  float pc_aliq_apurada_cofins = 0;
+  float vl_apurado_cofins = 0;
+  float pc_aliq_apurada_csll = 0;
+  float vl_apurado_csll = 0;
+  float pc_aliq_apurada_icms = 0;
+  float vl_apurado_icms = 0;
+  float pc_aliq_apurada_inss = 0;
+  float vl_apurado_inss = 0;
+  float pc_aliq_apurada_ipi = 0;
+  float vl_apurado_ipi = 0;
+  float pc_aliq_apurada_irpj = 0;
+  float vl_apurado_irpj = 0;
+  float pc_aliq_apurada_iss = 0;
+  float vl_apurado_iss = 0;
+  float pc_aliq_apurada_pis = 0;
+  float vl_apurado_pis = 0;
+  float vl_diferenca_imposto = 0;
+  int   nu_maior_tributo = 0;
+  char  BuscaString[100];
+  int   qt_tributos = 0;
+  
+  float vl_somatorio_aliquotas_b = 0;
+  float pc_aliq_apurada_cofins_b = 0;
+  float vl_apurado_cofins_b      = 0;
+  float pc_aliq_apurada_csll_b   = 0;
+  float vl_apurado_csll_b        = 0;
+  float pc_aliq_apurada_icms_b   = 0;
+  float vl_apurado_icms_b        = 0;
+  float pc_aliq_apurada_inss_b   = 0;
+  float vl_apurado_inss_b        = 0;
+  float pc_aliq_apurada_ipi_b    = 0;
+  float vl_apurado_ipi_b         = 0;
+  float pc_aliq_apurada_irpj_b   = 0;
+  float vl_apurado_irpj_b        = 0;
+  float pc_aliq_apurada_iss_b    = 0;
+  float vl_apurado_iss_b         = 0;
+  float pc_aliq_apurada_pis_b    = 0;
+  float vl_apurado_pis_b         = 0;
+  
+  float vl_somatorio_aliquotas_c = 0;
+  float pc_aliq_apurada_cofins_c = 0;
+  float vl_apurado_cofins_c      = 0;
+  float pc_aliq_apurada_csll_c   = 0;
+  float vl_apurado_csll_c        = 0;
+  float pc_aliq_apurada_icms_c   = 0;
+  float vl_apurado_icms_c        = 0;
+  float pc_aliq_apurada_inss_c   = 0;
+  float vl_apurado_inss_c        = 0;
+  float pc_aliq_apurada_ipi_c    = 0;
+  float vl_apurado_ipi_c         = 0;
+  float pc_aliq_apurada_irpj_c   = 0;
+  float vl_apurado_irpj_c        = 0;
+  float pc_aliq_apurada_iss_c    = 0;
+  float vl_apurado_iss_c         = 0;
+  float pc_aliq_apurada_pis_c    = 0;
+  float vl_apurado_pis_c         = 0;  
+
+  if (cd_versao < 120)
+     {
+	  strcpy(sg_uf,mExtractField(buf_aux,Separator,2,Field,FieldSize));
+	  cd_municipio                 = atol(mExtractField(buf_aux,Separator,3,Field,FieldSize));
+	  vl_receita_atividade         = atof(mExtractFieldFloat(buf_aux,Separator,4,Field,FieldSize));  
+	  
+	  int y                         = 4;
+	  int x                         = 0;
+	  int EncFimBusca               = 0;
+	  BuscaString[0]                = 0; 	 
+	 
+	  while (EncFimBusca == 0) 
+	    {
+	     y++;
+	     strcpy(BuscaString,mExtractField(buf_aux,Separator,y,Field,FieldSize));
+
+		 if (strncmp(BuscaString,"icofins",7)==0)
+	        {
+	         fg_cofins = 3;
+	        }
+	     else
+	        {
+		     if (strncmp(BuscaString,"scofins",7)==0)
+	            {
+	             fg_cofins = 5;
+	            }
+	         else
+	            {
+		         if (strncmp(BuscaString,"icsll",5)==0) 
+			        {
+				     fg_csll   = 3;
+				    }
+				 else
+				    {
+					 if (strncmp(BuscaString,"iicms",5)==0)  
+					    {
+						  fg_icms   = 3;
+						}
+					 else
+					    {
+					     if (strncmp(BuscaString,"sicms",5)==0)  
+					        {
+						     fg_icms   = 5;
+						    }
+	                     else
+	                        {
+					         if (strncmp(BuscaString,"iinss",5)==0)  
+					            {
+						         fg_inss   = 3;
+						        }
+	                         else
+	                            {
+					             if (strncmp(BuscaString,"iipi",4)==0)  
+					                {
+						             fg_ipi   = 3;
+						            }
+	                             else
+	                                {
+	        			             if (strncmp(BuscaString,"sipi",4)==0) 
+					                    {
+						                 fg_ipi   = 5;
+						                }
+									 else
+									    {
+	        			                 if (strncmp(BuscaString,"iirpj",5)==0) 
+					                        {
+						                     fg_irpj   = 3;
+						                    }
+	                                     else
+	                                        {
+	        			                     if (strncmp(BuscaString,"iiss",4)==0)  
+					                            {
+						                         fg_iss   = 3;
+						                        }
+	                                         else
+	                                            {
+	        			                         if (strncmp(BuscaString,"siss",4)==0)  
+					                                {
+						                             fg_iss   = 5;
+						                            }
+	                                             else
+	                                                {
+													 if (strncmp(BuscaString,"ipis",4)==0) 
+					                                    {
+						                                 fg_iss   = 3;
+						                                }
+													 else
+													    {
+													     if (strncmp(BuscaString,"spis",4)==0)
+					                                        {
+						                                     fg_iss   = 5;
+						                                    }
+	                                                     else
+	                                                        {
+	                                                         EncFimBusca = 1;
+				                                             y--;
+	                                                        }
+														}
+	                                                }
+	                                            }
+	                                        }
+										}
+	                                }
+	                            }
+	                        }
+						}
+					}
+				}
+			}
+	    }
+	    
+		if (qt_limite_ultrapassados_pa==0) 
+	        {
+	         y++; 
+	         vl_somatorio_aliquotas = atof(mExtractFieldFloat(buf_aux,Separator,y,Field,FieldSize));
+	        }
+	    else
+	        {
+	         if (qt_limite_ultrapassados_pa==1) 
+	            {
+	             y++;
+	             vl_somatorio_aliquotas = atof(mExtractFieldFloat(buf_aux,Separator,y,Field,FieldSize));
+	             y++;
+	             vl_somatorio_aliquotas_b = atof(mExtractFieldFloat(buf_aux,Separator,y,Field,FieldSize));
+	            }
+	         else
+	            {
+	             if (qt_limite_ultrapassados_pa==2) 
+	                {
+	                 y++;
+	                 vl_somatorio_aliquotas = atof(mExtractFieldFloat(buf_aux,Separator,y,Field,FieldSize));
+	                 y++;
+	                 vl_somatorio_aliquotas_b = atof(mExtractFieldFloat(buf_aux,Separator,y,Field,FieldSize));
+	                 y++;
+	                 vl_somatorio_aliquotas_c = atof(mExtractFieldFloat(buf_aux,Separator,y,Field,FieldSize));
+	                }
+	            }   
+	        }
+
+	  y++;
+	  vl_imposto = atof(mExtractFieldFloat(buf_aux,Separator,y,Field,FieldSize));
+	  
+	  y++;  
+	  qt_tributos = atol(mExtractFieldFloat(buf_aux,Separator,y,Field,FieldSize));
+
+	  int i = 0;
+
+	  char   sq_aliquota_tributo[2+1]; 
+	  float vl_perc_aliq_apurada = 0;
+	  float vl_calculado         = 0;
+
+	  for (x = 0; x <= qt_limite_ultrapassados_pa; x++)
+	      {
+	       for(i = 1; i <= qt_tributos; i++)
+	       {
+	            y++;
+	            strcpy(sq_aliquota_tributo,mExtractFieldOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+	  
+	            if ((strncmp(sq_aliquota_tributo,"1",2)==0)||(strncmp(sq_aliquota_tributo,"1A",2)==0))
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_irpj = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_irpj = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if ((strncmp(sq_aliquota_tributo,"2",2)==0)||(strncmp(sq_aliquota_tributo,"2A",2)==0))
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_csll = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_csll = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if ((strncmp(sq_aliquota_tributo,"3",2)==0)||(strncmp(sq_aliquota_tributo,"3A",2)==0))
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_cofins = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_cofins = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if ((strncmp(sq_aliquota_tributo,"4",2)==0)||(strncmp(sq_aliquota_tributo,"4A",2)==0))
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_pis = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_pis = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if ((strncmp(sq_aliquota_tributo,"5",2)==0)||(strncmp(sq_aliquota_tributo,"5A",2)==0))
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_inss = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_inss = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if ((strncmp(sq_aliquota_tributo,"6",2)==0)||(strncmp(sq_aliquota_tributo,"6A",2)==0))
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_icms = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_icms = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if ((strncmp(sq_aliquota_tributo,"7",2)==0)||(strncmp(sq_aliquota_tributo,"7A",2)==0))
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_ipi = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_ipi = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if ((strncmp(sq_aliquota_tributo,"8",2)==0)||(strncmp(sq_aliquota_tributo,"8A",2)==0))
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_iss = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_iss = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+	            else
+	            {
+			    if (strncmp(sq_aliquota_tributo,"1B",2)==0)
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_irpj_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_irpj_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if (strncmp(sq_aliquota_tributo,"2B",2)==0) 
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_csll_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_csll_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if (strncmp(sq_aliquota_tributo,"3B",2)==0) 
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_cofins_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_cofins_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if (strncmp(sq_aliquota_tributo,"4B",2)==0) 
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_pis_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_pis_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if (strncmp(sq_aliquota_tributo,"5B",2)==0)
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_inss_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_inss_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if (strncmp(sq_aliquota_tributo,"6B",2)==0) 
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_icms_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_icms_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if (strncmp(sq_aliquota_tributo,"7B",2)==0) 
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_ipi_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_ipi_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if (strncmp(sq_aliquota_tributo,"8B",2)==0) 
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_iss_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_iss_b = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }			   
+	            else
+	            {
+			    if (strncmp(sq_aliquota_tributo,"1C",2)==0)
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_irpj_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_irpj_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if (strncmp(sq_aliquota_tributo,"2C",2)==0) 
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_csll_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_csll_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if (strncmp(sq_aliquota_tributo,"3C",2)==0) 
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_cofins_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_cofins_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if (strncmp(sq_aliquota_tributo,"4C",2)==0) 
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_pis_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_pis_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if (strncmp(sq_aliquota_tributo,"5C",2)==0)
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_inss_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_inss_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if (strncmp(sq_aliquota_tributo,"6C",2)==0) 
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_icms_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_icms_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if (strncmp(sq_aliquota_tributo,"7C",2)==0) 
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_ipi_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_ipi_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }
+				else
+				{
+	            if (strncmp(sq_aliquota_tributo,"8C",2)==0) 
+	               {
+	     			y++;			   
+	                pc_aliq_apurada_iss_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		            y++;
+		            vl_apurado_iss_c = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+		           }			   
+				}
+			   }
+		       }
+			   }
+			   }
+			   }
+			   }
+			   }	   
+			   }
+		       }
+			   }
+			   }
+			   }
+			   }
+			   }
+			   }
+			   }
+			   }
+			   }
+			   }
+			   }
+			   }
+			   }
+			   
+
+	      } 
+
+	   }
+       y++;
+	   vl_diferenca_imposto          = atof(mExtractFieldFloat(buf_aux,Separator,y,Field,FieldSize)); 
+	   y++;
+	   nu_maior_tributo              = atol(mExtractField(buf_aux,Separator,y,Field,FieldSize));
+	   
+  	   EXEC SQL  
+		  INSERT INTO adm_objetos.pgdas_03110_rec_ativ_fx_a 
+							        (
+			                         sq_arquivo,
+			                         sq_registro,
+									sq_atividade, 
+									sq_filial, 
+									sg_uf, 
+									cd_municipio, 
+									vl_receita_atividade, 
+									fg_cofins, 
+									fg_csll, 
+									fg_icms, 
+									fg_inss, 
+									fg_ipi, 
+									fg_irpj, 
+									fg_iss, 
+									fg_pis, 
+									vl_somatorio_aliquotas, 
+									vl_imposto, 
+									pc_aliq_apurada_cofins, 
+									vl_apurado_cofins, 
+									pc_aliq_apurada_csll, 
+									vl_apurado_csll, 
+									pc_aliq_apurada_icms, 
+									vl_apurado_icms, 
+									pc_aliq_apurada_inss, 
+									vl_apurado_inss, 
+									pc_aliq_apurada_ipi, 
+									vl_apurado_ipi, 
+									pc_aliq_apurada_irpj, 
+									vl_apurado_irpj, 
+									pc_aliq_apurada_iss, 
+									vl_apurado_iss, 
+									pc_aliq_apurada_pis, 
+									vl_apurado_pis, 
+									vl_diferenca_imposto, 
+									nu_maior_tributo
+									)
+						     VALUES (
+			                        :Nsq_arquivo,
+				                    :Nsq_registro,
+			                        :Nsq_atividade,
+			                        :Nsq_filial,
+									:sg_uf, 
+									:cd_municipio, 
+									:vl_receita_atividade, 
+									:fg_cofins, 
+									:fg_csll, 
+									:fg_icms, 
+									:fg_inss, 
+									:fg_ipi, 
+									:fg_irpj, 
+									:fg_iss, 
+									:fg_pis, 
+									:vl_somatorio_aliquotas, 
+									:vl_imposto, 
+									:pc_aliq_apurada_cofins, 
+									:vl_apurado_cofins, 
+									:pc_aliq_apurada_csll, 
+									:vl_apurado_csll, 
+									:pc_aliq_apurada_icms, 
+									:vl_apurado_icms, 
+									:pc_aliq_apurada_inss, 
+									:vl_apurado_inss, 
+									:pc_aliq_apurada_ipi, 
+									:vl_apurado_ipi, 
+									:pc_aliq_apurada_irpj, 
+									:vl_apurado_irpj, 
+									:pc_aliq_apurada_iss, 
+									:vl_apurado_iss, 
+									:pc_aliq_apurada_pis, 
+									:vl_apurado_pis, 
+									:vl_diferenca_imposto, 
+									:nu_maior_tributo				 
+							        );
+				  
+	   if (sqlca.sqlcode != 0)
+		  {
+		   fprintf(fp_output,"%s - erro INSERT INTO pgdas_03110_rec_ativ_fx_a .\n",CurrentDateTime(DataHora,1));
+		   sql_error(sqlca.sqlerrm.sqlerrmc);
+		  }  
+		  
+	   if (qt_limite_ultrapassados_pa > 0) 
+	      {
+			  EXEC SQL  
+			     INSERT INTO adm_objetos.pgdas_03120_rec_ativ_fx_b 
+							        (  
+			                        sq_arquivo,
+				                    sq_registro,
+									sq_atividade, 
+									sq_filial, 
+									vl_aliq_apurada_ativ,
+									pc_aliq_apurada_cofins, 
+									vl_apurado_cofins, 
+									pc_aliq_apurada_csll, 
+									vl_apurado_csll, 
+									pc_aliq_apurada_icms, 
+									vl_apurado_icms, 
+									pc_aliq_apurada_inss, 
+									vl_apurado_inss, 
+									pc_aliq_apurada_ipi, 
+									vl_apurado_ipi, 
+									pc_aliq_apurada_irpj, 
+									vl_apurado_irpj, 
+									pc_aliq_apurada_iss, 
+									vl_apurado_iss, 
+									pc_aliq_apurada_pis, 
+									vl_apurado_pis
+									)
+			     VALUES             (
+			                         :Nsq_arquivo,
+				                     :Nsq_registro,
+			                         :Nsq_atividade,
+			                         :Nsq_filial,				 
+                                     :vl_somatorio_aliquotas_b,
+			                         :pc_aliq_apurada_cofins_b, 
+			                         :vl_apurado_cofins_b, 
+			                         :pc_aliq_apurada_csll_b, 
+			                         :vl_apurado_csll_b, 
+			                         :pc_aliq_apurada_icms_b, 
+			                         :vl_apurado_icms_b, 
+			                         :pc_aliq_apurada_inss_b, 
+			                         :vl_apurado_inss_b, 
+			                         :pc_aliq_apurada_ipi_b, 
+			                         :vl_apurado_ipi_b, 
+			                         :pc_aliq_apurada_irpj_b, 
+			                         :vl_apurado_irpj_b, 
+			                         :pc_aliq_apurada_iss_b, 
+			                         :vl_apurado_iss_b, 
+			                         :pc_aliq_apurada_pis_b, 
+			                         :vl_apurado_pis_b	 
+				                    );
+				if (sqlca.sqlcode != 0)
+				   {
+				    fprintf(fp_output,"%s - erro INSERT INTO pgdas_03120_rec_ativ_fx_b .\n",CurrentDateTime(DataHora,1));
+				    sql_error(sqlca.sqlerrm.sqlerrmc);
+				   } 
+				   									   
+	      }
+       if (qt_limite_ultrapassados_pa > 1) 
+	      {
+			  EXEC SQL  
+			     INSERT INTO adm_objetos.pgdas_03130_rec_ativ_fx_c
+							        (  
+			                        sq_arquivo,
+				                    sq_registro,
+									sq_atividade, 
+									sq_filial, 
+									vl_aliq_apurada_ativ,
+									pc_aliq_apurada_cofins, 
+									vl_apurado_cofins, 
+									pc_aliq_apurada_csll, 
+									vl_apurado_csll, 
+									pc_aliq_apurada_icms, 
+									vl_apurado_icms, 
+									pc_aliq_apurada_inss, 
+									vl_apurado_inss, 
+									pc_aliq_apurada_ipi, 
+									vl_apurado_ipi, 
+									pc_aliq_apurada_irpj, 
+									vl_apurado_irpj, 
+									pc_aliq_apurada_iss, 
+									vl_apurado_iss, 
+									pc_aliq_apurada_pis, 
+									vl_apurado_pis
+									)
+			     VALUES             (
+			                         :Nsq_arquivo,
+				                     :Nsq_registro,
+			                         :Nsq_atividade,
+			                         :Nsq_filial,				 
+                                     :vl_somatorio_aliquotas_c,
+			                         :pc_aliq_apurada_cofins_c, 
+			                         :vl_apurado_cofins_c, 
+			                         :pc_aliq_apurada_csll_c, 
+			                         :vl_apurado_csll_c, 
+			                         :pc_aliq_apurada_icms_c, 
+			                         :vl_apurado_icms_c, 
+			                         :pc_aliq_apurada_inss_c, 
+			                         :vl_apurado_inss_c, 
+			                         :pc_aliq_apurada_ipi_c, 
+			                         :vl_apurado_ipi_c, 
+			                         :pc_aliq_apurada_irpj_c, 
+			                         :vl_apurado_irpj_c, 
+			                         :pc_aliq_apurada_iss_c, 
+			                         :vl_apurado_iss_c, 
+			                         :pc_aliq_apurada_pis_c, 
+			                         :vl_apurado_pis_c	 
+				                    );
+				if (sqlca.sqlcode != 0)
+				   {
+				    fprintf(fp_output,"%s - erro INSERT INTO pgdas_03130_rec_ativ_fx_c .\n",CurrentDateTime(DataHora,1));
+				    sql_error(sqlca.sqlerrm.sqlerrmc);
+				   } 
+				   
+									   
+	      }
+	   
+	 }
+    else
+     {
+	  strcpy(sg_uf,mExtractField(buf_aux,Separator,2,Field,FieldSize));
+	  cd_municipio                  = atol(mExtractField(buf_aux,Separator,3,Field,FieldSize));
+	  vl_receita_atividade          = atof(mExtractFieldFloat(buf_aux,Separator,4,Field,FieldSize));  
+	  fg_cofins                     = atol(mExtractField(buf_aux,Separator,5,Field,FieldSize));
+	  fg_csll                       = atol(mExtractField(buf_aux,Separator,6,Field,FieldSize));
+	  fg_icms                       = atol(mExtractField(buf_aux,Separator,7,Field,FieldSize));
+	  fg_inss                       = atol(mExtractField(buf_aux,Separator,8,Field,FieldSize));
+	  fg_ipi                        = atol(mExtractField(buf_aux,Separator,9,Field,FieldSize));
+	  fg_irpj                       = atol(mExtractField(buf_aux,Separator,10,Field,FieldSize));
+	  fg_iss                        = atol(mExtractField(buf_aux,Separator,11,Field,FieldSize));
+	  fg_pis                        = atol(mExtractField(buf_aux,Separator,12,Field,FieldSize));
+	  vl_somatorio_aliquotas        = atof(mExtractFieldFloat(buf_aux,Separator,13,Field,FieldSize)); 
+	  vl_imposto                    = atof(mExtractFieldFloat(buf_aux,Separator,14,Field,FieldSize)); 
+	  pc_aliq_apurada_cofins        = atof(mExtractFieldFloat(buf_aux,Separator,15,Field,FieldSize)); 
+	  vl_apurado_cofins             = atof(mExtractFieldFloat(buf_aux,Separator,16,Field,FieldSize)); 
+	  pc_aliq_apurada_csll          = atof(mExtractFieldFloat(buf_aux,Separator,17,Field,FieldSize)); 
+	  vl_apurado_csll               = atof(mExtractFieldFloat(buf_aux,Separator,18,Field,FieldSize)); 
+	  pc_aliq_apurada_icms          = atof(mExtractFieldFloat(buf_aux,Separator,19,Field,FieldSize)); 
+	  vl_apurado_icms               = atof(mExtractFieldFloat(buf_aux,Separator,20,Field,FieldSize)); 
+	  pc_aliq_apurada_inss          = atof(mExtractFieldFloat(buf_aux,Separator,21,Field,FieldSize)); 
+	  vl_apurado_inss               = atof(mExtractFieldFloat(buf_aux,Separator,22,Field,FieldSize)); 
+	  pc_aliq_apurada_ipi           = atof(mExtractFieldFloat(buf_aux,Separator,23,Field,FieldSize)); 
+	  vl_apurado_ipi                = atof(mExtractFieldFloat(buf_aux,Separator,24,Field,FieldSize)); 
+	  pc_aliq_apurada_irpj          = atof(mExtractFieldFloat(buf_aux,Separator,25,Field,FieldSize)); 
+	  vl_apurado_irpj               = atof(mExtractFieldFloat(buf_aux,Separator,26,Field,FieldSize)); 
+	  pc_aliq_apurada_iss           = atof(mExtractFieldFloat(buf_aux,Separator,27,Field,FieldSize)); 
+	  vl_apurado_iss                = atof(mExtractFieldFloat(buf_aux,Separator,28,Field,FieldSize)); 
+	  pc_aliq_apurada_pis           = atof(mExtractFieldFloat(buf_aux,Separator,29,Field,FieldSize)); 
+	  vl_apurado_pis                = atof(mExtractFieldFloat(buf_aux,Separator,30,Field,FieldSize)); 
+	  vl_diferenca_imposto          = atof(mExtractFieldFloat(buf_aux,Separator,31,Field,FieldSize)); 
+	  nu_maior_tributo              = atol(mExtractField(buf_aux,Separator,32,Field,FieldSize));
+
+	  EXEC SQL  
+	     INSERT INTO adm_objetos.pgdas_03110_rec_ativ_fx_a 
+					        (
+	                         sq_arquivo,
+	                         sq_registro,
+							sq_atividade, 
+							sq_filial, 
+							sg_uf, 
+							cd_municipio, 
+							vl_receita_atividade, 
+							fg_cofins, 
+							fg_csll, 
+							fg_icms, 
+							fg_inss, 
+							fg_ipi, 
+							fg_irpj, 
+							fg_iss, 
+							fg_pis, 
+							vl_somatorio_aliquotas, 
+							vl_imposto, 
+							pc_aliq_apurada_cofins, 
+							vl_apurado_cofins, 
+							pc_aliq_apurada_csll, 
+							vl_apurado_csll, 
+							pc_aliq_apurada_icms, 
+							vl_apurado_icms, 
+							pc_aliq_apurada_inss, 
+							vl_apurado_inss, 
+							pc_aliq_apurada_ipi, 
+							vl_apurado_ipi, 
+							pc_aliq_apurada_irpj, 
+							vl_apurado_irpj, 
+							pc_aliq_apurada_iss, 
+							vl_apurado_iss, 
+							pc_aliq_apurada_pis, 
+							vl_apurado_pis, 
+							vl_diferenca_imposto, 
+							nu_maior_tributo
+							)
+				     VALUES (
+	                        :Nsq_arquivo,
+		                    :Nsq_registro,
+	                        :Nsq_atividade,
+	                        :Nsq_filial,
+							:sg_uf, 
+							:cd_municipio, 
+							:vl_receita_atividade, 
+							:fg_cofins, 
+							:fg_csll, 
+							:fg_icms, 
+							:fg_inss, 
+							:fg_ipi, 
+							:fg_irpj, 
+							:fg_iss, 
+							:fg_pis, 
+							:vl_somatorio_aliquotas, 
+							:vl_imposto, 
+							:pc_aliq_apurada_cofins, 
+							:vl_apurado_cofins, 
+							:pc_aliq_apurada_csll, 
+							:vl_apurado_csll, 
+							:pc_aliq_apurada_icms, 
+							:vl_apurado_icms, 
+							:pc_aliq_apurada_inss, 
+							:vl_apurado_inss, 
+							:pc_aliq_apurada_ipi, 
+							:vl_apurado_ipi, 
+							:pc_aliq_apurada_irpj, 
+							:vl_apurado_irpj, 
+							:pc_aliq_apurada_iss, 
+							:vl_apurado_iss, 
+							:pc_aliq_apurada_pis, 
+							:vl_apurado_pis, 
+							:vl_diferenca_imposto, 
+							:nu_maior_tributo				 
+					        );
+		  
+			         if (sqlca.sqlcode != 0)
+				        {
+				         fprintf(fp_output,"%s - erro INSERT INTO pgdas_03110_rec_ativ_fx_a .\n",CurrentDateTime(DataHora,1));
+				         sql_error(sqlca.sqlerrm.sqlerrmc);
+				        }  
+
+     }                 						 
+}
+/******************************************/
+/*   Fun��o Gravar Informa��o Atividade   */
+/******************************************/ 
+void ProcessarInformAtividade (char *buf_aux)
+{
+  int   tp_atividade; 
+  float vl_total_receita_atividade;
+  
+  tp_atividade               = atol(mExtractField(buf_aux,Separator,2,Field,FieldSize));  
+  vl_total_receita_atividade = atof(mExtractFieldFloat(buf_aux,Separator,3,Field,FieldSize)); 
+  
+  Nsq_atividade++;
+
+  EXEC SQL 
+     INSERT INTO adm_objetos.PGDAS_03100_ATIVIDADE (sq_arquivo, 
+                                                    sq_registro, 
+                                                    tp_atividade, 
+                                                    vl_total_receita_atividade,
+                                                    sq_atividade,
+                                                    sq_filial)
+     VALUES (:Nsq_arquivo,
+	         :Nsq_registro, 
+             :tp_atividade,
+             :vl_total_receita_atividade,
+             :Nsq_atividade,
+             :Nsq_filial
+	     );
+
+  if (sqlca.sqlcode != 0)
+     {
+      fprintf(fp_output,"%s - erro INSERT INTO PGDAS_03100_ATIVIDADE.\n",CurrentDateTime(DataHora,1));
+      sql_error(sqlca.sqlerrm.sqlerrmc);
+     }    
+	 		 
+}
+/*******************************************************/
+/*   Fun��o Gravar Informa��o Estabelecimento Filial   */
+/*******************************************************/ 
+void ProcessarInformEstabelecFilial (char *buf_aux)
+{
+  char   nu_cnpj_filial[14+1]; 
+  char   sg_uf[2+1]; 
+  int    cd_municipio; 
+  float  vl_total_receita_filial; 
+  float  nu_indice_majoracao_estadual; 
+  float  vl_limite; 
+  double vl_perc_exc_faixa1=0.000000000000000; 
+  double vl_perc_exc_faixa2=0.000000000000000;
+
+  double VL_PERC_EXC_FAIXA1_MERC_INT = 0.000000000000000; 
+  double VL_PERC_EXC_FAIXA2_MERC_INT = 0.000000000000000;
+  double VL_PERC_EXC_FAIXA1_MERC_EXT = 0.000000000000000;
+  double VL_PERC_EXC_FAIXA2_MERC_EXT = 0.000000000000000;  
+  
+  float nresult;
+
+  qt_limite_ultrapassados_pa=0; 
+
+  Nsq_filial++;
+
+  strcpy(nu_cnpj_filial,mExtractField(buf_aux,Separator,2,Field,FieldSize));
+  strcpy(sg_uf,mExtractField(buf_aux,Separator,3,Field,FieldSize));
+  cd_municipio                 = atol(mExtractField(buf_aux,Separator,4,Field,FieldSize));
+  vl_total_receita_filial      = atof(mExtractFieldFloat(buf_aux,Separator,5,Field,FieldSize));
+  nu_indice_majoracao_estadual = atof(mExtractFieldFloat(buf_aux,Separator,6,Field,FieldSize));
+  vl_limite                    = atof(mExtractFieldFloat(buf_aux,Separator,7,Field,FieldSize));
+  qt_limite_ultrapassados_pa   = atol(mExtractField(buf_aux,Separator,8,Field,FieldSize));
+  vl_perc_exc_faixa1           = atof(mExtractFieldFloat(buf_aux,Separator,9,Field,FieldSize)); 
+  vl_perc_exc_faixa2           = atof(mExtractFieldFloat(buf_aux,Separator,10,Field,FieldSize));  
+
+  /**************************************/
+  /* Em: 08/05/2016 - Por: JN Rodrigues */
+  /**************************************/ 
+  if (cd_versao >= 128)
+	 { 
+      VL_PERC_EXC_FAIXA1_MERC_INT = atof(mExtractFieldFloat(buf_aux,Separator,11,Field,FieldSize)); 
+      VL_PERC_EXC_FAIXA2_MERC_INT = atof(mExtractFieldFloat(buf_aux,Separator,12,Field,FieldSize)); 
+      VL_PERC_EXC_FAIXA1_MERC_EXT = atof(mExtractFieldFloat(buf_aux,Separator,13,Field,FieldSize)); 
+      VL_PERC_EXC_FAIXA2_MERC_EXT = atof(mExtractFieldFloat(buf_aux,Separator,14,Field,FieldSize));   
+     }
+	 
+  EXEC SQL 
+     INSERT INTO adm_objetos.PGDAS_03000_ESTABELEC_FILIAL 
+	        (sq_arquivo, 
+		     sq_registro, 
+		     sq_filial,
+		     nu_cnpj_filial, 
+		     sg_uf, 
+		     cd_municipio, 
+		     vl_total_receita_filial, 
+		     nu_indice_majoracao_estadual, 
+		     vl_limite, 
+		     qt_limite_ultrapassados_pa, 
+		     vl_perc_exc_faixa1, 
+		     vl_perc_exc_faixa2,
+		     /**************************************/
+		     /* Em: 08/05/2016 - Por: JN Rodrigues */
+		     /**************************************/ 
+		     VL_PERC_EXC_FAIXA1_MERC_INT, 
+		     VL_PERC_EXC_FAIXA2_MERC_INT, 
+		     VL_PERC_EXC_FAIXA1_MERC_EXT, 
+		     VL_PERC_EXC_FAIXA2_MERC_EXT														   
+		    )
+     VALUES (:Nsq_arquivo,
+	         :Nsq_registro, 
+             :Nsq_filial,
+             :nu_cnpj_filial,
+             :sg_uf,
+             :cd_municipio,
+             :vl_total_receita_filial, 
+             :nu_indice_majoracao_estadual, 
+             :vl_limite,
+             :qt_limite_ultrapassados_pa,
+             :vl_perc_exc_faixa1,
+             :vl_perc_exc_faixa2,
+		     /**************************************/
+		     /* Em: 08/05/2016 - Por: JN Rodrigues */
+		     /**************************************/ 
+		     :VL_PERC_EXC_FAIXA1_MERC_INT, 
+		     :VL_PERC_EXC_FAIXA2_MERC_INT, 
+		     :VL_PERC_EXC_FAIXA1_MERC_EXT, 
+		     :VL_PERC_EXC_FAIXA2_MERC_EXT				 
+	        );
+
+  if (sqlca.sqlcode != 0)
+     {
+      fprintf(fp_output,"%s - erro INSERT INTO PGDAS_03000_ESTABELEC_FILIAL.\n",CurrentDateTime(DataHora,1));
+      sql_error(sqlca.sqlerrm.sqlerrmc);
+     }    
+
+}
+/**********************************************************************/
+/*   Fun��o Gravar Informa��o Receita Bruta Anterior Valor original   */
+/**********************************************************************/  
+void ProcessarReceitaBrutaValOriginal (char *buf_aux)
+{
+
+  float VL_REC_BRUTA_ULT_12_MESES = 0;
+  float VL_REC_BRUTA_ANO_CALEND_ANT = 0;
+  float VL_REC_BRUTA_ANO_CALENDARIO = 0;
+  float VL_REC_BRUTA_ULT_12_MESES_O = 0;
+  float VL_REC_BRUTA_ANO_CAL_ANT_O = 0;
+  float VL_FIXO_ICMS = 0;
+  float VL_FIXO_ISS = 0;
+  float VL_RBAA_INT = 0;
+  float VL_RBAA_INTO = 0;
+  float VL_RBAA_EXT = 0;
+  float VL_RBAA_EXTO = 0;  
+  /**************************************/
+  /* Em: 08/05/2016 - Por: JN Rodrigues */
+  /**************************************/	  
+  float VL_RB_ANOCAL_MERC_INT  = 0;
+  float VL_RB_ULT12MESES_MERC_INT  = 0;
+  float VL_RB_ULT12MESES_ORIG_MERC_INT  = 0;
+  float VL_RB_ANOCAL_MERC_EXT  = 0;
+  float VL_RB_ULT12MESES_MERC_EXT  = 0;
+  float VL_RB_ULT12MESES_ORIG_MERC_EXT  = 0;
+  
+
+  VL_REC_BRUTA_ULT_12_MESES   = atof(mExtractFieldFloat(buf_aux,Separator,2,Field,FieldSize));
+  VL_REC_BRUTA_ANO_CALEND_ANT = atof(mExtractFieldFloat(buf_aux,Separator,3,Field,FieldSize));
+  VL_REC_BRUTA_ANO_CALENDARIO = atof(mExtractFieldFloat(buf_aux,Separator,4,Field,FieldSize));
+  VL_REC_BRUTA_ULT_12_MESES_O = atof(mExtractFieldFloat(buf_aux,Separator,5,Field,FieldSize));
+  VL_REC_BRUTA_ANO_CAL_ANT_O  = atof(mExtractFieldFloat(buf_aux,Separator,6,Field,FieldSize));
+  VL_FIXO_ICMS                = atof(mExtractFieldFloat(buf_aux,Separator,7,Field,FieldSize));
+  VL_FIXO_ISS                 = atof(mExtractFieldFloat(buf_aux,Separator,8,Field,FieldSize));
+  VL_RBAA_INT                 = atof(mExtractFieldFloat(buf_aux,Separator,9,Field,FieldSize));
+  VL_RBAA_INTO                = atof(mExtractFieldFloat(buf_aux,Separator,10,Field,FieldSize));
+  VL_RBAA_EXT                 = atof(mExtractFieldFloat(buf_aux,Separator,11,Field,FieldSize));
+  VL_RBAA_EXTO                = atof(mExtractFieldFloat(buf_aux,Separator,12,Field,FieldSize));   
+  
+  /**************************************/
+  /* Em: 08/05/2016 - Por: JN Rodrigues */
+  /**************************************/	  
+  if (cd_versao >= 128)
+	 {
+      VL_RB_ULT12MESES_ORIG_MERC_INT  = atof(mExtractFieldFloat(buf_aux,Separator,13,Field,FieldSize));
+      VL_RB_ULT12MESES_MERC_INT  = atof(mExtractFieldFloat(buf_aux,Separator,14,Field,FieldSize));
+      VL_RB_ANOCAL_MERC_INT  = atof(mExtractFieldFloat(buf_aux,Separator,15,Field,FieldSize));
+      VL_RB_ANOCAL_MERC_EXT  = atof(mExtractFieldFloat(buf_aux,Separator,16,Field,FieldSize));
+      VL_RB_ULT12MESES_MERC_EXT  = atof(mExtractFieldFloat(buf_aux,Separator,17,Field,FieldSize));
+      VL_RB_ULT12MESES_ORIG_MERC_EXT  = atof(mExtractFieldFloat(buf_aux,Separator,18,Field,FieldSize));
+	 }
+		 
+  EXEC SQL  
+     INSERT INTO adm_objetos.PGDAS_02000_REC_BRUTA_ANTERIOR 
+	        (sq_arquivo, 
+			 sq_registro, 
+			 vl_rec_bruta_ult_12_meses, 
+			 vl_rec_bruta_ano_calend_ant, 
+			 vl_rec_bruta_ano_calendario, 
+			 vl_rec_bruta_ult_12_meses_o, 
+			 vl_rec_bruta_ano_cal_ant_o, 
+			 vl_fixo_icms, 
+			 vl_fixo_iss,
+			 VL_RBAA_INT,
+			 VL_RBAA_INTO,
+			 VL_RBAA_EXT,
+			 VL_RBAA_EXTO,
+             /**************************************/
+             /* Em: 08/05/2016 - Por: JN Rodrigues */
+             /**************************************/	  
+			 VL_RB_ANOCAL_MERC_INT,
+			 VL_RB_ULT12MESES_MERC_INT,
+			 VL_RB_ULT12MESES_ORIG_MERC_INT,
+			 VL_RB_ANOCAL_MERC_EXT,
+			 VL_RB_ULT12MESES_MERC_EXT,
+			 VL_RB_ULT12MESES_ORIG_MERC_EXT															 
+			 )
+     VALUES (:Nsq_arquivo,
+	         :Nsq_registro, 
+             :VL_REC_BRUTA_ULT_12_MESES, 
+             :VL_REC_BRUTA_ANO_CALEND_ANT, 
+             :VL_REC_BRUTA_ANO_CALENDARIO, 
+             :VL_REC_BRUTA_ULT_12_MESES_O, 
+             :VL_REC_BRUTA_ANO_CAL_ANT_O, 
+             :VL_FIXO_ICMS, 
+             :VL_FIXO_ISS,
+			 :VL_RBAA_INT,
+			 :VL_RBAA_INTO,
+			 :VL_RBAA_EXT,
+			 :VL_RBAA_EXTO,
+             /**************************************/
+             /* Em: 08/05/2016 - Por: JN Rodrigues */
+             /**************************************/	  
+			 :VL_RB_ANOCAL_MERC_INT,
+			 :VL_RB_ULT12MESES_MERC_INT,
+			 :VL_RB_ULT12MESES_ORIG_MERC_INT,
+			 :VL_RB_ANOCAL_MERC_EXT,
+			 :VL_RB_ULT12MESES_MERC_EXT,
+			 :VL_RB_ULT12MESES_ORIG_MERC_EXT				 
+	        );
+
+  if (sqlca.sqlcode != 0)
+     {
+      fprintf(fp_output,"%s - erro INSERT INTO PGDAS_02000_REC_BRUTA_ANTERIOR.\n",CurrentDateTime(DataHora,1));
+      sql_error(sqlca.sqlerrm.sqlerrmc);
+     } 
+   			 
+
+}
+
+/********************************************************************/
+/*       Fun��o Gravar Informa��o Receita Bruta Anterior EXTERNO    */
+/********************************************************************/
+void ProcessarReceitaBrutaAnteriorExterno (char *buf_aux)
+{
+
+  int   nu_periodo_apuracao = 0; 
+  float vl_receita_bruta;
+  int y = 1;
+  int x = 0;
+
+  EncFimLinha = 0;
+
+  while (EncFimLinha == 0) {
+     y++;
+     x++;
+     if (x == 1) 
+        {
+         nu_periodo_apuracao = atol(mExtractFieldOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+        }
+     else
+        {
+	     if (x == 2)
+            {	  
+	         vl_receita_bruta = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+	         x = 0;
+
+			 EXEC SQL 
+				INSERT INTO adm_objetos.PGDAS_01502_RBA_MERCADO_EXT
+						  (sq_arquivo, sq_registro, nu_periodo_apuracao, vl_rec_bruta_mercado_externo)
+				VALUES    (:Nsq_arquivo,:Nsq_registro,:nu_periodo_apuracao,:vl_receita_bruta);
+	  
+			 if (sqlca.sqlcode != 0)
+				{
+				 fprintf(fp_output,"%s - erro INSERT INTO PGDAS_01502_RBA_MERCADO_EXT.\n",CurrentDateTime(DataHora,1));
+				 sql_error(sqlca.sqlerrm.sqlerrmc);
+				} 
+
+	        }
+       }
+
+     }
+
+}
+/********************************************************************/
+/*       Fun��o Gravar Informa��o Receita Bruta Anterior INTERNO    */
+/********************************************************************/
+void ProcessarReceitaBrutaAnteriorInterno (char *buf_aux)
+{
+
+  int   nu_periodo_apuracao = 0; 
+  float vl_receita_bruta;
+  int y = 1;
+  int x = 0;
+
+  EncFimLinha = 0;
+
+  while (EncFimLinha == 0) {
+     y++;
+     x++;
+     if (x == 1) 
+        {
+         nu_periodo_apuracao = atol(mExtractFieldOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+        }
+     else
+        {
+	     if (x == 2)
+            {	  
+	         vl_receita_bruta = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+	         x = 0;
+
+			 EXEC SQL 
+				INSERT INTO adm_objetos.PGDAS_01501_RBA_MERCADO_INT
+						  (sq_arquivo, sq_registro, nu_periodo_apuracao, vl_rec_bruta_mercado_interno)
+				VALUES    (:Nsq_arquivo,:Nsq_registro,:nu_periodo_apuracao,:vl_receita_bruta);
+	  
+			 if (sqlca.sqlcode != 0)
+				{
+				 fprintf(fp_output,"%s - erro INSERT INTO PGDAS_01501_RBA_MERCADO_INT.\n",CurrentDateTime(DataHora,1));
+				 sql_error(sqlca.sqlerrm.sqlerrmc);
+				} 
+
+	        }
+       }
+
+     }
+
+}
+/*************************************************************/
+/*       Fun��o Gravar Informa��o Receita Bruta Anterior     */
+/*************************************************************/
+void ProcessarReceitaBrutaAnterior (char *buf_aux)
+{
+
+  int   nu_periodo_apuracao = 0; 
+  float vl_receita_bruta;
+  int y = 1;
+  int x = 0;
+
+  EncFimLinha = 0;
+
+  while (EncFimLinha == 0) {
+     y++;
+     x++;
+     if (x == 1) 
+        {
+         nu_periodo_apuracao = atol(mExtractFieldOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+        }
+     else
+        {
+	     if (x == 2)
+            {	  
+	         vl_receita_bruta = atof(mExtractFieldFloatOcorrencias(buf_aux,Separator,y,Field,FieldSize));
+	         x = 0;
+
+			 EXEC SQL 
+				INSERT INTO adm_objetos.PGDAS_01500_REC_BRUTA_ANTERIOR
+						  (sq_arquivo, sq_registro, nu_periodo_apuracao, vl_receita_bruta)
+				VALUES    (:Nsq_arquivo,:Nsq_registro,:nu_periodo_apuracao,:vl_receita_bruta);
+	  
+			 if (sqlca.sqlcode != 0)
+				{
+				 fprintf(fp_output,"%s - erro INSERT INTO PGDAS_01500_REC_BRUTA_ANTERIOR.\n",CurrentDateTime(DataHora,1));
+				 sql_error(sqlca.sqlerrm.sqlerrmc);
+				} 
+
+	        }
+       }
+
+     }
+
+}
+
+/******************************************************/
+/*       Fun��o Gravar Informa��o Valor Apurado       */
+/******************************************************/
+void ProcessarInformacaoValApurado (char *buf_aux)
+{
+  char  nu_guia_das[17+1];
+  float vl_principal; 
+  float vl_multa;
+  float vl_juros;
+  float vl_total_devido;
+  char  dt_vencimento[8+1];
+  char  dt_validade_calculo[8+1]; 
+  float vl_total_das_informado;
+
+  strcpy(nu_guia_das,mExtractField(buf_aux,Separator,2,Field,FieldSize));
+  vl_principal           = atof(mExtractFieldFloat(buf_aux,Separator,3,Field,FieldSize));
+  vl_multa               = atof(mExtractFieldFloat(buf_aux,Separator,4,Field,FieldSize));
+  vl_juros               = atof(mExtractFieldFloat(buf_aux,Separator,5,Field,FieldSize));
+  vl_total_devido        = atof(mExtractFieldFloat(buf_aux,Separator,6,Field,FieldSize));
+  strcpy(dt_vencimento,mExtractField(buf_aux,Separator,7,Field,FieldSize));
+  strcpy(dt_validade_calculo,mExtractField(buf_aux,Separator,8,Field,FieldSize));
+  vl_total_das_informado = atof(mExtractFieldFloat(buf_aux,Separator,9,Field,FieldSize));
+
+  EXEC SQL 
+     INSERT INTO adm_objetos.PGDAS_01000_CALC_VAL_APURADO (sq_arquivo, 
+                                                           sq_registro, 
+                                                           nu_guia_das, 
+                                                           vl_principal, 
+                                                           vl_multa, 
+                                                           vl_juros, 
+                                                           vl_total_devido, 
+                                                           dt_vencimento, 
+                                                           dt_validade_calculo, 
+                                                           vl_total_das_informado)
+     VALUES (:Nsq_arquivo,
+	         :Nsq_registro, 
+			 :nu_guia_das,
+			 :vl_principal,
+			 :vl_multa,
+			 :vl_juros,
+			 :vl_total_devido,
+			 :dt_vencimento,
+			 :dt_validade_calculo,
+			 :vl_total_das_informado
+	        );
+
+  if (sqlca.sqlcode != 0)
+     {
+      fprintf(fp_output,"%s - erro INSERT INTO PGDAS_01000_CALC_VAL_APURADO.\n",CurrentDateTime(DataHora,1));
+      sql_error(sqlca.sqlerrm.sqlerrmc);
+     }    
+		 
+}
+/****************************************************************/
+/*       Função Gravar Informação Contribuinte Não Optante      */
+/****************************************************************/
+void ProcessarInformContribNaoOptante(char *buf_aux)
+{
+
+  int   cd_admtrib;
+  char  sg_uf            [2+1];
+  char  dc_municipio     [50+1];
+  int   cd_municipio;
+  char  nu_processo      [24+1];
+
+  cd_admtrib             = atol(mExtractField(buf_aux,Separator,2,Field,FieldSize));
+  strcpy(sg_uf,mExtractField(buf_aux,Separator,3,Field,FieldSize));
+  strcpy(dc_municipio,mExtractField(buf_aux,Separator,4,Field,FieldSize));
+  cd_municipio           = atol(mExtractField(buf_aux,Separator,5,Field,FieldSize));
+  strcpy(nu_processo,mExtractField(buf_aux,Separator,6,Field,FieldSize));
+
+  EXEC SQL 
+     INSERT INTO adm_objetos.PGDAS_00001_CONTRIB_N_OPTANTE (sq_arquivo, 
+                                                           sq_registro, 
+                                                           cd_admtrib,
+                                                           sg_uf,
+                                                           dc_municipio,
+                                                           cd_municipio,
+                                                           nu_processo)
+     VALUES (:Nsq_arquivo,
+	         :Nsq_registro, 
+			 :cd_admtrib,
+             :sg_uf,
+             :dc_municipio,
+             :cd_municipio,
+             :nu_processo
+	        );
+
+  if (sqlca.sqlcode != 0)
+     {
+      fprintf(fp_output,"%s - erro INSERT INTO PGDAS_00001_CONTRIB_N_OPTANTE.\n",CurrentDateTime(DataHora,1));
+      sql_error(sqlca.sqlerrm.sqlerrmc);
+     }    
+		 
+}
+/******************************************************/
+/*     Fun��o Gravar Identifica��o Arquivo Digital    */
+/******************************************************/
+void GravarIdentArquivo (char *buf_aux)
+{
+
+char nm_arquivo[250+1]; 
+char dt_inicio[8+1]; 
+char dt_final[8+1];
+char dt_inclusao[18+1]; 
+char nm_usuario_inclusao[30+1];
+
+cd_versao = atol(mExtractField(buf_aux,Separator,2,Field,FieldSize));
+strcpy(nm_arquivo,p->d_name);
+strcpy(dt_inicio,mExtractField(buf_aux,Separator,3,Field,FieldSize));
+strcpy(dt_final,mExtractField(buf_aux,Separator,4,Field,FieldSize));
+strcpy(dt_inclusao,CurrentDateTime(DataHora,2));
+strcpy(nm_usuario_inclusao,usuario);
+
+  EXEC SQL 
+     INSERT INTO adm_objetos.PGDAS_ARQUIVO_DIGITAL 
+	                                    (sq_arquivo, 
+                                         cd_versao, 
+                                         nm_arquivo, 
+                                         dt_inicio, 
+                                         dt_final, 
+                                         dt_inclusao, 
+                                         nm_usuario_inclusao) 
+     VALUES (:Nsq_arquivo,
+	         :cd_versao,
+			 :nm_arquivo,
+			 to_date(:dt_inicio,'yyyymmdd'),
+			 to_date(:dt_final,'yyyymmdd'),
+			 to_date(:dt_inclusao,'yyyymmdd hh24:mi:ss'),
+			 :nm_usuario_inclusao
+	        );
+			 
+  if (sqlca.sqlcode != 0)
+     {
+      fprintf(fp_output,"%s - erro INSERT INTO PGDAS_ARQUIVO_DIGITAL.\n",CurrentDateTime(DataHora,1));
+      sql_error(sqlca.sqlerrm.sqlerrmc);
+     }    	 
+}
+/*****************************************************************/
+/*     Fun��o Tratamento Dados de Identifica��o Contribuinte     */
+/*****************************************************************/
+void ProcessarIdentContribuinte (char *buf_aux)
+{
+char   Vnu_recibo[17+1];
+char   Vnu_autenticacao[20+1];
+char   Vdt_transmissao[14+1];
+char   Vcd_versao[20+1];
+
+char   Vnm_contribuinte[100+1];  
+int    Ncd_municipio;  
+char   Vtp_optante[1+1];  
+char   Vdt_abertura[8+1];  
+int    Nnu_periodo_apuracao;  
+float  Nvl_receita_bruta_periodo = 0;  
+float  Nvl_razao_folha_salarial = 0;  
+float  Nnu_indice_majoracao_nacional = 0;  
+char   Vtp_operacao[1+1];  
+char   Vdt_registro_xml[14+1];  
+char   Vtp_regime[1+1];
+float  Nvl_rec_bruta_pa_rc = 0;
+float  Nvl_rbpa_regime_compet_interno = 0;
+float  Nvl_rbpa_regime_compet_externo = 0;
+float  Nvl_rec_bruta_pa_cx_interna = 0;
+float  Nvl_rec_bruta_pa_cx_externa = 0;
+float  Nnu_ind_majoracao_federal_int = 0;
+float  Nnu_ind_majoracao_federal_ext = 0;
+
+int    nTipoFlagUltimaDeclar = 0;
+char   cRowId[50];
+int    nRk                   = 0;
+
+  Nsq_registro++;
+
+  Nsq_atividade = 0;
+
+  Nsq_filial    = 0;
+
+  if (nVersaoPgdasD==1)
+     {
+      strcpy(Vid_declaracao,mExtractField(buf_aux,Separator,2,Field,FieldSize));
+	  
+      strcpy(Vnu_recibo,mExtractField(buf_aux,Separator,3,Field,FieldSize));	  
+
+      strcpy(Vnu_autenticacao,mExtractField(buf_aux,Separator,4,Field,FieldSize));	  
+
+      strcpy(Vdt_transmissao,mExtractField(buf_aux,Separator,5,Field,FieldSize));
+ 
+      strcpy(Vcd_versao,mExtractField(buf_aux,Separator,6,Field,FieldSize));
+	  
+	  strcpy(Vnu_cnpj_matriz,mExtractField(buf_aux,Separator,7,Field,FieldSize));
+
+	  strcpy(Vnm_contribuinte,mExtractField(buf_aux,Separator,8,Field,FieldSize));
+      printf("Vnm_contribuinte: %s.\n",Vnm_contribuinte);
+fflush(stdout);
+	  Ncd_municipio = atol(mExtractField(buf_aux,Separator,9,Field,FieldSize));
+	  
+	  strcpy(Vtp_optante,mExtractField(buf_aux,Separator,10,Field,FieldSize));
+	  
+	  strcpy(Vdt_abertura,mExtractField(buf_aux,Separator,11,Field,FieldSize));
+	  
+	  Nnu_periodo_apuracao = atol(mExtractField(buf_aux,Separator,12,Field,FieldSize));
+	 
+	  Nvl_receita_bruta_periodo = atof(mExtractFieldFloat(buf_aux,Separator,13,Field,FieldSize));
+	 
+	  Nvl_razao_folha_salarial  =  atof(mExtractFieldFloat(buf_aux,Separator,14,Field,FieldSize));  
+	  
+	  Nnu_indice_majoracao_nacional = atof(mExtractFieldFloat(buf_aux,Separator,15,Field,FieldSize));
+      printf("Nnu_indice_majoracao_nacional: %d.\n",Nnu_indice_majoracao_nacional);
+fflush(stdout);
+	  strcpy(Vtp_operacao,mExtractField(buf_aux,Separator,16,Field,FieldSize));
+      printf("Vtp_operacao: %s.\n",Vtp_operacao);
+fflush(stdout);
+ 	  if (cd_versao >= 128)
+	     {
+			 Vdt_registro_xml[0]       = '\0';
+			 strcpy(Vtp_regime,mExtractField(buf_aux,Separator,17,Field,FieldSize)); 
+      printf("Vtp_regime: %s.\n",Vtp_regime);
+fflush(stdout);			 
+			 Nvl_rec_bruta_pa_rc = atof(mExtractFieldFloat(buf_aux,Separator,18,Field,FieldSize));
+			 Nvl_rbpa_regime_compet_interno  = atof(mExtractFieldFloat(buf_aux,Separator,19,Field,FieldSize));
+			 Nvl_rbpa_regime_compet_externo  = atof(mExtractFieldFloat(buf_aux,Separator,20,Field,FieldSize));
+			 
+		     /**************************************/
+		     /* Em: 08/05/2016 - Por: JN Rodrigues */
+		     /**************************************/			 
+			 Nvl_rec_bruta_pa_cx_interna = atof(mExtractFieldFloat(buf_aux,Separator,21,Field,FieldSize));
+			 Nvl_rec_bruta_pa_cx_externa = atof(mExtractFieldFloat(buf_aux,Separator,22,Field,FieldSize));
+			 Nnu_ind_majoracao_federal_int = atof(mExtractFieldFloat(buf_aux,Separator,23,Field,FieldSize));
+			 Nnu_ind_majoracao_federal_ext = atof(mExtractFieldFloat(buf_aux,Separator,24,Field,FieldSize));	  
+fflush(stdout);
+	     }
+	  else
+	     {
+		  if (cd_versao >= 120)
+			{
+			 Vdt_registro_xml[0]       = '\0';
+			 strcpy(Vtp_regime,mExtractField(buf_aux,Separator,17,Field,FieldSize)); 
+      printf("Vtp_regime: %s.\n",Vtp_regime);
+fflush(stdout);					 
+			 Nvl_rec_bruta_pa_rc = atof(mExtractFieldFloat(buf_aux,Separator,18,Field,FieldSize));
+			 Nvl_rbpa_regime_compet_interno  = atof(mExtractFieldFloat(buf_aux,Separator,19,Field,FieldSize));
+			 Nvl_rbpa_regime_compet_externo  = atof(mExtractFieldFloat(buf_aux,Separator,20,Field,FieldSize));
+		     /**************************************/
+		     /* Em: 08/05/2016 - Por: JN Rodrigues */
+		     /**************************************/			 
+			 Nvl_rec_bruta_pa_cx_interna = 0;
+			 Nvl_rec_bruta_pa_cx_externa = 0;
+			 Nnu_ind_majoracao_federal_int = 0;
+			 Nnu_ind_majoracao_federal_ext = 0;				 
+			} 
+		  else
+			{
+			 strcpy(Vdt_registro_xml,mExtractField(buf_aux,Separator,17,Field,FieldSize)); 
+			 Vtp_regime[0]                   = '\0'; 
+			 Nvl_rec_bruta_pa_rc             = 0;
+			 Nvl_rbpa_regime_compet_interno  = 0;
+			 Nvl_rbpa_regime_compet_externo  = 0; 
+		     /**************************************/
+		     /* Em: 08/05/2016 - Por: JN Rodrigues */
+		     /**************************************/			 
+			 Nvl_rec_bruta_pa_cx_interna = 0;
+			 Nvl_rec_bruta_pa_cx_externa = 0;
+			 Nnu_ind_majoracao_federal_int = 0;
+			 Nnu_ind_majoracao_federal_ext = 0;					 
+			}
+         }		
+	 }
+  else
+     {
+	  strcpy(Vnu_cnpj_matriz,mExtractField(buf_aux,Separator,2,Field,FieldSize));
+
+	  strcpy(Vnm_contribuinte,mExtractField(buf_aux,Separator,3,Field,FieldSize));
+
+	  Ncd_municipio = atol(mExtractField(buf_aux,Separator,4,Field,FieldSize));
+	  
+	  strcpy(Vtp_optante,mExtractField(buf_aux,Separator,5,Field,FieldSize));
+	  
+	  strcpy(Vdt_abertura,mExtractField(buf_aux,Separator,6,Field,FieldSize));
+	  
+	  Nnu_periodo_apuracao = atol(mExtractField(buf_aux,Separator,7,Field,FieldSize));
+	 
+	  Nvl_receita_bruta_periodo = atof(mExtractFieldFloat(buf_aux,Separator,8,Field,FieldSize));
+	 
+	  Nvl_razao_folha_salarial  =  atof(mExtractFieldFloat(buf_aux,Separator,9,Field,FieldSize));  
+	  
+	  Nnu_indice_majoracao_nacional = atof(mExtractFieldFloat(buf_aux,Separator,10,Field,FieldSize));
+
+	  strcpy(Vtp_operacao,mExtractField(buf_aux,Separator,11,Field,FieldSize));
+	  
+	  /**************************************/
+	  /* Em: 08/05/2016 - Por: JN Rodrigues */
+	  /**************************************/			 
+	  
+	  if (cd_versao >= 120)
+		{
+		 Vdt_registro_xml[0]       = '\0';
+		 strcpy(Vtp_regime,mExtractField(buf_aux,Separator,12,Field,FieldSize)); 
+      printf("Vtp_regime: %s.\n",Vtp_regime);
+fflush(stdout);				 
+		 Nvl_rec_bruta_pa_rc = atof(mExtractFieldFloat(buf_aux,Separator,13,Field,FieldSize));
+		 Nvl_rbpa_regime_compet_interno  = atof(mExtractFieldFloat(buf_aux,Separator,14,Field,FieldSize));
+		 Nvl_rbpa_regime_compet_externo  = atof(mExtractFieldFloat(buf_aux,Separator,15,Field,FieldSize));
+		 /**************************************/
+		 /* Em: 08/05/2016 - Por: JN Rodrigues */
+		 /**************************************/			 
+		 Nvl_rec_bruta_pa_cx_interna = 0;
+		 Nvl_rec_bruta_pa_cx_externa = 0;
+		 Nnu_ind_majoracao_federal_int = 0;
+		 Nnu_ind_majoracao_federal_ext = 0;				 
+		} 
+	  else
+		{
+		 strcpy(Vdt_registro_xml,mExtractField(buf_aux,Separator,12,Field,FieldSize)); 
+		 Vtp_regime[0]                   = '\0'; 
+		 Nvl_rec_bruta_pa_rc             = 0;
+		 Nvl_rbpa_regime_compet_interno  = 0;
+		 Nvl_rbpa_regime_compet_externo  = 0; 
+		 /**************************************/
+		 /* Em: 08/05/2016 - Por: JN Rodrigues */
+		 /**************************************/			 
+		 Nvl_rec_bruta_pa_cx_interna = 0;
+		 Nvl_rec_bruta_pa_cx_externa = 0;
+		 Nnu_ind_majoracao_federal_int = 0;
+		 Nnu_ind_majoracao_federal_ext = 0;				 
+		}
+  } 
+  EXEC SQL 
+     INSERT INTO adm_objetos.PGDAS_00000_CONTRIBUINTE 
+	                                   (sq_arquivo, 
+                                        sq_registro, 
+										id_declaracao_pgdasd,  
+                                        nu_recibo_pgdasd,
+                                        nu_autenticacao_pgdasd,
+										dt_transmissao_pgdasd,
+										cd_versao_pgdasd,
+                                        nu_cnpj_matriz, 
+                                        nm_contribuinte, 
+                                        cd_municipio, 
+                                        tp_optante, 
+                                        dt_abertura, 
+                                        nu_periodo_apuracao, 
+                                        vl_receita_bruta_periodo, 
+                                        vl_razao_folha_salarial, 
+                                        nu_indice_majoracao_nacional, 
+                                        tp_operacao, 
+										DT_REGISTRO_XML,
+										tp_regime,
+										vl_rec_bruta_pa_rc,
+										vl_rec_bruta_pa_interno,
+										vl_rec_bruta_pa_externo,
+										/**************************************/
+										/* Em: 08/05/2016 - Por: JN Rodrigues */
+										/**************************************/			 
+									    vl_rec_bruta_pa_cx_interna,
+									    vl_rec_bruta_pa_cx_externa,
+									    nu_ind_majoracao_federal_int,
+									    nu_ind_majoracao_federal_ext											
+										) 
+                                 
+								VALUES (:Nsq_arquivo, 
+                                        :Nsq_registro, 
+										:Vid_declaracao,  
+                                        :Vnu_recibo,
+                                        :Vnu_autenticacao,
+										:Vdt_transmissao,
+										:Vcd_versao,
+                                        :Vnu_cnpj_matriz, 
+                                        :Vnm_contribuinte, 
+                                        :Ncd_municipio, 
+                                        :Vtp_optante, 
+                                        :Vdt_abertura, 
+                                        :Nnu_periodo_apuracao, 
+                                        :Nvl_receita_bruta_periodo, 
+                                        :Nvl_razao_folha_salarial, 
+                                        :Nnu_indice_majoracao_nacional, 
+                                        :Vtp_operacao, 
+										:Vdt_registro_xml,
+										:Vtp_regime,
+										:Nvl_rec_bruta_pa_rc,
+										:Nvl_rbpa_regime_compet_interno,
+										:Nvl_rbpa_regime_compet_externo,
+										/**************************************/
+										/* Em: 08/05/2016 - Por: JN Rodrigues */
+										/**************************************/			 
+										:Nvl_rec_bruta_pa_cx_interna,
+										:Nvl_rec_bruta_pa_cx_externa,
+										:Nnu_ind_majoracao_federal_int,
+										:Nnu_ind_majoracao_federal_ext											
+										);
+										
+           if (sqlca.sqlcode != 0)
+              {
+               fprintf(fp_output,"%s - erro INSERT INTO PGDAS_00000_CONTRIBUINTE. %d \n",CurrentDateTime(DataHora,1),Nsq_arquivo);
+
+
+               sql_error(sqlca.sqlerrm.sqlerrmc);
+              }    
+
+	 EXEC SQL DECLARE cAlterarFlagUltDeclar CURSOR FOR
+			Select   rwd,
+					 rownum  rk
+			From    (
+						Select   /*+ rule */
+								c.rowid||chr(0) rwd,
+								c.sq_arquivo,
+								c.sq_registro,
+								d.dt_inicio,
+								d.dt_final,
+								c.dt_transmissao_pgdasd
+						From   adm_objetos.pgdas_00000_contribuinte    c,
+							   adm_objetos.pgdas_arquivo_digital       d
+						Where  c.sq_arquivo        = d.sq_arquivo
+						And    c.nu_cnpj_matriz    = :Vnu_cnpj_matriz
+						And    nu_periodo_apuracao = :Nnu_periodo_apuracao
+						order by  d.dt_inicio  desc,
+								  d.dt_final   desc,
+								  c.dt_transmissao_pgdasd desc,
+								  c.sq_arquivo desc,
+								  c.sq_registro desc
+				    );	 	
+
+	 EXEC SQL OPEN cAlterarFlagUltDeclar;
+
+	 if (sqlca.sqlcode != 0)
+		{
+		 printf("%s - Erro ao abrir Cursor cAlterarFlagUltDeclar.\n",CurrentDateTime(DataHora,1));
+		 sql_error(sqlca.sqlerrm.sqlerrmc);
+		}
+		 
+	 do {
+
+		 EXEC SQL FETCH cAlterarFlagUltDeclar    INTO :cRowId,
+													  :nRk;														  
+											  
+		 if ((sqlca.sqlcode != 0) && (sqlca.sqlcode != 1403))
+			  sql_error(sqlca.sqlerrm.sqlerrmc);			  
+			  
+		 if (sqlca.sqlcode == 0)
+			 {
+				  
+			  if (nRk == 1) 
+			     {
+				  nTipoFlagUltimaDeclar = 1;
+			     }
+			  else
+			     {
+				  nTipoFlagUltimaDeclar = 0;		  
+				 }
+				 
+			  EXEC SQL 
+				 Update adm_objetos.pgdas_00000_contribuinte c
+				 Set    c.fg_ultima_declaracao = :nTipoFlagUltimaDeclar
+				 Where  c.rowid                = :cRowId;		 
+			 
+			  if (sqlca.sqlcode != 0)
+				 {
+				  printf("%s - Erro EXEC SQL Update adm_objetos.pgdas_00000_contribuinte .\n",CurrentDateTime(DataHora,1));	 
+				  sql_error(sqlca.sqlerrm.sqlerrmc);		  
+				 } 	 
+							 
+			 }
+		} while (sqlca.sqlcode == 0);
+
+}
+/*****************************************************************/
+/*                  Carregar as linhas do arquivo                */
+/*****************************************************************/
+Processa_Arquivo(char *base_file_dir)
+{
+char   buf_aux[4096];
+int    CtlHeader     = 0;
+int    CtlDetalhe    = 0;
+int    CtlTrailler   = 0;
+int    WordSize      = 0;
+int    Tamanho       = 0;
+char   vNucleoCnpj[8+1];
+
+FieldSize = sizeof(Field);
+strcpy(Separator,"|");
+		  
+while ((fgets(buf_aux,sizeof(buf_aux),fp_input) != 0) )
+   {  
+   
+    ct_lidos++;
+    
+    strcpy(vTipoRegistro,mExtractField(buf_aux,Separator,1,Field,FieldSize));
+		
+    if (strncmp(vTipoRegistro,"AAAAA",5)==0)
+       {
+        EXEC SQL 
+           Select adm_objetos.PGDAS_SQ_ARQUIVO.nextval
+           Into   :Nsq_arquivo
+           from   dual;
+
+        if (sqlca.sqlcode != 0)
+           {
+            fprintf(fp_output,"%s - Erro Obtendo Valor da SEQUENCE PGDAS_SQ_ARQUIVO.\n",CurrentDateTime(DataHora,1));
+            sql_error(sqlca.sqlerrm.sqlerrmc);
+           }		  
+  
+        GravarIdentArquivo (buf_aux);
+
+        Nsq_registro = 0;		   
+       }		   
+	else 
+	  {
+       if (strncmp(vTipoRegistro,"00000",5)==0)
+          { 
+           nEncMunicipioRN = 0;
+		   nEncCnpjRN      = 0;
+
+           strcpy(Vnu_cnpj_matriz,mExtractField(buf_aux,Separator,2,Field,FieldSize));
+
+		   if (nVersaoPgdasD==1)
+			  {
+			   strcpy(Ncd_municipio,mExtractField(buf_aux,Separator,9,Field,FieldSize)); 
+			  }
+		   else
+			  {
+			   strcpy(Ncd_municipio,mExtractField(buf_aux,Separator,4,Field,FieldSize));	  
+			  }
+			  
+		   EXEC SQL 
+			  Select 1
+			  Into   :nEncMunicipioRN
+			  From   ADM_OBJETOS.PGDAS_TABELA_MUNICIPIO t
+			  Where  t.CD_MUNICIPIO_RFB  = :Ncd_municipio
+			  And    t.SG_UF_MUNICIPIO1  = 'RN';
+
+		   if ((sqlca.sqlcode != 0) && (sqlca.sqlcode != 1403))
+			   {
+				fprintf(fp_output,"%s - erro SELECT PGDAS_TABELA_MUNICIPIO.\n",CurrentDateTime(DataHora,1));
+				sql_error(sqlca.sqlerrm.sqlerrmc);
+			   }
+			   
+		   if (nEncMunicipioRN == 0)
+			  {
+				vNucleoCnpj[0] = Vnu_cnpj_matriz[0];
+				vNucleoCnpj[1] = Vnu_cnpj_matriz[1];
+				vNucleoCnpj[2] = Vnu_cnpj_matriz[2];
+				vNucleoCnpj[3] = Vnu_cnpj_matriz[3];
+				vNucleoCnpj[4] = Vnu_cnpj_matriz[4];
+				vNucleoCnpj[5] = Vnu_cnpj_matriz[5];
+				vNucleoCnpj[6] = Vnu_cnpj_matriz[6];
+				vNucleoCnpj[7] = Vnu_cnpj_matriz[7];
+				vNucleoCnpj[8] = 0;
+				   
+				EXEC SQL 
+				   Select 1
+				   Into   :nEncCnpjRN
+				   From   ADM_OBJETOS.CAD_CONTRIBUINTE_MUNICIPAL C
+				   Where  substr(NU_CNPJ_CPF,1,8) = :vNucleoCnpj
+				   And    rownum              = 1;
+
+				if ((sqlca.sqlcode != 0) && (sqlca.sqlcode != 1403))
+				   {
+					fprintf(fp_output,"%s - erro SELECT CAD_CONTRIBUINTE_MUNICIPAL .\n",CurrentDateTime(DataHora,1));
+					sql_error(sqlca.sqlerrm.sqlerrmc);
+				   }		   
+			  }		
+			  
+    	  if ((nEncMunicipioRN == 1)||(nEncCnpjRN == 1))
+              {		   	   			  
+		       ProcessarIdentContribuinte (buf_aux);
+              }	
+			  
+          }   
+    else
+      {
+       if (strncmp(vTipoRegistro,"00001",5)==0)
+          { 
+    	  if ((nEncMunicipioRN == 1)||(nEncCnpjRN == 1))
+              {		   	   
+		       ProcessarInformContribNaoOptante (buf_aux);
+		      }
+          } 	   
+    else
+	  {
+       if (strncmp(vTipoRegistro,"01000",5)==0)
+          { 
+    	  if ((nEncMunicipioRN == 1)||(nEncCnpjRN == 1))
+              {		   	   			  					   
+		       ProcessarInformacaoValApurado (buf_aux);
+		      }
+          } 
+    else
+	  {
+	   if (strncmp(vTipoRegistro,"01500",5)==0)
+          { 
+    	   if ((nEncMunicipioRN == 1)||(nEncCnpjRN == 1))
+              {		   	   			  						   
+		       ProcessarReceitaBrutaAnterior (buf_aux);
+		      }
+          } 
+    else
+      {
+	   if (strncmp(vTipoRegistro,"01501",5)==0)
+          { 
+    	  if ((nEncMunicipioRN == 1)||(nEncCnpjRN == 1))
+              {		   	   			  						   
+		       ProcessarReceitaBrutaAnteriorInterno(buf_aux);
+		      }
+          } 
+    else
+      {
+	   if (strncmp(vTipoRegistro,"01502",5)==0)
+          { 
+    	  if ((nEncMunicipioRN == 1)||(nEncCnpjRN == 1))
+              {		   	   			  						   
+		       ProcessarReceitaBrutaAnteriorExterno (buf_aux);
+			  }
+          } 
+    else
+      {	  
+	   if (strncmp(vTipoRegistro,"02000",5)==0)
+          { 
+    	  if ((nEncMunicipioRN == 1)||(nEncCnpjRN == 1))
+              {		   	   			  							   
+		       ProcessarReceitaBrutaValOriginal (buf_aux);
+		      }
+          } 
+    else
+      {
+	   if (strncmp(vTipoRegistro,"03000",5)==0)
+          { 
+    	  if ((nEncMunicipioRN == 1)||(nEncCnpjRN == 1))
+              {		   	   			  							   
+		       ProcessarInformEstabelecFilial (buf_aux);
+			  }
+          } 
+    else
+      {
+	   if (strncmp(vTipoRegistro,"03100",5)==0)
+          { 	  
+    	  if ((nEncMunicipioRN == 1)||(nEncCnpjRN == 1))
+              {		   	   			  							   
+		       ProcessarInformAtividade (buf_aux);
+		      }
+		  }			  		  
+    else
+      {
+	   if (strncmp(vTipoRegistro,"03110",5)==0)
+          { 
+    	  if ((nEncMunicipioRN == 1)||(nEncCnpjRN == 1))
+              {		   	   			  							   
+		       ProcessarInformRecAtividadeFxA (buf_aux);
+              }			   
+          } 
+    else
+      {
+	   if (strncmp(vTipoRegistro,"03120",5)==0)
+          { 
+    	  if ((nEncMunicipioRN == 1)||(nEncCnpjRN == 1))
+              {		   	   			  							   				   
+		       ProcessarInformRecAtividadeFxB (buf_aux);
+              }
+          } 
+    else
+      {
+	   if (strncmp(vTipoRegistro,"03130",5)==0)
+          { 
+    	  if ((nEncMunicipioRN == 1)||(nEncCnpjRN == 1))
+              {		   	   			  							   			   
+     		   ProcessarInformRecAtividadeFxC (buf_aux);
+              }
+	      } 
+    else
+      {						 
+	   if (strncmp(vTipoRegistro,"03500",5)==0)
+          { 	  
+    	  if ((nEncMunicipioRN == 1)||(nEncCnpjRN == 1))
+              {		   	   			  							   			   
+		       ProcessarInformFolhaSalario (buf_aux);
+		      }
+	      }
+		  
+    else
+      {
+	   if (strncmp(vTipoRegistro,"04000",5)==0)
+          { 
+
+    	  if ((nEncMunicipioRN == 1)||(nEncCnpjRN == 1))
+              {		   	   			  							   	   						   
+               ProcessarInformPerfil (buf_aux);
+              }			
+          }					
+
+    else
+	  {
+	   if (strncmp(vTipoRegistro,"03111",5)==0)
+          { 
+    	  if ((nEncMunicipioRN == 1)||(nEncCnpjRN == 1))
+              {		   	   			  							      				   					   
+               ProcessarInformIsencaoAtividadeFxA (buf_aux);
+              }			   
+          }
+    else
+      {
+	   if (strncmp(vTipoRegistro,"03121",5)==0)
+          { 
+    	  if ((nEncMunicipioRN == 1)||(nEncCnpjRN == 1))
+              {		   	   			  							   		   				   					   
+               ProcessarInformIsencaoAtividadeFxB (buf_aux);
+              }			   
+          }
+	else
+	  {
+	   if (strncmp(vTipoRegistro,"03131",5)==0)
+          { 
+    	  if ((nEncMunicipioRN == 1)||(nEncCnpjRN == 1))
+              {		   	   			  							   
+               ProcessarInformIsencaoAtividadeFxC (buf_aux);
+              }			   
+          }											 
+	else
+	  {
+	   if (strncmp(vTipoRegistro,"03112",5)==0)
+          { 
+    	  if ((nEncMunicipioRN == 1)||(nEncCnpjRN == 1))
+              {		   	   			  							   
+               ProcessarInformReducaoReceitaAtivFxA (buf_aux);
+              }			   
+          }
+    else
+      {
+	   if (strncmp(vTipoRegistro,"03122",5)==0)
+          { 
+    	  if ((nEncMunicipioRN == 1)||(nEncCnpjRN == 1))
+              {		   	   			  							   
+               ProcessarInformReducaoReceitaAtivFxB (buf_aux);
+              }			   
+          }
+	else
+	  {
+	   if (strncmp(vTipoRegistro,"03132",5)==0)
+          { 
+    	  if ((nEncMunicipioRN == 1)||(nEncCnpjRN == 1))
+              {		   	   			  							   
+               ProcessarInformReducaoReceitaAtivFxC (buf_aux);
+              }			   
+          }
+	   else
+	      {
+		    
+		   if (strncmp(vTipoRegistro,"ZZZZZ",5)==0)
+			  { 	   
+								   
+			   nTotalRegInformado = atol(mExtractField(buf_aux,Separator,2,Field,FieldSize));				   
+					   
+			  }
+           else
+              {
+      		    if (strncmp(vTipoRegistro,"99999",5)!=0)
+				   {
+					fprintf(fp_output,"Arquivo PGDAS: %s - Tipo de Registro %s Inválido na Linha: %lu !!!",cNomArquivo,cTipRegistro,ct_lidos); 
+
+					EXEC SQL 
+					  UPDATE adm_objetos.PGDAS_NIGHT_BATCH_QUEUE
+					  SET ST_PROCESSO = 'OFF';     
+							 
+					EXEC SQL COMMIT;		
+					
+					DesconectaBD();
+					
+					exit(1);
+			       }
+              }			  
+	      }
+	  }
+      }										  
+	  }
+	  }
+      }							  
+      }
+      }						   
+      }
+      }
+      }					 
+      }				  
+      }			   
+	  }
+	  }
+	  }
+      }   
+      }
+	  }
+	  }
+	  }
+	  
+  }
+} 
+/************************************************************************/
+/*                      Abre arquivo de Log                             */
+/************************************************************************/
+Open_Log(char *prog, char *log_dir)
+{
+  if(strchr(prog,'/'))
+    strcpy(prog_name,strrchr(prog,'/') + 1);
+  else
+    strcpy(prog_name,prog);
+
+  sprintf(log_file,"%s/%s_%s.LOG", log_dir, prog_name,CurrentDateTime(DataHora,2));    
+
+  if((fp_output=fopen(log_file,"a+")) == NULL)
+       {
+         fprintf(stderr,"%s - Falha na abertura do arquivo de log: %s.\nErrno %d \n",CurrentDateTime(DataHora,1),
+                      log_file, errno);
+				  
+         DesconectaBD();
+		 exit(1);
+       }
+}
+
+/**********************************************************************/
+/*                 Conecta ao Banco de Dados			      */
+/**********************************************************************/
+ConectaBD(char *User, char *Password, char *Database)
+{
+  EXEC SQL BEGIN DECLARE SECTION;
+    varchar dbUser       [ 40 ];
+    varchar dbPassword   [ 40 ];
+    varchar dbDatabase   [ 40 ];
+  EXEC SQL END DECLARE SECTION;
+
+  dbUser.len     = strlen(User);
+  dbPassword.len = strlen(Password);
+  dbDatabase.len = strlen(Database);
+
+  strncpy (dbUser.arr    , User    , dbUser.len    );
+  strncpy (dbPassword.arr, Password, dbPassword.len);
+  strncpy (dbDatabase.arr, Database, dbDatabase.len);
+
+  oraca.orastxtf = ORASTFERR;
+  EXEC SQL CONNECT :dbUser
+     IDENTIFIED BY :dbPassword
+             USING :dbDatabase;
+
+  return(0);
+}
+
+/**********************************************************************/
+/*                 Desconecta ao Banco de Dados			      */
+/**********************************************************************/
+DesconectaBD()
+{
+  EXEC SQL ROLLBACK;
+  EXEC SQL COMMIT WORK RELEASE;
+  fprintf(fp_output,"Desconexao com o BD efetuada com sucesso.\n");
+
+}
+
+/**********************************************************************/
+sql_error(msg)
+char *msg;
+{
+    fprintf(fp_output,"\n Nome Arquivo: %s - Tipo Registro: %s - id_declaracao: %s - Erro: %s.\n",vNomeArquivo,vTipoRegistro,Vid_declaracao, msg);
+    sqlca.sqlerrm.sqlerrmc[sqlca.sqlerrm.sqlerrml] = '\0';
+    oraca.orastxt.orastxtc[oraca.orastxt.orastxtl] = '\0';
+    oraca.orasfnm.orasfnmc[oraca.orasfnm.orasfnml] = '\0';
+    fprintf(fp_output,"\n Nome Arquivo: %s - Tipo Registro: %s - id_declaracao: %s - Erro: %s\n",vNomeArquivo,vTipoRegistro,Vid_declaracao, sqlca.sqlerrm.sqlerrmc);
+    fprintf(fp_output,"in \"%s...\"\n", oraca.orastxt.orastxtc);
+    fprintf(fp_output,"on line %d of %s.\n\n", 
+    oraca.oraslnr, oraca.orasfnm.orasfnmc);   
+    EXEC SQL ROLLBACK;
+
+	EXEC SQL 
+	  UPDATE adm_objetos.PGDAS_NIGHT_BATCH_QUEUE
+	  SET ST_PROCESSO = 'OFF';     
+			 
+    EXEC SQL COMMIT;		
+	
+    DesconectaBD();
+    exit(1);
+}
+/**************************************************************/
+/*     Move arquivo processado para diretorio especifico      */
+/**************************************************************/
+void Move_Files()
+{
+  fprintf(fp_output,"Movendo arquivo %s para %s.\n", input_file_name, proc_input_file_name);
+  if(rename(input_file_name,proc_input_file_name) == ERRO)
+    { 
+       fprintf(fp_output,"errno = %d .\n",errno);
+
+	   EXEC SQL 
+		  UPDATE adm_objetos.PGDAS_NIGHT_BATCH_QUEUE
+		  SET ST_PROCESSO = 'OFF';     
+				 
+	   EXEC SQL COMMIT;		   
+	   
+       DesconectaBD();
+       exit(1);
+    }
+
+}
+/**************************************************************/
+/*       Move arquivo c/ erro para diretorio especifico       */
+/**************************************************************/
+void Move_Files_Erro()
+{
+  fprintf(fp_output,"Movendo arquivo %s para %s.\n", input_file_name, erro_input_file_name);
+  if(rename(input_file_name,erro_input_file_name) == ERRO)
+    { 
+       fprintf(fp_output,"errno = %d .\n",errno);
+	   
+	   EXEC SQL 
+		  UPDATE adm_objetos.PGDAS_NIGHT_BATCH_QUEUE
+		  SET ST_PROCESSO = 'OFF';     
+				 
+	   EXEC SQL COMMIT;	
+	   
+       DesconectaBD();
+       exit(1);
+    }
+
+}
+/**********************************************************************/
+void Close_Input_Output_Files()
+{
+  fclose(fp_input);
+
+}
+/******************************************************************************/
+char *mExtractFieldOcorrencias (const char *Line, char *Separator, int Ord, char *Field, int FieldSize)
+{
+  int N = 1, i, j;
+
+  if (Ord < 1)
+     Field[0] = 0;
+  else {
+     i = 0;  while (N < Ord && Line[i] != '\n' && Line[i] != '\r' && Line[i] != 0) if (Line[i++] == *Separator) N++;
+     j = i;  while (Line[j] != *Separator && Line[j] != '\n' && Line[j] != '\r' && Line[j] != 0) j++;
+
+	 if ((Line[j] == '\n') || (Line[j] == '\r') || (Line[j] == 0))
+         EncFimLinha = 1;
+	 
+     N = j - i;  if (N >= FieldSize) N = FieldSize - 1;
+     memcpy (Field, Line + i, N);
+     Field[N] = 0;
+  }
+
+  return Field;
+}
+/******************************************************************************/
+char *mExtractField (const char *Line, char *Separator, int Ord, char *Field, int FieldSize)
+{
+  int N = 1, i, j;
+
+  if (Ord < 1)
+     Field[0] = 0;
+  else {
+     i = 0;  while (N < Ord && Line[i] != '\n' && Line[i] != '\r' && Line[i] != 0) if (Line[i++] == *Separator) N++;
+     j = i;  while (Line[j] != *Separator && Line[j] != '\n' && Line[j] != '\r' && Line[j] != 0) j++;
+
+     N = j - i;  if (N >= FieldSize) N = FieldSize - 1;
+     memcpy (Field, Line + i, N);
+     Field[N] = 0;
+  }
+
+  return Field;
+}
+/******************************************************************************/
+char *mExtractFieldFloatOcorrencias (const char *Line, char *Separator, int Ord, char *Field, int FieldSize)
+{
+  int N = 1, i, j;
+
+  if (Ord < 1)
+     Field[0] = 0;
+  else {
+     i = 0;  
+	 while (N < Ord && Line[i] != '\n' && Line[i] != '\r' && Line[i] != 0) if (Line[i++] == *Separator) N++;
+     j = i;  while (Line[j] != *Separator && Line[j] != '\n' && Line[j] != '\r' && Line[j] != 0) j++;
+
+ 	 if ((Line[j] == '\n') || (Line[j] == '\r') || (Line[j] == 0))
+         EncFimLinha = 1;
+	 
+     N = j - i;  if (N >= FieldSize) N = FieldSize - 1;
+     memcpy (Field, Line + i, N);
+     Field[N] = 0;
+  }
+  
+  i = 0;
+  for(i = 0; i < strlen(Field); i++)
+  {
+   if (Field[i] == ',')
+      {
+       Field[i] = '.';
+      }
+
+  } 
+  
+  return Field;
+}
+/******************************************************************************/
+char *mExtractFieldFloat (const char *Line, char *Separator, int Ord, char *Field, int FieldSize)
+{
+  int N = 1, i, j;
+
+  if (Ord < 1)
+     Field[0] = 0;
+  else {
+     i = 0;  
+	 while (N < Ord && Line[i] != '\n' && Line[i] != '\r' && Line[i] != 0) if (Line[i++] == *Separator) N++;
+     j = i;  while (Line[j] != *Separator && Line[j] != '\n' && Line[j] != '\r' && Line[j] != 0) j++;
+     N = j - i;  if (N >= FieldSize) N = FieldSize - 1;
+     memcpy (Field, Line + i, N);
+     Field[N] = 0;
+  }
+  
+  i = 0;
+  for(i = 0; i < strlen(Field); i++)
+  {
+   if (Field[i] == ',')
+      {
+       Field[i] = '.';
+      }
+
+  } 
+  
+  return Field;
+}
+/********************************/
+/* Devolve a data/hora corrente */
+/********************************/
+char *CurrentDateTime (char *DataHora,int formato)
+{
+  int  dia,mes,ano,hora,minuto,segundo;
+  struct tm *local;
+  time_t t;
+  t= time(NULL);
+  local=localtime(&t);
+
+  dia=local->tm_mday;
+  mes=local->tm_mon+1;
+  ano=local->tm_year+1900;
+  hora=local->tm_hour;
+  minuto=local->tm_min;
+  segundo=local->tm_sec;
+  
+  if (formato == 1) {
+      sprintf(DataHora,"%02lu/%02lu/%02lu %02d:%02d:%02d",dia,mes,ano,hora,minuto,segundo);
+     }
+  else {
+        if (formato == 2)
+		   {
+            sprintf(DataHora,"%04lu%02d%02d%02d%02d%02d",ano,mes,dia,hora,minuto,segundo);
+		   }
+	   }
+  return DataHora;
+}
+/************************************************************************/
+/*          Funcao verifica status do Pid da extracao no Unix           */
+/************************************************************************/
+int StatusProcUnixPid(int N)
+{
+int w_ind_status_seq_unix_Pid;
+   
+   w_ind_status_seq_unix_Pid = CmdUnix ("-0",N);  
+   
+   return w_ind_status_seq_unix_Pid;	
+}
+/************************************************************************/
+/*           Funcao verifica status do PID da extracao no Unix          */
+/************************************************************************/
+int CmdUnix (char *tipoParm, int numPid)
+{
+int   verPid         = numPid; 	
+char  cmd_shell_unix [15]="";
+char *tipo_Parm_unix = tipoParm;
+int   resCmd         = 0;
+
+    sprintf(cmd_shell_unix,"kill %s %d",tipo_Parm_unix,verPid);
+    resCmd = system(cmd_shell_unix);
+
+    printf("cmd: %s - Resulta: %d\n",cmd_shell_unix,resCmd); 
+      
+    return resCmd;
+    
+}
+/**********************************************************************/
+void Get_Password()
+{
+
+  char buf_aux[255];
+
+  sprintf(input_file_name,"/sistemas/INCORPORACAO/SIMPLES_NACIONAL/PGDAS/LCK/%s", usuario);
+
+  if((fp_input=fopen(input_file_name,"r")) == NULL)
+    {
+      fprintf(fp_output,"[%s] Erro na abertura do arquivo restrito de senha.\n",CurrentDateTime(DataHora,1));
+      fprintf(fp_output,"[%s] errno = %d.\n", CurrentDateTime(DataHora,1),errno );
+      exit(1);
+    }
+
+  fread(buf_aux, 1, sizeof(buf_aux), fp_input);
+
+  int i, j = 0;
+  for(i = 0; buf_aux[i] != '\n'; i++)
+  {
+          cPassword[j] = buf_aux[i];
+
+          j++;
+  }
+
+
+}
+

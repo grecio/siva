@@ -23,6 +23,19 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dominio", "presenter\Domini
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "siva.test", "siva.test\siva.test.csproj", "{FF6C2E78-7103-4C96-B8F5-DA0CC4944593}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "registro", "registro", "{F50CA566-5975-4374-BD38-EF838086AC87}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Registro", "Registro\Registro.csproj", "{52D39B16-F053-4FEB-9F85-D0914978A4A9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "cargas", "cargas", "{53B20F53-DF8F-4AC0-9DD0-CCFD09760351}"
+	ProjectSection(SolutionItems) = preProject
+		cargas\CTE_Carga_Dados_v001.pc = cargas\CTE_Carga_Dados_v001.pc
+		cargas\DEFIS_Carga_Dados.pc = cargas\DEFIS_Carga_Dados.pc
+		cargas\GUIA_Carga_Dados.pc = cargas\GUIA_Carga_Dados.pc
+		cargas\INFF_Carga_Dados.pc = cargas\INFF_Carga_Dados.pc
+		cargas\PGDAS_Carga_Dados.pc = cargas\PGDAS_Carga_Dados.pc
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -53,6 +66,10 @@ Global
 		{FF6C2E78-7103-4C96-B8F5-DA0CC4944593}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FF6C2E78-7103-4C96-B8F5-DA0CC4944593}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FF6C2E78-7103-4C96-B8F5-DA0CC4944593}.Release|Any CPU.Build.0 = Release|Any CPU
+		{52D39B16-F053-4FEB-9F85-D0914978A4A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{52D39B16-F053-4FEB-9F85-D0914978A4A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{52D39B16-F053-4FEB-9F85-D0914978A4A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{52D39B16-F053-4FEB-9F85-D0914978A4A9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -66,5 +83,8 @@ Global
 		{CDA58391-12ED-4F44-A5A5-2159727B6A2A} = {008643AB-A08F-4201-A502-0105F20071B5}
 		{0373CB03-5C3D-4246-AA2C-34D66F244FF2} = {008643AB-A08F-4201-A502-0105F20071B5}
 		{FF6C2E78-7103-4C96-B8F5-DA0CC4944593} = {008643AB-A08F-4201-A502-0105F20071B5}
+		{F50CA566-5975-4374-BD38-EF838086AC87} = {9C5225C1-C194-4BAF-AF1A-8DC39A9DB34B}
+		{52D39B16-F053-4FEB-9F85-D0914978A4A9} = {F50CA566-5975-4374-BD38-EF838086AC87}
+		{53B20F53-DF8F-4AC0-9DD0-CCFD09760351} = {9C5225C1-C194-4BAF-AF1A-8DC39A9DB34B}
 	EndGlobalSection
 EndGlobal

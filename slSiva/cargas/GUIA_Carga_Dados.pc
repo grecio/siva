@@ -1,0 +1,2248 @@
+
+/****************************************************************************/
+/* Objetivo    : Carregar Dados da GUIA                                     */
+/* Modulo      : GUIA                                                       */
+/****************************************************************************/
+
+/***************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <string.h> 
+#include <dirent.h>
+#include <limits.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <math.h>
+
+/***************************************************/
+#include "sqlca.h"
+#include "oraca.h"
+
+EXEC ORACLE OPTION (ORACA=YES);
+EXEC ORACLE OPTION (PREFETCH=60000);
+/***************************************************/
+#define MAXFILENAMESIZE 255
+#define MAXPROGNAMESIZE 50
+
+/***************************************************/
+#define DATE_TIME_MASK 	"%Y/%m/%d %H:%M:%S"
+#define DATE_MASK      	"%Y/%m/%d"
+#define TIME_MASK      	"%H:%M:%S" 
+#define DATE_STR_MASK   "%Y%m"
+
+#define ErroSQL sqlca.sqlcode
+#define NRowsFetched sqlca.sqlerrd[2]
+#define NoDataFound 1403 
+
+char *t_mask_ptr = TIME_MASK;
+char *dt_mask_ptr = DATE_TIME_MASK;
+char *dt_str_mask_ptr = DATE_STR_MASK;
+/*
+#define DT_MASK       givemetime(dt_mask_ptr)
+#define D_MASK        givemetime(d_mask_ptr)
+#define T_MASK        givemetime(t_mask_ptr)
+#define DT_STR_MASK   givemetime(dt_str_mask_ptr)
+*/
+/***************************************************/
+extern int errno;
+char * uppern(char *, int);
+char * givemetime(char *);
+char log_file [MAXFILENAMESIZE];
+char prog_name[MAXPROGNAMESIZE];
+int  formato              = 0;
+char S                    [4096];
+char V                    [4096];
+char Line [4096];
+char Separator[1]      = "|";
+char sql                  [255];
+int  Ord = 0;
+char Field[4096];
+int  FieldSize = 0;
+int  Pos = 0;
+int  ctl = 0;
+char DataHora             [18];
+int  nSqDocumento         = 0;
+int  nPesquisaArquivo     = 0;
+char vNomeArquivo         [255];
+char cmdsolaris           [255];
+int  resCmd               = 0;
+char Status               [05];
+char vAux                 [03];
+char vSubject             [255];
+int  nEnviaEmailProblema  = 0;
+int  nEnviaEmailOcorrencia= 0;
+int  EncFimLinha          = 0; 
+char cPassword            [50];
+char   buf_aux[4096];
+int    WordSize      = 0;
+
+
+char cNomArquivo[254+1];
+signed int proc_num_pid   = 0;
+char cStatus              [04];
+unsigned long int    nTotalRegInformado = 0;
+unsigned long int    ct_lidos           = 0;
+unsigned long int    ct_lidos_contrib   = 0;
+unsigned long int    nSqArquivo = 0;
+
+char vNomeArquivo         [255];
+char vMascaraFinal        [100];
+char cPesqExtensao        [100];
+int  nPosicaoPesq         = 0;
+char Word                 [4096];
+int    CtlDetDeclar = 0;
+char   cDcObservacoes[3000];
+char   cDcObservacoes2[3000];
+int    nFgZerada;
+
+int     CdDetalhe  = 0;
+char    CdDetalhe2[10];
+char    DcDetalhe[255];
+char    DcDetalhe2[255];
+double  VlDetalhe;
+char    cVlDetalhe[25];
+int     nCtaBytes  = 0;
+int     nCtaCampos = 0;
+int     nPesqCampo16 = 0;
+int     nCtaReg = 0;
+
+char cMest73[06+1];
+char cMes[02];
+char cAno[06];
+double nVlVest74 = 0;
+
+/***************************************************/
+void ProcessarIdentContribuinte (char *buf_aux);
+char *CurrentDateTime (char *DataHora, int formato);
+void GravarIdentArquivo (char *buf_aux);
+void EnviarEmails();
+void PreparaMensagemEmails();
+int StatusProcUnixPid(int N);
+int CmdUnix (char *tipoParm, int numPid);
+char *mNextWord (const char *S,int Pos,char *Word, int Tamanho);
+void Move_Files_Erro();
+void Move_Files();
+void Close_Input_Output_Files();
+char *mExtractFieldFloatLinha (const char *Line, char *Separator, int Ord, char *Field, int FieldSize);
+char *mExtractFieldFloatOcorrencias (const char *Line, char *Separator, int Ord, char *Field, int FieldSize);
+char *mExtractFieldOcorrencias (const char *Line, char *Separator, int Ord, char *Field, int FieldSize);
+char *mExtractField (const char *Line, char *Separator, int Ord, char *Field, int FieldSize);
+void ProcessarRegistros();
+void Get_Password();
+/***************************************************/
+char prog_name			[MAXPROGNAMESIZE];
+
+struct dirent *p = NULL;
+          
+char input_file_name            [MAXFILENAMESIZE];  
+char proc_input_file_name       [MAXFILENAMESIZE];  
+char erro_input_file_name       [MAXFILENAMESIZE];  
+char controle_file_name         [MAXFILENAMESIZE];
+char log_file                   [MAXFILENAMESIZE];
+char prog_name                  [MAXPROGNAMESIZE];
+char file_email                 [MAXPROGNAMESIZE];
+
+#define ERRO                  	-1
+/***************************************************/
+FILE *fp_input       = NULL;
+FILE *fp_output      = NULL;
+FILE *fp_controle          = NULL;
+FILE *fp_problemas_email   = NULL;
+FILE *fp_ocorrencias_email = NULL;
+
+/*******************************************************************/
+/*   Estruturas para conter Informações de Detalhe da Declaração   */
+/*******************************************************************/
+typedef struct DetDeclar
+  {
+   int     Dd_CdDetalhe;
+   char    Dd_DcDetalhe[255];    
+   double  Dd_VlDetalhe; 
+  } DetDeclar;
+
+/***************************************************/
+/* Informacoes sobre o arquivo de log              */
+/***************************************************/
+#define FILE_LOG   0
+#define STDOUT_LOG 1
+int log_mode = STDOUT_LOG | FILE_LOG;   
+
+/************************************************************/
+/* Variaveis globais                                        */
+/************************************************************/
+
+char *InstanciaBD;
+char *usuario;
+char *password;
+
+/***************************************************/
+int main(int argc, char *argv[])
+{
+
+#if VERSAO_PRODUCAO
+    char *log_dir       = "/sistemas/INCORPORACAO/GUIA/LOG";
+    char *in_file_dir   = "/sistemas/INCORPORACAO/GUIA/PENDENTE"; 
+    char *base_file_dir = "/sistemas/INCORPORACAO/GUIA/";
+    
+    InstanciaBD = "genipabu";
+    usuario 	= "CARGA_GUIA";
+    password    = "carga"; 
+ 	
+#endif
+
+#if VERSAO_TESTE
+    char *log_dir       = "/sistemas/INCORPORACAO/GUIA/LOG";
+    char *in_file_dir   = "/sistemas/INCORPORACAO/GUIA/PENDENTE"; 
+    char *base_file_dir = "/sistemas/INCORPORACAO/GUIA/";
+    
+    InstanciaBD  = "genipabu";
+    usuario      = "CARGA_GUIA";
+    password     = "carga";
+#endif
+
+  time_t t_i = 0, t_f = 0, t_c = 0;
+  DIR *dp;
+  
+  int i = 0;
+
+  /* Abre arquivo de log e grava nele algumas linhas */
+  Open_Log(argv[0], log_dir);   
+  
+  if((dp = opendir(in_file_dir)) == NULL)
+    {
+      fprintf(stderr,"Falha na abertura do diretorio %s.\nErrno %d \n", 
+                      in_file_dir, errno);
+      exit(1);
+    }
+  
+  /* Efetuando conexao com o banco */
+  printf("==============================================================================================================================================\n");
+
+  Get_Password();
+
+  strcpy(Separator,"|");
+  
+  fprintf(fp_output,"%s - Efetuando conexao com o BD user: %s --> instancia: %s\n",CurrentDateTime(DataHora,1),usuario,InstanciaBD);
+  printf("%s - Efetuando conexao com o BD user: %s --> instancia: %s\n",CurrentDateTime(DataHora,1),usuario,InstanciaBD);
+fflush(stdout);
+
+  if(ConectaBD(usuario, cPassword, InstanciaBD) != 0)
+    {   
+    fprintf(fp_output,"%s - Erro ao tentar conexao com o banco de dados - sqlcode = %d.\n",CurrentDateTime(DataHora,1),
+                          sqlca.sqlcode);
+    printf("%s - Erro ao tentar conexao com o banco de dados - sqlcode = %d.\n",CurrentDateTime(DataHora,1),
+                          sqlca.sqlcode);						  
+      exit(1);
+    }
+  
+  fprintf(fp_output,"Conectado ao BD com sucesso.\n");
+  printf("Conectado ao BD com sucesso.\n");
+
+  fflush(stdout);
+
+  sprintf(sql, "ALTER SESSION SET NLS_DATE_FORMAT='YYYYMMDDHH24MISS'");
+  
+  EXEC SQL EXECUTE IMMEDIATE :sql;	 
+
+  cStatus[0]     = '\0';
+
+  EXEC SQL   
+		select NU_PID,ST_PROCESSO||chr(0)
+		into   :proc_num_pid,:cStatus
+		from   adm_objetos.GUIA_NIGHT_BATCH_QUEUE;
+
+   if (strncmp(cStatus,"ON",2)==0)
+      {
+	   if (StatusProcUnixPid(proc_num_pid) ==0)
+	      {
+           printf("Existe um processo em execucao!!!.\n");
+   fflush(stdout);
+
+           closedir(dp);
+		   
+           DesconectaBD();		   
+	       
+		   exit(0);
+          }
+       else
+          {
+           proc_num_pid = getpid(); 
+
+           EXEC SQL 
+             UPDATE adm_objetos.GUIA_NIGHT_BATCH_QUEUE
+	         SET DT_ULT_EXECUCAO = SYSDATE,
+	             NU_PID          = :proc_num_pid;     
+				 
+           EXEC SQL COMMIT;	  
+          }		  
+      }	
+   else
+      {
+	   if (strncmp(cStatus,"OFF",3)==0)
+          {
+           proc_num_pid = getpid(); 
+
+           printf("Processo colocado em execucao - PID: %d .\n",proc_num_pid);
+fflush(stdout);
+		   
+           EXEC SQL 
+             UPDATE adm_objetos.GUIA_NIGHT_BATCH_QUEUE
+	         SET DT_ULT_EXECUCAO = SYSDATE,
+			     ST_PROCESSO     = 'ON',
+	             NU_PID          = :proc_num_pid;     
+
+		   if (sqlca.sqlcode != 0)
+			  {
+			   sql_error(sqlca.sqlerrm.sqlerrmc);
+			  }
+				 
+           EXEC SQL COMMIT;	  		  
+		  }
+	   else
+	     {
+           printf("Status do processo em execucao não foi identificado - !!!.\n");
+		   fflush(stdout);
+
+	       exit(1);		 
+		 }
+	  }
+  
+  while((p = readdir(dp)) != NULL)
+    {
+
+     sprintf(vNomeArquivo,"%s",p->d_name);
+	 	 
+	 strcpy(cPesqExtensao,mNextWord(vNomeArquivo,0,Word,5)); 
+	 cPesqExtensao[5]='\0';
+	 printf("cPesqExtensao => %s",cPesqExtensao);
+	 fflush(stdout);
+
+	 sprintf(vMascaraFinal,"%s",cPesqExtensao);
+ 	 printf("vMascaraFinal => %s",vMascaraFinal);
+	 fflush(stdout);
+	 							  
+     sprintf(input_file_name,"%s/%s", in_file_dir, p->d_name);	
+									  
+	 if ((strncmp(vMascaraFinal,"GUIA_",5)==0)||(strncmp(vMascaraFinal,"guia_",5)==0))
+	    {									 
+      sprintf(input_file_name,"%s/%s", in_file_dir, p->d_name);
+      sprintf(proc_input_file_name,"%s/PROCESSADO/%s", base_file_dir, p->d_name);
+      sprintf(erro_input_file_name,"%s/PROBLEMA/%s", base_file_dir, p->d_name);
+	      
+      /* Procura arquivo na tabela */
+      EXEC SQL 	 
+	     SELECT COUNT(*) 
+	     INTO   :nPesquisaArquivo
+         FROM  adm_objetos.GUIA_ARQUIVO_DIGITAL
+         WHERE  NM_ARQUIVO = :vNomeArquivo;
+     
+      if (sqlca.sqlcode != 0)
+         {
+       	  sql_error(sqlca.sqlerrm.sqlerrmc);
+         }
+
+      if (nPesquisaArquivo > 0) 
+         {
+          Move_Files_Erro();
+          fprintf(fp_output,"%s - Arquivo duplicado : %s.\n",CurrentDateTime(DataHora,1),p->d_name);
+          fprintf(fp_output,"%s - Arquivo movido p/ diretorio erro : %s.\n",CurrentDateTime(DataHora,1),p->d_name);
+		  
+         }
+	  else
+	     {
+          fprintf(fp_output,"=============================================================================================\n");
+         
+		 fprintf(fp_output,"Abrindo arquivo de entrada : %s.\n", input_file_name);
+          if ((fp_input=fopen(input_file_name,"r")) == NULL)
+             {
+              fprintf(fp_output,"Erro na abertura do arquivo de entrada %s.\n",input_file_name);
+              fprintf(fp_output,"errno = %d .\n",errno);
+	     
+              Move_Files_Erro();
+			  		  					
+			  EXEC SQL 
+				 UPDATE adm_objetos.GUIA_NIGHT_BATCH_QUEUE
+				 SET ST_PROCESSO = 'OFF';     
+					 
+			  EXEC SQL COMMIT;	
+							
+              DesconectaBD();
+              
+              exit(1);
+             }
+         else 
+             {
+			  nTotalRegInformado = 0;
+			  ct_lidos           = 0;
+	          fprintf(fp_output,"%s - Processando arquivo : %s.\n",CurrentDateTime(DataHora,1),input_file_name);
+	          Processa_Arquivo(in_file_dir);
+	          Close_Input_Output_Files();  
+
+              Move_Files();
+              EXEC SQL COMMIT; 
+             }
+         }
+     }
+    }
+
+
+  closedir(dp);
+    
+  t_f = time(NULL); 
+  t_c = t_f - t_i;
+  
+  EXEC SQL 
+	 UPDATE adm_objetos.GUIA_NIGHT_BATCH_QUEUE
+	 SET ST_PROCESSO = 'OFF';     						 
+		 
+  EXEC SQL COMMIT;	   
+  
+  DesconectaBD();
+  
+  sprintf(cmdsolaris,"gzip %s/PROCESSADO/*GUIA*.txt", base_file_dir);     
+
+  resCmd = system(cmdsolaris);  
+    
+  exit(0);
+}
+/***********************************************************/
+/*     Função Gravar Informações Complemento Declaração    */
+/***********************************************************/
+void RecuperarInfCampo73 ()
+{
+int nCtaReg = 0;
+   
+	int nPesqCampo73 = 0;
+	while ((fgets(buf_aux,sizeof(buf_aux),fp_input) != 0) && (nPesqCampo73 == 0))
+	   {  
+		if (strncmp(buf_aux,"[73]",4)==0)
+		   {
+			nCtaReg = 0;
+			while ((fgets(buf_aux,sizeof(buf_aux),fp_input) != 0) && (nCtaReg <= 3))
+			   {     
+							
+				if (strlen(buf_aux) > 1)									
+				   {
+				   
+				    if (nCtaReg == 1)
+					   {
+		                strcpy(cMes,mExtractField(buf_aux,Separator,1,Field,FieldSize));
+                       }
+                    else
+					   {
+						if (nCtaReg == 3)
+						   {
+							strcpy(cAno,mExtractField(buf_aux,Separator,1,Field,FieldSize));
+							cPesqExtensao[0]='\0';
+
+							nPosicaoPesq = strlen(mExtractField(buf_aux,Separator,1,Field,FieldSize));
+							nPosicaoPesq = nPosicaoPesq - 4;
+							strcpy(cPesqExtensao,mNextWord(cAno,nPosicaoPesq,Word,4)); 
+							sprintf(cMest73,"%s%s",cMes,cPesqExtensao);
+						   }
+					   }
+					   
+				   }
+				nCtaReg++;									   
+			   }								
+			nPesqCampo73 = 1;
+		   }
+	   }						
+	ct_lidos++;					   
+	
+	int nPesqCampo74 = 0;
+	if (strncmp(buf_aux,"[74]",4)==0)
+	   {
+
+		nCtaReg = 0;
+		while ((fgets(buf_aux,sizeof(buf_aux),fp_input) != 0) && (nCtaReg <= 1))
+		   {     
+						
+			if (strlen(buf_aux) > 1)									
+			   {
+			   
+				nVlVest74 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+				   
+			   }
+			nCtaReg++;									   
+		   }								
+		nPesqCampo74 = 1;
+	   }
+	   
+	int nPesqCampo75 = 0;
+	while ((fgets(buf_aux,sizeof(buf_aux),fp_input) != 0) && (nPesqCampo75 == 0))
+	   {  
+
+		if (strncmp(buf_aux,"[75]",4)==0)
+		   {
+		   
+			cDcObservacoes2[0] = '\0';
+			cDcObservacoes[0]  = '\0';
+			   
+			while ((fgets(buf_aux,sizeof(buf_aux),fp_input) != 0) && (strncmp(cDcObservacoes2,"Fechar Detalhe",14)!=0))
+			   {  
+				strcpy(cDcObservacoes2,mExtractField(buf_aux,Separator,1,Field,FieldSize));
+				
+				if ((strlen(buf_aux) > 1) && (strncmp(cDcObservacoes2,"Fechar Detalhe",14)!=0))
+					{
+					 sprintf(cDcObservacoes,"%s%s",cDcObservacoes,cDcObservacoes2);
+					}
+		fprintf(fp_output,"3 - cDcObservacoes: %s",cDcObservacoes);
+			   
+			   }	   
+
+			if (strlen(buf_aux) > 1)
+			   {
+				cDcObservacoes[strlen(cDcObservacoes)] = '\0';
+			   }
+				nPesqCampo75 = 1;
+		   }
+	   }						
+		   
+}
+
+/***********************************************************/
+/*     Função Gravar Informações Complemento Declaração    */
+/***********************************************************/
+void RecuperarInfCampo46 (DetDeclar VetDetDeclar[])
+{
+   
+	int nPesqCampo16 = 0;
+	while ((fgets(buf_aux,sizeof(buf_aux),fp_input) != 0) && (nPesqCampo16 == 0))
+	   {  
+		if (strncmp(buf_aux,"NO CAMPO 16",11)==0)
+		   {
+			int nCtaReg = 0;
+			while ((fgets(buf_aux,sizeof(buf_aux),fp_input) != 0) && (nCtaReg <= 1))
+			   {     
+							
+				if (strlen(buf_aux) > 1)									
+				   {
+					VlDetalhe = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+				
+					if (VlDetalhe > 0)
+					   {
+
+						VetDetDeclar[CtlDetDeclar].Dd_CdDetalhe = CdDetalhe;
+						 
+						strcpy(VetDetDeclar[CtlDetDeclar].Dd_DcDetalhe,DcDetalhe);
+				
+						VetDetDeclar[CtlDetDeclar].Dd_VlDetalhe = VlDetalhe;
+						
+						CtlDetDeclar++;		
+					   }
+				   }
+				nCtaReg++;									   
+			   }								
+			nPesqCampo16 = 1;
+		   }
+	   }						
+	ct_lidos++;					   
+}
+/***********************************************************/
+/*     Função Gravar Detalhamentos dos Débitos e Créditos  */
+/***********************************************************/
+void GravaDetalhamentoDebitosCreditos(DetDeclar VetDetDeclar[])
+{
+int nPrimeiraVez = 1;
+CdDetalhe  = 0;
+nCtaBytes  = 0;
+nCtaCampos = 0;
+VlDetalhe  = 0;
+		   
+		   while (CdDetalhe < 71) 
+			  {  
+			  
+				if (nCtaCampos == 0)
+				   {
+					DcDetalhe[0]  = '\0';
+					DcDetalhe2[0] = '\0';
+					CdDetalhe2[0] = '\0';
+		            CdDetalhe     = 0;
+		            VlDetalhe     = 0;
+
+					while ((fgets(buf_aux,sizeof(buf_aux),fp_input) != 0) && (strlen(buf_aux) > 1))
+					   {  
+
+					    ct_lidos++;
+					   
+						strcpy(DcDetalhe2,mExtractField(buf_aux,Separator,1,Field,FieldSize));
+
+						sprintf(DcDetalhe,"%s%s",DcDetalhe,DcDetalhe2);
+						   
+					   }
+					   
+				    ct_lidos++;
+					   
+					nCtaCampos = 1;
+					
+				   }
+			  		  
+				if (nCtaCampos == 1)
+				   {
+					
+					while ((fgets(buf_aux,sizeof(buf_aux),fp_input) != 0) && (strlen(buf_aux) > 1))
+					   {  
+
+ 					    ct_lidos++;
+
+						strcpy(CdDetalhe2,mExtractField(buf_aux,Separator,1,Field,FieldSize));
+									   					    
+					    CdDetalhe = atol(mNextWord(CdDetalhe2,1,Word,2));
+					   }
+					   
+   					ct_lidos++;
+
+					nCtaCampos = 2;
+				   }
+
+				if (nCtaCampos == 2)
+				   {
+
+				    if (CdDetalhe != 46)
+					   {
+					    nPrimeiraVez = 1;
+						while ((fgets(buf_aux,sizeof(buf_aux),fp_input) != 0) && (strlen(buf_aux) > 1))
+						   {  
+							ct_lidos++;
+							
+                            if ((buf_aux[0] != '0') && (buf_aux[0] != '1') && (buf_aux[0] != '2') && (buf_aux[0] != '3') && (buf_aux[0] != '4') && (buf_aux[0] != '5') &&
+    							(buf_aux[0] != '6') && (buf_aux[0] != '7') && (buf_aux[0] != '8') && (buf_aux[0] != '9'))
+							   {
+						        strcpy(DcDetalhe2,mExtractField(buf_aux,Separator,1,Field,FieldSize));
+                                if (nPrimeiraVez == 1)
+								   {
+						            sprintf(DcDetalhe,"%s",DcDetalhe2);
+									nPrimeiraVez = 0;
+								   }
+								else
+								   {
+						            sprintf(DcDetalhe,"%s%s",DcDetalhe,DcDetalhe2);
+								   }
+								   
+								nCtaCampos = 1;
+
+                               }
+                            else
+							   {
+								VlDetalhe = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+								
+								if (VlDetalhe > 0)
+								   {
+			
+									VetDetDeclar[CtlDetDeclar].Dd_CdDetalhe = CdDetalhe;
+									 
+									strcpy(VetDetDeclar[CtlDetDeclar].Dd_DcDetalhe,DcDetalhe);
+							
+									VetDetDeclar[CtlDetDeclar].Dd_VlDetalhe = VlDetalhe;
+									
+									CtlDetDeclar++;		
+								   }
+								
+								nCtaCampos = 0;
+
+							   }
+						   }
+	   					ct_lidos++;
+
+					   }
+					else
+					   {
+       					long posicaoAtual = ftell(fp_input);
+
+					    RecuperarInfCampo46 (VetDetDeclar);
+
+                        fseek(fp_input, posicaoAtual, SEEK_SET); 
+
+						nCtaCampos = 0;
+
+	   					ct_lidos++;					   
+					   }
+					
+				   }
+			  
+			  }	
+			fprintf(fp_output,"ct_lidos: %d.\n",ct_lidos);
+
+}
+/***********************************************************/
+/*     Função Gravar Informações Complemento Declaração    */
+/***********************************************************/
+void ProcessarVetorDetDeclar (DetDeclar VetDetDeclar[], int N)
+{
+
+ int i; 
+ i = 0;
+
+ for (i = 0; i < N; i++) {
+
+ 			  fprintf(fp_output,"CD_GUIA: %d - CD_DETALHE: %d - DC_DETALHE: %s - VL_DETALHE: %lf.\n",nSqDocumento,VetDetDeclar[i].Dd_CdDetalhe,VetDetDeclar[i].Dd_DcDetalhe,VetDetDeclar[i].Dd_VlDetalhe);
+
+ 
+          EXEC SQL 
+		     INSERT INTO adm_objetos.GUIA_DETALHE_DEBITO_CREDITO 
+			                       (
+								    CD_GUIA,
+									CD_DETALHE,
+									DC_DETALHE,
+									VL_DETALHE
+								   )
+                            VALUES (
+							        :nSqDocumento, 
+									:VetDetDeclar[i].Dd_CdDetalhe,
+									:VetDetDeclar[i].Dd_DcDetalhe,
+									trunc(:VetDetDeclar[i].Dd_VlDetalhe,2)
+								   );					   
+
+		  if (sqlca.sqlcode != 0)
+			 {
+			  fprintf(fp_output,"%s - INSERT INTO GUIA_DETALHE_DEBITO_CREDITO .\n",CurrentDateTime(DataHora,1));
+			  sql_error(sqlca.sqlerrm.sqlerrmc);
+			 }	 
+		 }
+
+}
+/******************************************************/
+/*     Função Gravar Identificação Arquivo Digital    */
+/******************************************************/
+void GravarIdentArquivo (char *buf_aux)
+{
+ 
+char cnm_arquivo[250+1]; 
+int  nNuReferencia;
+char cdt_inclusao[18+1]; 
+char cnm_usuario_inclusao[30+1];
+strcpy(cnm_arquivo,p->d_name);
+
+strcpy(cdt_inclusao,CurrentDateTime(DataHora,2));
+strcpy(cnm_usuario_inclusao,usuario);
+
+  EXEC SQL 
+     INSERT INTO adm_objetos.GUIA_ARQUIVO_DIGITAL 
+	                                    (sq_arquivo, 
+                                         cd_versao , 
+                                         nm_arquivo, 
+                                         nu_referencia, 
+                                         dt_inclusao, 
+                                         nm_usuario_inclusao) 
+     VALUES (:nSqArquivo,
+	         1,
+			 :cnm_arquivo||chr(0),
+			 null,
+			 to_date(:cdt_inclusao,'yyyymmddhh24:mi:ss')||chr(0),
+			 :cnm_usuario_inclusao||chr(0)
+	        );					
+
+  printf(" INSERT INTO GUIA_ARQUIVO_DIGITAL - nSqArquivo: %d.\n",nSqArquivo);
+
+			
+  if (sqlca.sqlcode != 0)
+     {
+      fprintf(fp_output,"%s - erro INSERT INTO GUIA_ARQUIVO_DIGITAL.\n",CurrentDateTime(DataHora,1));
+      sql_error(sqlca.sqlerrm.sqlerrmc);
+     }     
+
+}
+
+/*****************************************************************/
+/*                  Carregar as linhas do arquivo                */
+/*****************************************************************/
+Processa_Arquivo(char *base_file_dir)
+{
+
+#define IncReg 60000
+
+static DetDeclar VetDetDeclar[IncReg];         /* Vetor de registros DetDeclar */
+
+char   vDtReferencia[50];
+char   cDtReferencia[50];
+int    nNumReferencia = 0;
+char   cNumReferencia[06+1];
+
+char   vDtRecepcao[19+1];
+char   vNuInscricao[12+1];
+char   cNuInscricao[12];
+int    nNuInscricao = 0;
+double nVlCest07_1 = 0;
+double nVlCest07_2 = 0;
+double nVlCest07_3 = 0;
+double nVlCest07_4 = 0;
+
+double nVlCout08_1 = 0;
+double nVlCout08_2 = 0;
+double nVlCout08_3 = 0;
+double nVlCout08_4 = 0;
+
+double nVlCext09_1 = 0;
+double nVlCext09_2 = 0;
+double nVlCext09_3 = 0;
+double nVlCext09_4 = 0;
+
+double nVlTota10_1 = 0;
+double nVlTota10_2 = 0;
+double nVlTota10_3 = 0;
+double nVlTota10_4 = 0;
+
+double nVlCpes11_1 = 0;
+double nVlCpes11_2 = 0;
+double nVlCpes11_3 = 0;
+double nVlCpes11_4 = 0;
+
+double nVlCpou12_1 = 0;
+double nVlCpou12_2 = 0;
+double nVlCpou12_3 = 0;
+double nVlCpou12_4 = 0;
+
+double nVlCpex13_1 = 0;
+double nVlCpex13_2 = 0;
+double nVlCpex13_3 = 0;
+double nVlCpex13_4 = 0;
+
+double nVlTota14_1 = 0;
+double nVlTota14_2 = 0;
+double nVlTota14_3 = 0;
+double nVlTota14_4 = 0;
+
+double nVlDebi15 = 0;
+double nVlOutd16 = 0;
+double nVlEstc17 = 0;
+double nVlTota18 = 0;
+double nVlCrei19 = 0;
+double nVlOutc20 = 0;
+double nVlEstc21 = 0;
+double nVlSubt22 = 0;
+double nVlScpa23 = 0;
+double nVlTota24 = 0;
+double nVlApus25 = 0;
+double nVlDebt26 = 0;
+double nVlApur27 = 0;
+double nVlApuc28 = 0;
+double nVlNorr29 = 0;
+double nVlNora30 = 0;
+double nVlSpsr31 = 0;
+double nVlSpsa32 = 0;
+double nVlSper33 = 0;
+double nVlSpea34 = 0;
+double nVlImpr35 = 0;
+double nVlImpa36 = 0;
+double nVlExpr37 = 0;
+double nVlExpa38 = 0;
+double nVlAntr39 = 0;
+double nVlAnta40 = 0;
+double nVlIcmr41 = 0;
+double nVlIcma42 = 0;
+
+int    nTipoFlagUltimaDeclar = 0;
+char   cRowId[50];
+int    nRk                   = 0;
+
+
+FieldSize = sizeof(Field);
+memset(&VetDetDeclar[0], 0, sizeof(VetDetDeclar));	
+CtlDetDeclar = 0;	  
+		  
+while ((fgets(buf_aux,sizeof(buf_aux),fp_input) != 0) )
+   {  
+   
+    ct_lidos++;
+    
+	if (ct_lidos == 13)
+	   {
+	   
+        EXEC SQL 
+           Select ADM_OBJETOS.GUIA_SQ_ARQUIVO.nextval
+           Into   :nSqArquivo
+           from   dual;
+
+        if (sqlca.sqlcode != 0)
+           {
+            fprintf(fp_output,"%s - Erro Obtendo Valor da SEQUENCE Guia_SQ_ARQUIVO.\n",CurrentDateTime(DataHora,1));
+            sql_error(sqlca.sqlerrm.sqlerrmc);
+           }	
+	   	   
+        GravarIdentArquivo (buf_aux);
+	   
+        strcpy(vDtReferencia,mExtractField(buf_aux,Separator,1,Field,FieldSize));
+		
+		cPesqExtensao[0]  = '\0';
+		cNumReferencia[0] = '\0';
+        int r = 0;
+		int w = 0;
+		int l = 0;
+		int t = 0;
+		for(r = 0; r < strlen(vDtReferencia); r++)
+		   {
+		    if (vDtReferencia[r] == '/')
+			   {
+			    l = r;
+			   }
+			   
+			if (l == 0)
+			   {
+				cDtReferencia[t] = vDtReferencia[r];
+			    t++;
+			   }
+			      
+			if (l > 0)
+			   {
+			    if (l!=r)
+				   {
+				    cNumReferencia[w] = vDtReferencia[r];
+			        w++;
+				   }
+			   }
+			
+		   } 
+		
+		cDtReferencia[t]  = '\0';
+		cNumReferencia[w] = '\0';
+				
+		if (strncmp(cDtReferencia,"Janeiro",8)==0)
+		   {
+    	    sprintf(cNumReferencia,"%s01",cNumReferencia);
+						
+           }
+		else 
+		   {
+			if (strncmp(cDtReferencia,"Fevereiro",9)==0)
+			   {
+				sprintf(cNumReferencia,"%s02",cNumReferencia);
+			   }
+			else 
+			   {
+				if (strncmp(cDtReferencia,"Março",5)==0)
+				   {
+					sprintf(cNumReferencia,"%s03",cNumReferencia);
+				   }
+				else 
+				   {
+					if (strncmp(cDtReferencia,"Abril",5)==0)
+					   {
+						sprintf(cNumReferencia,"%s04",cNumReferencia);
+					   }
+					else 
+					   {
+						if (strncmp(cDtReferencia,"Maio",4)==0)
+						   {
+							sprintf(cNumReferencia,"%s05",cNumReferencia);
+						   }
+						else 
+						   {
+							if (strncmp(cDtReferencia,"Junho",5)==0)
+							   {
+								sprintf(cNumReferencia,"%s06",cNumReferencia);
+							   }
+						else 
+						   {
+							if (strncmp(cDtReferencia,"Julho",5)==0)
+							   {
+								sprintf(cNumReferencia,"%s07",cNumReferencia);
+							   }
+							else 
+							   {
+								if (strncmp(cDtReferencia,"Agosto",6)==0)
+								   {
+									sprintf(cNumReferencia,"%s08",cNumReferencia);
+								   }
+								else 
+								   {
+									if (strncmp(cDtReferencia,"Setembro",8)==0)
+									   {
+										sprintf(cNumReferencia,"%s09",cNumReferencia);
+									   }
+									else 
+									   {
+										if (strncmp(cDtReferencia,"Outubro",7)==0)
+										   {
+											sprintf(cNumReferencia,"%s10",cNumReferencia);
+										   }
+										else 
+										   {
+											if (strncmp(cDtReferencia,"Novembro",8)==0)
+											   {
+												sprintf(cNumReferencia,"%s11",cNumReferencia);
+											   }
+											else 
+											   {
+												if (strncmp(cDtReferencia,"Dezembro",8)==0)
+												   {
+													sprintf(cNumReferencia,"%s12",cNumReferencia);
+												   }
+											   
+											   }							   
+										   
+										   }							   
+									   
+									   }							   
+								   }						   						   
+							   }						   
+						   }						   
+						   }				   
+					   
+					   }				   
+				   }			   
+			   }		   
+		   }
+		
+	    printf("Data Referência: %s - cNumReferencia: %s - cPesqExtensao: %s.\n",vDtReferencia,cNumReferencia);
+	   }
+    else
+	{
+	if (ct_lidos == 15)
+	   {
+		strcpy(vDtRecepcao,mExtractField(buf_aux,Separator,1,Field,FieldSize));
+		printf("Data Recepção: %s.\n",vDtRecepcao);
+	   }
+    else
+	{
+	if (ct_lidos == 19)
+	   {
+		strcpy(vNuInscricao,mExtractField(buf_aux,Separator,1,Field,FieldSize));
+        int i = 0;
+		int j = 0;
+		for(i = 0; i < strlen(vNuInscricao); i++)
+		   {
+		    if ((vNuInscricao[i] != '.')&&(vNuInscricao[i] != '-'))
+			   {
+			   cNuInscricao[j] = vNuInscricao[i];
+			   j++;
+			   }
+
+		   } 
+		
+		cNuInscricao[j] = '\0';
+		
+    	nNuInscricao = atol(cNuInscricao);
+		
+		printf("Num. Inscrição: %s - nNuInscricao: %d.\n",cNuInscricao,nNuInscricao);
+	   }
+	else
+	{
+	if (ct_lidos == 54)
+	   {					   
+		nVlCest07_1 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("cVlCest07_1: %lf.\n",nVlCest07_1);
+	   }
+	else
+    {
+	if (ct_lidos == 56)
+	   {					   
+		nVlCest07_2 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("cVlCest07_2: %lf.\n",nVlCest07_2);
+	   }
+	else
+	{
+	if (ct_lidos == 58)
+	   {					   
+		nVlCest07_3 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("cVlCest07_3: %lf.\n",nVlCest07_3);
+	   }
+	else
+	{
+	if (ct_lidos == 60)
+	   {					   
+		nVlCest07_4 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("cVlCest07_4: %lf.\n",nVlCest07_4);
+	   }
+	else
+	{
+	if (ct_lidos == 67)
+	   {					   
+		nVlCout08_1 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlCout08_1: %lf.\n",nVlCout08_1);
+	   }
+	else
+	{
+	if (ct_lidos == 69)
+	   {					   
+		nVlCout08_2 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlCout08_2: %lf.\n",nVlCout08_2);
+	   }
+	else
+	{
+	if (ct_lidos == 71)
+	   {					   
+		nVlCout08_3 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlCout08_3: %lf.\n",nVlCout08_3);
+	   }
+	else
+	{
+	if (ct_lidos == 73)
+	   {					   
+		nVlCout08_4 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlCout08_4: %lf.\n",nVlCout08_4);
+	   }
+	else
+    {
+	if (ct_lidos == 80)
+	   {					   
+		nVlCext09_1 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlCext09_1: %lf.\n",nVlCext09_1);
+	   }
+    else
+    {
+	if (ct_lidos == 82)
+	   {					   
+		nVlCext09_2 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+	    printf("nVlCext09_2: %lf.\n",nVlCext09_2);
+	   }
+	else
+	{
+	if (ct_lidos == 84)
+	   {					   
+	    nVlCext09_3 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlCext09_3: %lf.\n",nVlCext09_3);
+	   }						 
+	else
+	{
+	if (ct_lidos == 86)
+	   {					   
+		nVlCext09_4 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlCext09_4: %lf.\n",nVlCext09_4);
+	   }
+    else
+    {
+	if (ct_lidos == 92)
+	   {					   
+		nVlTota10_1 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlTota10_1: %lf.\n",nVlTota10_1);
+	   }
+	else
+	{
+	if (ct_lidos == 94)
+	   {					   
+		nVlTota10_2 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlTota10_2: %lf.\n",nVlTota10_2);
+	   }
+  	else
+	{
+	if (ct_lidos == 96)
+	   {					   
+		nVlTota10_3 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlTota10_3: %lf.\n",nVlTota10_3);
+	   }
+  	else
+	{
+	if (ct_lidos == 98)
+	   {					   
+		nVlTota10_4 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+	    printf("nVlTota10_4: %lf.\n",nVlTota10_4);
+	   }
+  	else
+	{
+	if (ct_lidos == 124)
+	   {					   
+		nVlCpes11_1 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlCpes11_1: %lf.\n",nVlCpes11_1);
+	   }
+	else
+	{
+	if (ct_lidos == 126)
+	   {					   
+		nVlCpes11_2 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlCpes11_2: %lf.\n",nVlCpes11_2);
+	   }
+	else
+    {
+    if (ct_lidos == 128)
+	   {					   
+	    nVlCpes11_3 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+	    printf("nVlCpes11_3: %lf.\n",nVlCpes11_3);
+	   }
+	else
+	{
+	if (ct_lidos == 130)
+	   {					   
+		nVlCpes11_4 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlCpes11_4: %lf.\n",nVlCpes11_4);
+	   }
+	else
+	{
+	if (ct_lidos == 137)
+	   {					   
+		nVlCpou12_1 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlCpou12_1: %lf.\n",nVlCpou12_1);
+	   }
+	else
+	{
+	if (ct_lidos == 139)
+	   {					   
+		nVlCpou12_2 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlCpou12_2: %lf.\n",nVlCpou12_2);
+	   }
+	else
+	{
+	if (ct_lidos == 141)
+	   {					   
+		nVlCpou12_3 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlCpou12_3: %lf.\n",nVlCpou12_3);
+	   }
+	else
+	{
+	if (ct_lidos == 143)
+	   {					   
+		nVlCpou12_4 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlCpou12_4: %lf.\n",nVlCpou12_4);
+	   }
+	else
+	{
+	if (ct_lidos == 150)
+	   {					   
+		nVlCpex13_1 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlCpex13_1: %lf.\n",nVlCpex13_1);
+	   }
+	else
+	{
+	if (ct_lidos == 152)
+	   {					   
+		nVlCpex13_2 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlCpex13_2: %lf.\n",nVlCpex13_2);
+	   }
+	else
+	{
+	if (ct_lidos == 154)
+	   {					   
+		nVlCpex13_3 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlCpex13_3: %lf.\n",nVlCpex13_3);
+	   }
+	else
+	{
+	if (ct_lidos == 156)
+	   {					   
+		nVlCpex13_4 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlCpex13_4: %lf.\n",nVlCpex13_4);
+	   }
+	else
+	{
+	if (ct_lidos == 162)
+	   {					   
+		nVlTota14_1 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlTota14_1: %lf.\n",nVlTota14_1);
+	   }
+	else
+	{
+	if (ct_lidos == 164)
+	   {					   
+		nVlTota14_2 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlTota14_2: %lf.\n",nVlTota14_2);
+	   }
+	else
+	{
+	if (ct_lidos == 166)
+	   {					   
+		nVlTota14_3 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlTota14_3: %lf.\n",nVlTota14_3);
+	   }
+	else
+	{
+	if (ct_lidos == 168)
+	   {					   
+		nVlTota14_4 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlTota14_4: %lf.\n",nVlTota14_4);
+	   }
+	else
+	{
+	if (ct_lidos == 183)
+	   {					   
+		nVlDebi15 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlDebi15: %lf.\n",nVlDebi15);
+	   }
+	else
+	{
+	if (ct_lidos == 189)
+	   {					   
+		nVlOutd16 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlOutd16: %lf.\n",nVlOutd16);
+	   }
+	else
+	{
+	if (ct_lidos == 195)
+	   {					   
+		nVlEstc17 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlEstc17: %lf.\n",nVlEstc17);
+	   }
+	else
+	{
+	if (ct_lidos == 201)
+	   {					   
+		nVlTota18 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlTota18: %lf.\n",nVlTota18);
+	   }
+	else
+	{
+	if (ct_lidos == 208)
+	   {					   
+		nVlCrei19 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlCrei19: %lf.\n",nVlCrei19);
+	   }
+	else
+	{
+	if (ct_lidos == 214)
+	   {					   
+		nVlOutc20 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlOutc20: %lf.\n",nVlOutc20);
+	   }
+	else
+	{
+	if (ct_lidos == 220)
+	   {					   
+		nVlEstc21 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlEstc21: %lf.\n",nVlEstc21);
+	   }
+	else
+	{
+	if (ct_lidos == 226)
+	   {					   
+		nVlSubt22 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlSubt22: %lf.\n",nVlSubt22);
+	   }
+	else
+	{
+	if (ct_lidos == 233)
+	   {					   
+		nVlScpa23 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlScpa23: %lf.\n",nVlScpa23);
+	   }
+	else
+	{
+	if (ct_lidos == 239)
+	   {					   
+		nVlTota24 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlTota24: %lf.\n",nVlTota24);
+	   }
+	else
+	{
+	if (ct_lidos == 245)
+	   {					   
+		nVlApus25 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlApus25: %lf.\n",nVlApus25);
+	   }
+	else
+	{
+	if (ct_lidos == 251)
+	   {					   
+		nVlDebt26 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlDebt26: %lf.\n",nVlDebt26);
+	   }
+	else
+	{
+	if (ct_lidos == 257)
+	   {					   
+		nVlApur27 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlApur27: %lf.\n",nVlApur27);
+	   }
+	else
+	{
+	if (ct_lidos == 264)
+	   {					   
+		nVlApuc28 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlApuc28: %lf.\n",nVlApuc28);
+	   }
+	else
+	{
+	if (ct_lidos == 271)
+	   {					   
+		nVlNorr29 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlNorr29: %lf.\n",nVlNorr29);
+	   }
+	else
+	{
+	if (ct_lidos == 277)
+	   {					   
+		nVlNora30 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlNora30: %lf.\n",nVlNora30);
+	   }
+	else
+	{
+	if (ct_lidos == 290)
+	   {					   
+		nVlSpsr31 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlSpsr31: %lf.\n",nVlSpsr31);
+	   }
+	else
+	{
+	if (ct_lidos == 297)
+	   {					   
+		nVlSpsa32 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlSpsa32: %lf.\n",nVlSpsa32);
+	   }
+	else
+	{
+	if (ct_lidos == 304)
+	   {					   
+		nVlSper33 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlSper33: %lf.\n",nVlSper33);
+	   }
+	else
+	{
+	if (ct_lidos == 311)
+	   {					   
+		nVlSpea34 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlSpea34: %lf.\n",nVlSpea34);
+	   }
+	else
+	{
+	if (ct_lidos == 318)
+	   {					   
+		nVlImpr35 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlImpr35: %lf.\n",nVlImpr35);
+	   }
+	else
+	{
+	if (ct_lidos == 325)
+	   {					   
+		nVlImpa36 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlImpa36: %lf.\n",nVlImpa36);
+	   }
+	else
+	{
+	if (ct_lidos == 332)
+	   {					   
+		nVlExpr37 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlExpr37: %lf.\n",nVlExpr37);
+	   }
+	else
+	{
+	if (ct_lidos == 339)
+	   {					   
+		nVlExpa38 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlExpa38: %lf.\n",nVlExpa38);
+	   }
+	else
+	{
+	if (ct_lidos == 345)
+	   {					   
+		nVlAntr39 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlAntr39: %lf.\n",nVlAntr39);
+	   }
+	else
+	{
+	if (ct_lidos == 351)
+	   {					   
+		nVlAnta40 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlAnta40: %lf.\n",nVlAnta40);
+	   }
+	else
+	{
+	if (ct_lidos == 355)
+	   {					   
+		nVlIcmr41 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlIcmr41: %lf.\n",nVlIcmr41);
+	   }
+	else
+	{
+	if (ct_lidos == 361)
+	   {					   
+		nVlIcma42 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlIcma42: %lf.\n",nVlIcma42);
+		
+	   }
+	else
+	{
+	
+	if (ct_lidos == 374)
+	   {		
+	   	GravaDetalhamentoDebitosCreditos (VetDetDeclar);
+		RecuperarInfCampo73();
+       }			  
+	   
+/*	else
+	{
+	if (ct_lidos == 551)
+	   {		
+        strcpy(cMes,mExtractField(buf_aux,Separator,1,Field,FieldSize));
+	   
+		printf("cMes: %s.\n",cMes);
+	   }
+	else
+	{
+	if (ct_lidos == 553)
+	   {					   	   	   
+	    strcpy(cAno,mExtractField(buf_aux,Separator,1,Field,FieldSize));
+		cPesqExtensao[0]='\0';
+
+		nPosicaoPesq = strlen(mExtractField(buf_aux,Separator,1,Field,FieldSize));
+		nPosicaoPesq = nPosicaoPesq - 4;
+		strcpy(cPesqExtensao,mNextWord(cAno,nPosicaoPesq,Word,4)); 
+		sprintf(cMest73,"%s%s",cMes,cPesqExtensao);
+
+		printf("cMest73: %s.\n",cMest73);
+	   }
+	else
+	{
+	if (ct_lidos == 557)
+	   {					   
+		nVlVest74 = atof(mExtractFieldFloatLinha(buf_aux,Separator,1,Field,FieldSize));
+		printf("nVlVest74: %lf.\n",nVlVest74);
+	   }
+	else 
+	{
+	if (ct_lidos == 562)
+	   {
+
+   		cDcObservacoes2[0] = '\0';
+   		cDcObservacoes[0]  = '\0';
+
+		nCtaBytes = 0;
+	   
+	    strcpy(cDcObservacoes2,mExtractField(buf_aux,Separator,1,Field,FieldSize));
+
+		if (strncmp(cDcObservacoes2,"Fechar Detalhe",14)!=0)
+		   {
+			sprintf(cDcObservacoes,"%s",cDcObservacoes2);
+		   }
+          
+		while ((fgets(buf_aux,sizeof(buf_aux),fp_input) != 0) && (strncmp(cDcObservacoes2,"Fechar Detalhe",14)!=0))
+		   {  
+    	    strcpy(cDcObservacoes2,mExtractField(buf_aux,Separator,1,Field,FieldSize));
+	        
+			nCtaBytes = strlen(cDcObservacoes2);
+
+		    if ((nCtaBytes > 1) && (strncmp(cDcObservacoes2,"Fechar Detalhe",14)!=0))
+			    {
+				 sprintf(cDcObservacoes,"%s%s",cDcObservacoes,cDcObservacoes2);
+			    }
+		   
+		   }	   
+
+		nCtaBytes = strlen(cDcObservacoes);
+
+	    cDcObservacoes[nCtaBytes] = '\0';
+		   
+		printf("cDcObservacoes: %s.\n",cDcObservacoes);
+	   }
+    }	   	   
+    }	   
+    }	   	   
+    }	  */ 	   	   
+    }	   	   
+    }	   
+    }	   
+    }		   
+    }	   
+    }		   
+    }	   	   
+    }	   
+    }	   
+    }		   
+    }	   	   	   	   	   	   	   	   	   	   	   	   	   
+    }	   	   	   	   	   	   	   	   	   	   	   	   
+    }	   	   	   	   	   	   	   	   	   	   	   
+    }	   	   	   	   	   	   	   	   	   	   
+    }	   	   	   	   	   	   	   	   	   
+    }	   	   	   	   	   	   	   	   
+    }	   	   	   	   	   	   	   
+    }	   	   	   	   	   	   
+    }	   	   	   	   	   
+    }	   	   	   	   
+    }	   	   	   
+    }	   	   	   
+    }	   	   	   
+    }	   	   	     
+    }	   	   	   
+    }	   	   	   
+    }	   	   	   
+    }	   	   	      
+    }	   	   	   
+    }	   	   	   
+    }	   	   	   
+    }	   	   	   
+    }	   	   	   
+    }	   	   	   	
+    }	   	   	   
+    }	   	   
+    }	   
+    } 
+    } 
+    }
+    }
+    }					   
+    }					   
+    }
+    }
+    }
+	}
+	}						
+	}
+	}
+	}						
+	}					
+	}
+	}
+    }
+	}
+	}
+	}
+	}
+	}
+	}
+	}
+	}
+  
+  }
+  
+  if ((nVlCest07_1 == 0) &&
+      (nVlCest07_2 == 0) &&
+      (nVlCest07_3 == 0) &&
+      (nVlCest07_4 == 0) &&
+      (nVlCout08_1 == 0) &&
+      (nVlCout08_2 == 0) &&
+      (nVlCout08_3 == 0) &&
+      (nVlCout08_4 == 0) &&
+      (nVlCext09_1 == 0) &&
+      (nVlCext09_2 == 0) &&
+      (nVlCext09_3 == 0) &&
+      (nVlCext09_4 == 0) &&
+      (nVlTota10_1 == 0) &&
+      (nVlTota10_2 == 0) &&
+      (nVlTota10_3 == 0) &&
+      (nVlTota10_4 == 0) &&
+      (nVlCpes11_1 == 0) &&
+      (nVlCpes11_2 == 0) &&
+      (nVlCpes11_3 == 0) &&
+      (nVlCpes11_4 == 0) &&
+      (nVlCpou12_1 == 0) &&
+      (nVlCpou12_2 == 0) &&
+      (nVlCpou12_3 == 0) &&
+      (nVlCpou12_4 == 0) &&
+      (nVlCpex13_1 == 0) &&
+      (nVlCpex13_2 == 0) &&
+      (nVlCpex13_3 == 0) &&
+      (nVlCpex13_4 == 0) &&
+      (nVlTota14_1 == 0) &&
+      (nVlTota14_2 == 0) &&
+      (nVlTota14_3 == 0) &&
+      (nVlTota14_4 == 0) &&
+      (nVlDebi15 == 0) &&
+      (nVlOutd16 == 0) &&
+      (nVlEstc17 == 0) &&
+      (nVlTota18 == 0) &&
+      (nVlCrei19 == 0) &&
+      (nVlOutc20 == 0) &&
+      (nVlEstc21 == 0) &&
+      (nVlSubt22 == 0) &&
+      (nVlScpa23 == 0) &&
+      (nVlTota24 == 0) &&
+      (nVlApus25 == 0) &&
+      (nVlDebt26 == 0) &&
+      (nVlApur27 == 0) &&
+      (nVlApuc28 == 0) &&
+      (nVlNorr29 == 0) &&
+      (nVlNora30 == 0) &&
+      (nVlSpsr31 == 0) &&
+      (nVlSpsa32 == 0) &&
+      (nVlSper33 == 0) &&
+      (nVlSpea34 == 0) &&
+      (nVlImpr35 == 0) &&
+      (nVlImpa36 == 0) &&
+      (nVlExpr37 == 0) &&
+      (nVlExpa38 == 0) &&
+      (nVlAntr39 == 0) &&
+      (nVlAnta40 == 0) &&
+      (nVlIcmr41 == 0) &&
+      (nVlIcma42 == 0) &&
+	  (nVlVest74 == 0) )
+     {
+	  nFgZerada = 1;
+	 }
+  else
+     {
+	  nFgZerada = 0;	 
+	 }
+  
+	EXEC SQL 
+	   Select adm_objetos.Guia_SQ_DOCUMENTO.nextval
+	   Into   :nSqDocumento
+	   from   dual;
+
+	if (sqlca.sqlcode != 0)
+	   {
+		fprintf(fp_output,"%s - Erro Obtendo Valor da SEQUENCE GUIA_SQ_DOCUMENTO.\n",CurrentDateTime(DataHora,1));
+		sql_error(sqlca.sqlerrm.sqlerrmc);
+	   }		  
+	   
+	EXEC SQL    
+       INSERT INTO adm_objetos.GUIA_INFORMATIVA_MENSAL
+           (
+            cd_GUIA, 
+            nu_referencia, 
+            nu_inscricao, 
+            vl_cest07_1, 
+            vl_cest07_2, 
+            vl_cest07_3, 
+            vl_cest07_4, 
+            vl_cout08_1, 
+            vl_cout08_2, 
+            vl_cout08_3, 
+            vl_cout08_4, 
+            vl_cext09_1, 
+            vl_cext09_2, 
+            vl_cext09_3, 
+            vl_cext09_4, 
+            vl_tota10_1, 
+            vl_tota10_2, 
+            vl_tota10_3, 
+            vl_tota10_4, 
+            vl_cpes11_1, 
+            vl_cpes11_2, 
+            vl_cpes11_3, 
+            vl_cpes11_4, 
+            vl_cpou12_1, 
+            vl_cpou12_2, 
+            vl_cpou12_3, 
+            vl_cpou12_4, 
+            vl_cpex13_1, 
+            vl_cpex13_2, 
+            vl_cpex13_3, 
+            vl_cpex13_4, 
+            vl_tota14_1, 
+            vl_tota14_2, 
+            vl_tota14_3, 
+            vl_tota14_4, 
+            vl_debi15, 
+            vl_outd16, 
+            vl_estc17, 
+            vl_tota18, 
+            vl_crei19, 
+            vl_outc20, 
+            vl_estc21, 
+            vl_subt22, 
+            vl_scpa23, 
+            vl_tota24, 
+            vl_apus25, 
+            vl_debt26, 
+            vl_apur27, 
+            vl_apuc28, 
+            vl_norr29, 
+            vl_nora30, 
+            vl_spsr31, 
+            vl_spsa32, 
+            vl_sper33, 
+            vl_spea34, 
+            vl_impr35, 
+            vl_impa36, 
+            vl_expr37, 
+            vl_expa38, 
+            vl_antr39, 
+            vl_anta40, 
+            vl_icmr41, 
+            vl_icma42, 
+            mest73,
+            vl_vest74, 
+            nm_usuario, 
+            dt_recepcao, 
+            fg_zerada, 
+            dc_observacoes,
+            sq_arquivo
+           )
+VALUES     (
+            :nSqDocumento,
+			:cNumReferencia,
+            :nNuInscricao,
+            trunc(:nVlCest07_1,2),
+            trunc(:nVlCest07_2,2),
+            trunc(:nVlCest07_3,2),
+            trunc(:nVlCest07_4,2),
+            trunc(:nVlCout08_1,2),
+            trunc(:nVlCout08_2,2),
+            trunc(:nVlCout08_3,2),
+            trunc(:nVlCout08_4,2),
+            trunc(:nVlCext09_1,2),
+            trunc(:nVlCext09_2,2),
+            trunc(:nVlCext09_3,2),
+            trunc(:nVlCext09_4,2),
+            trunc(:nVlTota10_1,2),
+            trunc(:nVlTota10_2,2),
+            trunc(:nVlTota10_3,2),
+            trunc(:nVlTota10_4,2),
+            trunc(:nVlCpes11_1,2),
+            trunc(:nVlCpes11_2,2),
+            trunc(:nVlCpes11_3,2),
+            trunc(:nVlCpes11_4,2),
+            trunc(:nVlCpou12_1,2),
+            trunc(:nVlCpou12_2,2),
+            trunc(:nVlCpou12_3,2),
+            trunc(:nVlCpou12_4,2),
+            trunc(:nVlCpex13_1,2),
+            trunc(:nVlCpex13_2,2),
+            trunc(:nVlCpex13_3,2),
+            trunc(:nVlCpex13_4,2),
+            trunc(:nVlTota14_1,2),
+            trunc(:nVlTota14_2,2),
+            trunc(:nVlTota14_3,2),
+            trunc(:nVlTota14_4,2),
+            trunc(:nVlDebi15,2),
+            trunc(:nVlOutd16,2),
+            trunc(:nVlEstc17,2),
+            trunc(:nVlTota18,2),
+            trunc(:nVlCrei19,2),
+            trunc(:nVlOutc20,2),
+            trunc(:nVlEstc21,2),
+            trunc(:nVlSubt22,2),
+            trunc(:nVlScpa23,2),
+            trunc(:nVlTota24,2),
+            trunc(:nVlApus25,2),
+            trunc(:nVlDebt26,2),
+            trunc(:nVlApur27,2),
+            trunc(:nVlApuc28,2),
+            trunc(:nVlNorr29,2),
+            trunc(:nVlNora30,2),
+            trunc(:nVlSpsr31,2),
+            trunc(:nVlSpsa32,2),
+            trunc(:nVlSper33,2),
+            trunc(:nVlSpea34,2),
+            trunc(:nVlImpr35,2),
+            trunc(:nVlImpa36,2),
+            trunc(:nVlExpr37,2),
+            trunc(:nVlExpa38,2),
+            trunc(:nVlAntr39,2),
+            trunc(:nVlAnta40,2),
+            trunc(:nVlIcmr41,2),
+            trunc(:nVlIcma42,2),
+			:cMest73,
+			trunc(:nVlVest74,2),
+			:usuario||chr(0),
+			to_date(:vDtRecepcao,'dd/mm/yyyy hh24:mi:ss')||chr(0),
+			:nFgZerada,
+			:cDcObservacoes||chr(0),
+			:nSqArquivo
+           );
+
+    if (sqlca.sqlcode != 0)
+	   {
+		fprintf(fp_output,"%s - Erro INSERT INTO GUIA_INFORMATIVA_MENSAL - nSqDocumento: %d - cNumReferencia: %s - cNuInscricao: %d - cMest73: %s.\n",CurrentDateTime(DataHora,1),nSqDocumento,cNumReferencia,nNuInscricao,cMest73);
+		sql_error(sqlca.sqlerrm.sqlerrmc);
+	   }		  
+
+	 EXEC SQL DECLARE cAlterarFlagUltDeclar CURSOR FOR
+      Select   rwd,
+               rownum  rk
+      From    (
+				Select /*+ rule */
+					   c.rowid||chr(0) rwd,
+					   c.dt_recepcao
+				From   adm_objetos.guia_informativa_mensal    c,
+					   adm_objetos.guia_arquivo_digital            d
+				Where  c.sq_arquivo        = d.sq_arquivo
+				And    c.nu_inscricao      = :nNuInscricao
+				And    c.nu_referencia     = :cNumReferencia
+				order by  c.dt_recepcao  desc
+			);	 	
+
+	 EXEC SQL OPEN cAlterarFlagUltDeclar;
+
+	 if (sqlca.sqlcode != 0)
+		{
+		 printf("%s - Erro ao abrir Cursor cAlterarFlagUltDeclar.\n",CurrentDateTime(DataHora,1));
+		 sql_error(sqlca.sqlerrm.sqlerrmc);
+		}
+		 
+	 do {
+
+		 EXEC SQL FETCH cAlterarFlagUltDeclar    INTO :cRowId,
+													  :nRk;														  
+											  
+		 if ((sqlca.sqlcode != 0) && (sqlca.sqlcode != 1403))
+			  sql_error(sqlca.sqlerrm.sqlerrmc);			  
+			  
+		 if (sqlca.sqlcode == 0)
+			 {
+				  
+			  if (nRk == 1) 
+			     {
+				  nTipoFlagUltimaDeclar = 1;
+			     }
+			  else
+			     {
+				  nTipoFlagUltimaDeclar = 0;		  
+				 }
+				 
+			  EXEC SQL 
+				 Update adm_objetos.guia_informativa_mensal c
+				 Set    c.fg_ultima_declaracao = :nTipoFlagUltimaDeclar
+				 Where  c.rowid                = :cRowId;		 
+			 
+			  if (sqlca.sqlcode != 0)
+				 {
+				  printf("%s - Erro EXEC SQL Update guia_informativa_mensal .\n",CurrentDateTime(DataHora,1));	 
+				  sql_error(sqlca.sqlerrm.sqlerrmc);		  
+				 } 	 
+							 
+			 }
+		} while (sqlca.sqlcode == 0);
+
+
+
+	   
+    if (CtlDetDeclar > 0)
+       {
+	    
+        ProcessarVetorDetDeclar(VetDetDeclar, CtlDetDeclar);
+       }
+	   
+	   
+    EXEC SQL COMMIT;	   
+  
+    if (sqlca.sqlcode != 0)
+	   {
+		fprintf(fp_output,"%s - EXEC SQL COMMIT.\n",CurrentDateTime(DataHora,1));
+		sql_error(sqlca.sqlerrm.sqlerrmc);
+	   }		  
+
+} 
+/************************************************************************/
+/*                      Abre arquivo de Log                             */
+/************************************************************************/
+Open_Log(char *prog, char *log_dir)
+{
+  if(strchr(prog,'/'))
+    strcpy(prog_name,strrchr(prog,'/') + 1);
+  else
+    strcpy(prog_name,prog);
+
+  sprintf(log_file,"%s/%s_%s.LOG", log_dir, prog_name,CurrentDateTime(DataHora,2));    
+
+  if((fp_output=fopen(log_file,"a+")) == NULL)
+       {
+         fprintf(stderr,"%s - Falha na abertura do arquivo de log: %s.\nErrno %d \n",CurrentDateTime(DataHora,1),
+                      log_file, errno);
+				  
+         DesconectaBD();
+		 exit(1);
+       }
+}
+
+/**********************************************************************/
+/*                 Conecta ao Banco de Dados			      */
+/**********************************************************************/
+ConectaBD(char *User, char *Password, char *Database)
+{
+  EXEC SQL BEGIN DECLARE SECTION;
+    varchar dbUser       [ 40 ];
+    varchar dbPassword   [ 40 ];
+    varchar dbDatabase   [ 40 ];
+  EXEC SQL END DECLARE SECTION;
+
+  dbUser.len     = strlen(User);
+  dbPassword.len = strlen(Password);
+  dbDatabase.len = strlen(Database);
+
+  strncpy (dbUser.arr    , User    , dbUser.len    );
+  strncpy (dbPassword.arr, Password, dbPassword.len);
+  strncpy (dbDatabase.arr, Database, dbDatabase.len);
+
+  oraca.orastxtf = ORASTFERR;
+  EXEC SQL CONNECT :dbUser
+     IDENTIFIED BY :dbPassword
+             USING :dbDatabase;
+
+  return(0);
+}
+
+/**********************************************************************/
+/*                 Desconecta ao Banco de Dados			      */
+/**********************************************************************/
+DesconectaBD()
+{
+  EXEC SQL ROLLBACK;
+  EXEC SQL COMMIT WORK RELEASE;
+  fprintf(fp_output,"Desconexao com o BD efetuada com sucesso.\n");
+
+}
+
+/**********************************************************************/
+sql_error(msg)
+char *msg;
+{
+    fprintf(fp_output,"\n%s", msg);
+    sqlca.sqlerrm.sqlerrmc[sqlca.sqlerrm.sqlerrml] = '\0';
+    oraca.orastxt.orastxtc[oraca.orastxt.orastxtl] = '\0';
+    oraca.orasfnm.orasfnmc[oraca.orasfnm.orasfnml] = '\0';
+    fprintf(fp_output,"\n%s\n", sqlca.sqlerrm.sqlerrmc);
+    fprintf(fp_output,"in \"%s...\"\n", oraca.orastxt.orastxtc);
+    fprintf(fp_output,"on line %d of %s.\n\n", 
+    oraca.oraslnr, oraca.orasfnm.orasfnmc);   
+
+    EXEC SQL ROLLBACK;
+
+	EXEC SQL 
+	  UPDATE adm_objetos.GUIA_NIGHT_BATCH_QUEUE
+	  SET ST_PROCESSO = 'OFF';     
+			 
+    EXEC SQL COMMIT;		
+	
+    DesconectaBD();
+    exit(1);
+}
+/**************************************************************/
+/*     Move arquivo processado para diretorio especifico      */
+/**************************************************************/
+void Move_Files()
+{
+  fprintf(fp_output,"Movendo arquivo %s para %s.\n", input_file_name, proc_input_file_name);
+  if(rename(input_file_name,proc_input_file_name) == ERRO)
+    { 
+       fprintf(fp_output,"errno = %d .\n",errno);
+
+	   EXEC SQL 
+		  UPDATE adm_objetos.GUIA_NIGHT_BATCH_QUEUE
+		  SET ST_PROCESSO = 'OFF';     
+				 
+	   EXEC SQL COMMIT;		   
+	   
+       DesconectaBD();
+       exit(1);
+    }
+
+}
+/**************************************************************/
+/*       Move arquivo c/ erro para diretorio especifico       */
+/**************************************************************/
+void Move_Files_Erro()
+{
+  fprintf(fp_output,"Movendo arquivo %s para %s.\n", input_file_name, erro_input_file_name);
+  if(rename(input_file_name,erro_input_file_name) == ERRO)
+    { 
+       fprintf(fp_output,"errno = %d .\n",errno);
+	   
+	   EXEC SQL 
+		  UPDATE adm_objetos.GUIA_NIGHT_BATCH_QUEUE
+		  SET ST_PROCESSO = 'OFF';     
+				 
+	   EXEC SQL COMMIT;	
+	   
+       DesconectaBD();
+       exit(1);
+    }
+
+}
+/**********************************************************************/
+void Close_Input_Output_Files()
+{
+  fclose(fp_input);
+
+}
+/******************************************************************************/
+char *mExtractFieldOcorrencias (const char *Line, char *Separator, int Ord, char *Field, int FieldSize)
+{
+  int N = 1, i, j;
+
+  if (Ord < 1)
+     Field[0] = 0;
+  else {
+     i = 0;  while (N < Ord && Line[i] != '\n' && Line[i] != '\r' && Line[i] != 0) if (Line[i++] == *Separator) N++;
+     j = i;  while (Line[j] != *Separator && Line[j] != '\n' && Line[j] != '\r' && Line[j] != 0) j++;
+
+	 if ((Line[j] == '\n') || (Line[j] == '\r') || (Line[j] == 0))
+         EncFimLinha = 1;
+	 
+     N = j - i;  if (N >= FieldSize) N = FieldSize - 1;
+     memcpy (Field, Line + i, N);
+     Field[N] = '\0';
+  }
+
+  return Field;
+}
+/******************************************************************************/
+char *mExtractField (const char *Line, char *Separator, int Ord, char *Field, int FieldSize)
+{
+  int N = 1, i, j;
+
+  if (Ord < 1)
+     Field[0] = 0;
+  else {
+     i = 0;  while (N < Ord && Line[i] != '\n' && Line[i] != '\r' && Line[i] != 0) if (Line[i++] == *Separator) N++;
+     j = i;  while (Line[j] != *Separator && Line[j] != '\n' && Line[j] != '\r' && Line[j] != 0) j++;
+
+     N = j - i;  if (N >= FieldSize) N = FieldSize - 1;
+     memcpy (Field, Line + i, N);
+     Field[N] = '\0';
+  }
+
+  return Field;
+}
+/******************************************************************************/
+char *mExtractFieldFloatOcorrencias (const char *Line, char *Separator, int Ord, char *Field, int FieldSize)
+{
+  int N = 1, i, j;
+
+  if (Ord < 1)
+     Field[0] = 0;
+  else {
+     i = 0;  
+	 while (N < Ord && Line[i] != '\n' && Line[i] != '\r' && Line[i] != 0) if (Line[i++] == *Separator) N++;
+     j = i;  while (Line[j] != *Separator && Line[j] != '\n' && Line[j] != '\r' && Line[j] != 0) j++;
+
+ 	 if ((Line[j] == '\n') || (Line[j] == '\r') || (Line[j] == 0))
+         EncFimLinha = 1;
+	 
+     N = j - i;  if (N >= FieldSize) N = FieldSize - 1;
+     memcpy (Field, Line + i, N);
+     Field[N] = 0;
+  }
+  
+  i = 0;
+  for(i = 0; i < strlen(Field); i++)
+  {
+   if (Field[i] == ',')
+      {
+       Field[i] = '.';
+      }
+
+  } 
+  
+  return Field;
+}
+/******************************************************************************/
+char *mExtractFieldFloatLinha (const char *Line, char *Separator, int Ord, char *Field, int FieldSize)
+{
+  int N = 1, i, j;
+  char Field2[5000];
+  
+  if (Ord < 1)
+     Field[0] = 0;
+  else {
+     i = 0;  
+	 while (N < Ord && Line[i] != '\n' && Line[i] != '\r' && Line[i] != 0 && Line[i] != ' ') if (Line[i++] == *Separator) N++;
+     j = i;  while (Line[j] != *Separator && Line[j] != '\n' && Line[j] != '\r' && Line[j] != 0 && Line[j] != ' ') j++;
+     N = j - i;  if (N >= FieldSize) N = FieldSize - 1;
+     memcpy (Field, Line + i, N);
+     Field[N] = 0;
+  }
+  
+  i = 0;
+  int y = 0;
+  
+  for(i = 0; i < strlen(Field); i++)
+  {
+   if (Field[i] == ',')
+	  {
+	   Field2[y] = '.';
+	   y++;
+	  }
+   else
+      {
+	   if (Field[i] != '.')
+	      {
+	       Field2[y] = Field[i];
+	       y++;
+		  }
+	  }
+
+  } 
+  
+  Field2[y] = '\0';
+
+  strcpy(Field,Field2);
+
+  return Field;
+}
+/**//******************************/
+/* Devolve a data/hora corrente */
+/********************************/
+char *CurrentDateTime (char *DataHora,int formato)
+{
+  int  dia,mes,ano,hora,minuto,segundo;
+  struct tm *local;
+  time_t t;
+  t= time(NULL);
+  local=localtime(&t);
+
+  dia=local->tm_mday;
+  mes=local->tm_mon+1;
+  ano=local->tm_year+1900;
+  hora=local->tm_hour;
+  minuto=local->tm_min;
+  segundo=local->tm_sec;
+  
+  if (formato == 1) {
+      sprintf(DataHora,"%02lu/%02lu/%02lu %02d:%02d:%02d",dia,mes,ano,hora,minuto,segundo);
+     }
+  else {
+        if (formato == 2)
+		   {
+            sprintf(DataHora,"%04lu%02d%02d%02d%02d%02d",ano,mes,dia,hora,minuto,segundo);
+		   }
+	   }
+  return DataHora;
+}
+/************************************************************************/
+/*          Funcao verifica status do Pid da extracao no Unix           */
+/************************************************************************/
+int StatusProcUnixPid(int N)
+{
+int w_ind_status_seq_unix_Pid;
+   
+   w_ind_status_seq_unix_Pid = CmdUnix ("-0",N);  
+   
+   return w_ind_status_seq_unix_Pid;	
+}
+/************************************************************************/
+/*           Funcao verifica status do PID da extracao no Unix          */
+/************************************************************************/
+int CmdUnix (char *tipoParm, int numPid)
+{
+int   verPid         = numPid; 	
+char  cmd_shell_unix [15]="";
+char *tipo_Parm_unix = tipoParm;
+int   resCmd         = 0;
+
+    sprintf(cmd_shell_unix,"kill %s %d",tipo_Parm_unix,verPid);
+    resCmd = system(cmd_shell_unix);
+
+    printf("cmd: %s - Resulta: %d\n",cmd_shell_unix,resCmd); 
+      
+    return resCmd;
+    
+}
+/**********************************************************************/
+void Get_Password()
+{
+
+  char buf_aux[255];
+
+  sprintf(input_file_name,"/sistemas/INCORPORACAO/GUIA/LCK/%s", usuario);
+
+  if((fp_input=fopen(input_file_name,"r")) == NULL)
+    {
+      fprintf(fp_output,"[%s] Erro na abertura do arquivo restrito de senha.\n",CurrentDateTime(DataHora,1));
+      fprintf(fp_output,"[%s] errno = %d.\n", CurrentDateTime(DataHora,1),errno );
+      exit(1);
+    }
+
+  fread(buf_aux, 1, sizeof(buf_aux), fp_input);
+
+  int i, j = 0;
+  for(i = 0; buf_aux[i] != '\n'; i++)
+  {
+          cPassword[j] = buf_aux[i];
+
+          j++;
+  }
+
+}
+/**********************************************************/
+/* Devolve a palavra (Word) em S a partir da posicao Pos. */
+/**********************************************************/
+char *mNextWord (const char *S,int Pos, char *Word, int Tamanho) 
+{
+
+  int i, j = 0;
+  char result[4096]="";
+
+  for(i = Pos; j < Tamanho; i++)
+  {
+   
+ 	  result[j] = S[i];
+
+	  j++;
+  }
+  memcpy (Word,result,strlen(result)+1);
+  	  
+	  
+  return Word;
+  
+}

@@ -1,0 +1,2445 @@
+/****************************************************************************/
+/* Objetivo    : Carregar Dados do DASN/DEFIS                               */
+/* Modulo      : DEFIS                                                      */
+/****************************************************************************/
+
+/***************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <string.h> 
+#include <dirent.h>
+#include <limits.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <math.h>
+
+/***************************************************/
+#include "sqlca.h"
+#include "oraca.h"
+
+EXEC ORACLE OPTION (ORACA=YES);
+EXEC ORACLE OPTION (PREFETCH=60000);
+/***************************************************/
+#define MAXFILENAMESIZE 255
+#define MAXPROGNAMESIZE 50
+
+/***************************************************/
+#define DATE_TIME_MASK 	"%Y/%m/%d %H:%M:%S"
+#define DATE_MASK      	"%Y/%m/%d"
+#define TIME_MASK      	"%H:%M:%S"
+#define DATE_STR_MASK   "%Y%m"
+
+#define ErroSQL sqlca.sqlcode
+#define NRowsFetched sqlca.sqlerrd[2]
+#define NoDataFound 1403 
+
+char *t_mask_ptr = TIME_MASK;
+char *dt_mask_ptr = DATE_TIME_MASK;
+char *dt_str_mask_ptr = DATE_STR_MASK;
+/*
+#define DT_MASK       givemetime(dt_mask_ptr)
+#define D_MASK        givemetime(d_mask_ptr)
+#define T_MASK        givemetime(t_mask_ptr)
+#define DT_STR_MASK   givemetime(dt_str_mask_ptr)
+*/
+/***************************************************/
+extern int errno;
+char * uppern(char *, int);
+char * givemetime(char *);
+char log_file [MAXFILENAMESIZE];
+char prog_name[MAXPROGNAMESIZE];
+int  formato              = 0;
+char S                    [4096];
+char V                    [4096];
+char Line [4096];
+char Separator[1]        = "|";
+int  sq_arquivo         = 0;   
+int  sq_atividade        = 0;
+int  sq_filial           = 0;
+int  sq_ativ_rec         = 0;
+char id_declaracao[15+1];
+char id_apuracao[17+1];
+char vDepurarDeclaracao[16];
+char vDepurarTipoRegistro[10];
+char cPassword            [50];
+int   nu_periodo_apuracao;
+char  nu_estabelecimento[14+1];
+char sql                  [255];
+int  Ord = 0;
+char Field[4096];
+int  FieldSize = 0;
+int  Pos = 0;
+int  ctl = 0;
+char DataHora             [18];
+int  nPesquisaArquivo     = 0;
+char vNomeArquivo         [255];
+char cmdsolaris           [255];
+int  resCmd               = 0;
+int  nTipo                = 0;
+int  nControleProcesso    = 0;
+char Status               [05];
+char vAux                 [03];
+char vSubject             [255];
+int  nEnviaEmailProblema  = 0;
+int  nEnviaEmailOcorrencia= 0;
+int  EncFimLinha          = 0; 
+int  qt_limite_ultrapassados_pa=0; 
+char calcdigcnpj[14+1];
+char cnpj[12+1];
+int  cd_versao;
+signed int proc_num_pid   = 0;
+char cStatus              [04];
+
+int    nEncCnpjRN         = 0;
+/***************************************************/
+void ProcessarIdentContribuinte (char *buf_aux);
+char *CurrentDateTime (char *DataHora, int formato);
+void GravarIdentArquivo (char *buf_aux);
+void EnviarEmails();
+void PreparaMensagemEmails();
+void Move_Files_Erro();
+void Move_Files();
+void Close_Input_Output_Files();
+char *CalculaDigitoCnpj (char *cnpj);
+char *mExtractFieldFloatOcorrencias (const char *Line, char *Separator, int Ord, char *Field, int FieldSize);
+char *mExtractFieldOcorrencias (const char *Line, char *Separator, int Ord, char *Field, int FieldSize);
+char *mExtractFieldFloat (const char *Line, char *Separator, int Ord, char *Field, int FieldSize);
+char *mExtractField (const char *Line, char *Separator, int Ord, char *Field, int FieldSize);
+char *mExtractFieldFimLinha (const char *Line, char *Separator, int Ord, char *Field, int FieldSize);
+void ProcessarRegistros();
+void Get_Password();
+/***************************************************/
+char prog_name			[MAXPROGNAMESIZE];
+
+struct dirent *p = NULL;
+          
+char input_file_name            [MAXFILENAMESIZE];  
+char proc_input_file_name       [MAXFILENAMESIZE];  
+char erro_input_file_name       [MAXFILENAMESIZE];  
+char controle_file_name         [MAXFILENAMESIZE];
+char log_file                   [MAXFILENAMESIZE];
+char prog_name                  [MAXPROGNAMESIZE];
+char file_email                 [MAXPROGNAMESIZE];
+
+#define ERRO                  	-1
+/***************************************************/
+FILE *fp_input       = NULL;
+FILE *fp_output      = NULL;
+FILE *fp_controle          = NULL;
+FILE *fp_problemas_email   = NULL;
+FILE *fp_ocorrencias_email = NULL;
+   
+/***************************************************/
+/* Informacoes sobre o arquivo de log              */
+/***************************************************/
+#define FILE_LOG   0
+#define STDOUT_LOG 1
+int log_mode = STDOUT_LOG | FILE_LOG;   
+
+/************************************************************/
+/* Variaveis globais                                        */
+/************************************************************/
+
+char *InstanciaBD;
+char *usuario;
+char *password;
+
+/***************************************************/
+/***************************************************/
+int main(int argc, char *argv[])
+{
+
+#if VERSAO_PRODUCAO
+    char *log_dir       = "/sistemas/INCORPORACAO/SIMPLES_NACIONAL/DEFIS/LOG";
+    char *in_file_dir   = "/sistemas/INCORPORACAO/SIMPLES_NACIONAL/DEFIS/PENDENTE"; 
+    char *base_file_dir = "/sistemas/INCORPORACAO/SIMPLES_NACIONAL/DEFIS/";
+ 
+    InstanciaBD = "GENIPABU";
+    usuario 	= "CARGA_DEFIS";
+    password    = "carga"; 
+
+#endif
+
+#if VERSAO_TESTE
+    char *log_dir       = "/sistemas/INCORPORACAO/SIMPLES_NACIONAL/DEFIS/LOG";
+    char *in_file_dir   = "/sistemas/INCORPORACAO/SIMPLES_NACIONAL/DEFIS/PENDENTE"; 
+    char *base_file_dir = "/sistemas/INCORPORACAO/SIMPLES_NACIONAL/DEFIS/";
+ 
+    InstanciaBD = "GENIPABU";
+    usuario 	= "CARGA_DEFIS";
+    password    = "carga"; 
+
+#endif
+
+  time_t t_i = 0, t_f = 0, t_c = 0;
+  DIR *dp;
+  
+  int i = 0;
+
+  /* Abre arquivo de log e grava nele algumas linhas */
+  Open_Log(argv[0], log_dir); 
+  
+  if((dp = opendir(in_file_dir)) == NULL)
+    {
+      fprintf(stderr,"Falha na abertura do diretorio %s.\nErrno %d \n", 
+                      in_file_dir, errno);
+      exit(1);
+    }
+  
+  Get_Password();
+  
+  /* Efetuando conexao com o banco */
+  fprintf(fp_output,"%s - Efetuando conexao com o BD user: %s --> instancia: %s\n",CurrentDateTime(DataHora,1),usuario,InstanciaBD);
+
+  if(ConectaBD(usuario, cPassword, InstanciaBD) != 0)
+    {   
+    fprintf(fp_output,"%s - Erro ao tentar conexao com o banco de dados - sqlcode = %d.\n",CurrentDateTime(DataHora,1),
+                          sqlca.sqlcode);
+      exit(1);
+    }
+  
+  fprintf(fp_output,"Conectado ao BD com sucesso.\n");
+
+  sprintf(sql, "ALTER SESSION SET NLS_DATE_FORMAT='YYYYMMDDHH24MISS'");
+  
+  EXEC SQL EXECUTE IMMEDIATE :sql;	 
+
+  cStatus[0]     = '\0';
+
+  EXEC SQL   
+    select NU_PID,ST_PROCESSO||chr(0)
+    into   :proc_num_pid,:cStatus
+    from   adm_objetos.DEFIS_NIGHT_BATCH_QUEUE;
+
+   if (strncmp(cStatus,"ON",2)==0)
+      {
+     if (StatusProcUnixPid(proc_num_pid) ==0)
+        {
+           printf("Existe um processo em execucao!!!.\n");
+ 
+           closedir(dp);
+       
+           DesconectaBD();       
+         
+           exit(0);
+        }
+       else
+          {
+           proc_num_pid = getpid(); 
+
+           EXEC SQL 
+             UPDATE adm_objetos.DEFIS_NIGHT_BATCH_QUEUE
+           SET DT_ULT_EXECUCAO = SYSDATE,
+               NU_PID          = :proc_num_pid;     
+         
+           EXEC SQL COMMIT;    
+          }      
+      }  
+   else
+      {
+           printf("cStatus: %s .\n",cStatus);
+
+	  if (strncmp(cStatus,"OFF",3)==0)
+          {
+           proc_num_pid = getpid(); 
+
+           printf("Processo colocado em execucao - PID: %d .\n",proc_num_pid);
+        
+           EXEC SQL 
+             UPDATE adm_objetos.DEFIS_NIGHT_BATCH_QUEUE
+           SET DT_ULT_EXECUCAO = SYSDATE,
+           ST_PROCESSO     = 'ON',
+               NU_PID          = :proc_num_pid;     
+
+           if (sqlca.sqlcode != 0)
+              {
+               sql_error(sqlca.sqlerrm.sqlerrmc);
+              }
+         
+           EXEC SQL COMMIT;          
+          }
+       else
+          {
+           printf("Status do processo em execucao não foi identificado - !!!.\n");
+           exit(1);     
+          }
+      }
+    
+  while((p = readdir(dp)) != NULL)
+    {
+   if((strncmp(p->d_name,"90-0000-PUB-DEFIS",17)==0))
+     {
+      sprintf(input_file_name,"%s/%s", in_file_dir, p->d_name);
+      sprintf(proc_input_file_name,"%s/PROCESSADO/%s", base_file_dir, p->d_name);
+      sprintf(erro_input_file_name,"%s/PROBLEMA/%s", base_file_dir, p->d_name);
+	  
+      sprintf(vNomeArquivo,"%s",p->d_name);
+      	
+      /* Procura arquivo na tabela */
+      EXEC SQL 	 
+	 SELECT COUNT(*) 
+	 INTO   :nPesquisaArquivo
+        FROM  adm_objetos.DEFIS_ARQUIVO_DIGITAL
+        WHERE  NM_ARQUIVO = :vNomeArquivo;
+     
+      if (sqlca.sqlcode != 0)
+         {
+       	  sql_error(sqlca.sqlerrm.sqlerrmc);
+         }
+
+      if (nPesquisaArquivo > 0) 
+         {
+          Move_Files_Erro();
+          fprintf(fp_output,"%s - Arquivo duplicado : %s.\n",CurrentDateTime(DataHora,1),p->d_name);
+          fprintf(fp_output,"%s - Arquivo movido p/ diretorio erro : %s.\n",CurrentDateTime(DataHora,1),p->d_name);		  
+         }
+	  else
+	     {
+          fprintf(fp_output,"=============================================================================================\n");
+          fprintf(fp_output,"Abrindo arquivo de entrada : %s.\n", input_file_name);
+          if ((fp_input=fopen(input_file_name,"r")) == NULL)
+             {
+              fprintf(fp_output,"Erro na abertura do arquivo de entrada %s.\n",input_file_name);
+              fprintf(fp_output,"errno = %d .\n",errno);
+	     
+              Move_Files_Erro();
+			  			  		  					
+			  EXEC SQL 
+				 UPDATE adm_objetos.DEFIS_NIGHT_BATCH_QUEUE
+				 SET ST_PROCESSO = 'OFF';     
+					 
+			  EXEC SQL COMMIT;	
+			  
+              DesconectaBD();
+                            
+              exit(1);
+             }
+         else
+             {
+	          fprintf(fp_output,"%s - Processando arquivo : %s.\n",CurrentDateTime(DataHora,1),input_file_name);
+	          Processa_Arquivo(in_file_dir);
+	          Close_Input_Output_Files();  
+	          Move_Files();	
+              EXEC SQL COMMIT;   		
+             }			
+         }
+     }
+    }
+
+  closedir(dp);
+    
+  t_f = time(NULL); 
+  t_c = t_f - t_i;
+  
+  EXEC SQL COMMIT;
+
+  EXEC SQL 
+	 UPDATE adm_objetos.DEFIS_NIGHT_BATCH_QUEUE
+	 SET ST_PROCESSO = 'OFF';     
+		 
+  EXEC SQL COMMIT;	   
+
+  DesconectaBD();
+    
+  sprintf(cmdsolaris,"gzip %s/PROCESSADO/*DEFIS*txt", base_file_dir);       
+
+  resCmd = system(cmdsolaris);  
+
+  sprintf(cmdsolaris,"gzip %s/PROCESSADO/*DEFIS*TXT", base_file_dir);
+  
+  resCmd = system(cmdsolaris);    
+  
+  exit(0);
+}
+
+/***************************************************************/
+/*     Fun��o Gravar Informa��o Prestacao Servico Transporte   */
+/***************************************************************/
+void ProcessarInformPrestacaoServTransp (char *buf_aux)
+{
+
+char  cd_uf_origem[2+1];
+char  cd_municipio[5+1];
+double vl_frete = 0;
+
+ strcpy(cd_uf_origem,mExtractField(buf_aux,Separator,2,Field,FieldSize));
+ strcpy(cd_municipio,mExtractField(buf_aux,Separator,3,Field,FieldSize));
+ vl_frete           = atof(mExtractFieldFloat(buf_aux,Separator,4,Field,FieldSize));
+
+  EXEC SQL
+		INSERT INTO adm_objetos.DEFIS_D5370_PREST_SERV_TRANS
+		   (
+			id_declaracao,
+			nu_estabelecimento,
+			cd_uf_origem,
+			cd_municipio,
+			vl_frete
+		   )
+		VALUES (
+				:id_declaracao,
+				:nu_estabelecimento,
+				:cd_uf_origem,
+				:cd_municipio,
+				:vl_frete
+              );
+
+		if (sqlca.sqlcode != 0)
+			{
+			  fprintf(fp_output,"%s - erro INSERT INTO DEFIS_D5370_PREST_SERV_TRANS.\n",CurrentDateTime(DataHora,1));
+			  sql_error(sqlca.sqlerrm.sqlerrmc);
+			}
+	
+}
+/********************************************************/
+/*     Fun��o Gravar Informa��o Rateio da Receita */
+/********************************************************/
+void ProcessarInformRateioRecSefaz (char *buf_aux)
+{
+
+int tp_rateio;
+char  dc_rateio[50+1];
+char  cd_uf[2+1];
+char  cd_municipio[5+1];
+double vl_atribuido = 0;
+
+tp_rateio = atol(mExtractField(buf_aux, Separator, 2, Field,FieldSize));
+strcpy(dc_rateio, mExtractField(buf_aux, Separator, 3, Field, FieldSize)); 
+strcpy(cd_uf, mExtractField(buf_aux, Separator, 4, Field, FieldSize)); 
+strcpy(cd_municipio, mExtractField(buf_aux, Separator, 5, Field, FieldSize)); 
+vl_atribuido = atof(mExtractFieldFloat(buf_aux, Separator, 6, Field,FieldSize));
+
+ 
+  EXEC SQL  
+	INSERT INTO adm_objetos.DEFIS_D5367_RATEIO_REC_SEFAZ
+		   (
+			id_declaracao, 
+			tp_rateio, 
+			dc_rateio, 
+			cd_uf, 
+			cd_municipio, 
+			vl_atribuido, 
+			nu_estabelecimento
+           )
+	VALUES (
+			:id_declaracao, 
+			:tp_rateio, 
+			:dc_rateio, 
+			:cd_uf, 
+			:cd_municipio, 
+			:vl_atribuido,
+			:nu_estabelecimento
+	       );
+		   
+  if (sqlca.sqlcode != 0)
+	 {
+	  fprintf(fp_output,"%s - erro INSERT INTO DEFIS_D5367_RATEIO_REC_SEFAZ.\n",CurrentDateTime(DataHora,1));
+	  sql_error(sqlca.sqlerrm.sqlerrmc);
+	 }
+	
+}
+/********************************************************/
+/*     Fun��o Gravar Informa��o Aquisicao de Mercadoria Contribuinte */
+/********************************************************/
+void ProcessarInformAquiMerContrib (char *buf_aux)
+{
+
+char  cd_uf[2+1];
+char  cd_municipio[5+1];
+double vl_compra = 0;
+
+strcpy(cd_uf, mExtractField(buf_aux, Separator, 2, Field, FieldSize)); 
+strcpy(cd_municipio, mExtractField(buf_aux, Separator, 3, Field, FieldSize)); 
+vl_compra = atof(mExtractFieldFloat(buf_aux, Separator, 4, Field,FieldSize));
+
+ 
+  EXEC SQL  
+	INSERT INTO adm_objetos.DEFIS_D5366_AQUI_MER_CONTRIB
+		   (
+			id_declaracao, 
+			cd_uf, 
+			cd_municipio, 
+			vl_compra, 
+			nu_estabelecimento
+           )
+	VALUES (
+			:id_declaracao, 
+			:cd_uf, 
+			:cd_municipio, 
+			:vl_compra,
+			:nu_estabelecimento
+	       );
+		   
+  if (sqlca.sqlcode != 0)
+	 {
+	  fprintf(fp_output,"%s - erro INSERT INTO DEFIS_D5366_AQUI_MER_CONTRIB.\n",CurrentDateTime(DataHora,1));
+	  sql_error(sqlca.sqlerrm.sqlerrmc);
+	 }
+	
+}
+/********************************************************/
+/*     Fun��o Gravar Informa��o Aquisicao de Mercadorias */
+/********************************************************/
+void ProcessarInformAquisicaoMerRural (char *buf_aux)
+{
+char  cd_uf[2+1];
+char  cd_municipio[5+1];
+double vl_compra = 0;
+
+strcpy(cd_uf, mExtractField(buf_aux, Separator, 2, Field, FieldSize)); 
+strcpy(cd_municipio, mExtractField(buf_aux, Separator, 3, Field, FieldSize)); 
+vl_compra = atof(mExtractFieldFloat(buf_aux, Separator, 4, Field,FieldSize));
+ 
+  EXEC SQL  
+	INSERT INTO adm_objetos.DEFIS_D5365_AQUISICAO_MER_RURA
+		   (
+			id_declaracao, 
+			cd_uf, 
+			cd_municipio, 
+			vl_compra, 
+			nu_estabelecimento
+           )
+	VALUES (
+			:id_declaracao, 
+			:cd_uf, 
+			:cd_municipio, 
+			:vl_compra, 
+			:nu_estabelecimento
+	       );
+		   
+  if (sqlca.sqlcode != 0)
+	 {
+	  fprintf(fp_output,"%s - erro INSERT INTO DEFIS_D5365_AQUISICAO_MER_RURA.\n",CurrentDateTime(DataHora,1));
+	  sql_error(sqlca.sqlerrm.sqlerrmc);
+	 }
+	
+}
+/********************************************************/
+/*     Fun��o Gravar Informa��o Producao Rural */
+/********************************************************/
+void ProcessarInformProducaoRural (char *buf_aux)
+{
+char  cd_uf[2+1];
+char  cd_municipio[5+1];
+double vl_venda = 0;
+
+strcpy(cd_uf, mExtractField(buf_aux, Separator, 2, Field, FieldSize)); 
+strcpy(cd_municipio, mExtractField(buf_aux, Separator, 3, Field, FieldSize)); 
+vl_venda = atof(mExtractFieldFloat(buf_aux, Separator, 4, Field,FieldSize));
+
+  EXEC SQL  
+	INSERT INTO adm_objetos.DEFIS_D5364_PRODUCAO_RURAL
+		   (
+			id_declaracao, 
+			cd_uf, 
+			cd_municipio, 
+			vl_venda, 
+			nu_estabelecimento
+           )
+	VALUES (
+			:id_declaracao, 
+			:cd_uf, 
+			:cd_municipio, 
+			:vl_venda, 
+			:nu_estabelecimento
+	       );
+		   
+  if (sqlca.sqlcode != 0)
+	 {
+	  fprintf(fp_output,"%s - erro INSERT INTO DEFIS_D5364_PRODUCAO_RURAL.\n",CurrentDateTime(DataHora,1));
+	  sql_error(sqlca.sqlerrm.sqlerrmc);
+	 }
+	
+}
+/********************************************************/
+/*     Fun��o Gravar Informa��o Refeicoes dos outro Municipios */
+/********************************************************/
+void ProcessarInformRefeicoesMunicipioD5363 (char *buf_aux)
+{
+char  cd_uf[2+1];
+char  cd_municipio[5+1];
+double vl_venda = 0;
+
+strcpy(cd_uf, mExtractField(buf_aux, Separator, 2, Field, FieldSize)); 
+strcpy(cd_municipio, mExtractField(buf_aux, Separator, 3, Field, FieldSize)); 
+vl_venda = atof(mExtractFieldFloat(buf_aux, Separator, 4, Field,FieldSize));
+
+  EXEC SQL  
+	INSERT INTO adm_objetos.DEFIS_D5363_REFEIC_MUNICIPIO
+		   (
+			id_declaracao, 
+			cd_uf, 
+			cd_municipio, 
+			vl_venda, 
+			nu_estabelecimento
+           )
+	VALUES (
+			:id_declaracao, 
+			:cd_uf, 
+			:cd_municipio, 
+			:vl_venda, 
+			:nu_estabelecimento
+	       );
+		   
+  if (sqlca.sqlcode != 0)
+	 {
+	  fprintf(fp_output,"%s - erro INSERT INTO DEFIS_D5363_REFEIC_MUNICIPIO.\n",CurrentDateTime(DataHora,1));
+	  sql_error(sqlca.sqlerrm.sqlerrmc);
+	 }
+	
+}
+/********************************************************/
+/*     Fun��o Gravar Informa��o Revendedores Ambulantes */
+/********************************************************/
+void ProcessarInformRevenAmbAuto (char *buf_aux)
+{
+char  cd_uf[2+1];
+char  cd_municipio[5+1];
+double vl_venda = 0;
+
+strcpy(cd_uf, mExtractField(buf_aux, Separator, 2, Field, FieldSize)); 
+strcpy(cd_municipio, mExtractField(buf_aux, Separator, 3, Field, FieldSize)); 
+vl_venda = atof(mExtractFieldFloat(buf_aux, Separator, 4, Field,FieldSize));
+
+ 
+  EXEC SQL  
+	INSERT INTO adm_objetos.DEFIS_D5362_REVEN_AMB_AUTO
+		   (
+			id_declaracao, 
+			cd_uf, 
+			cd_municipio, 
+			vl_venda, 
+			nu_estabelecimento
+           )
+	VALUES (
+			:id_declaracao, 
+			:cd_uf, 
+			:cd_municipio, 
+			:vl_venda, 
+			:nu_estabelecimento
+	       );
+		   
+  if (sqlca.sqlcode != 0)
+	 {
+	  fprintf(fp_output,"%s - erro INSERT INTO DEFIS_D5362_REVEN_AMB_AUTO.\n",CurrentDateTime(DataHora,1));
+	  sql_error(sqlca.sqlerrm.sqlerrmc);
+	 }
+	
+}
+/********************************************************/
+/*     Fun��o Gravar Informa��o Opcionais */
+/********************************************************/
+void ProcessarInformOpcionais (char *buf_aux)
+{
+
+double vl_saida_trans_merc = 0;
+double vl_auto_infracao_pago = 0;
+ 
+vl_saida_trans_merc = atof(mExtractFieldFloat(buf_aux, Separator, 2, Field,FieldSize));
+vl_auto_infracao_pago = atof(mExtractFieldFloat(buf_aux, Separator, 3, Field,FieldSize));
+
+ 
+  EXEC SQL  
+	INSERT INTO adm_objetos.DEFIS_D5361_INFO_OPCIONAIS
+		   (
+			id_declaracao, 
+			nu_estabelecimento,
+			vl_saida_trans_merc, 
+			vl_auto_infracao_pago
+			
+           )
+	VALUES (
+			:id_declaracao, 
+			:nu_estabelecimento,
+			:vl_saida_trans_merc, 
+			:vl_auto_infracao_pago 
+	       );
+		   
+  if (sqlca.sqlcode != 0)
+	 {
+	  fprintf(fp_output,"%s - erro INSERT INTO DEFIS_D5361_INFO_OPCIONAIS.\n",CurrentDateTime(DataHora,1));
+	  sql_error(sqlca.sqlerrm.sqlerrmc);
+	 }
+	
+}
+/********************************************************/
+/*     Fun�?o Gravar Informa��o Mudanca de Endereco */
+/********************************************************/
+void ProcessarInformMudancaEndereco (char *buf_aux)
+{
+
+char  uf_origem[2+1]; 
+char  cd_municipio_origem[5+1]; 
+char  uf_destino[2+1]; 
+char  cd_municipio_destino[5+1]; 
+char  dt_mudanca[8+1];
+ 
+ strcpy(uf_origem, mExtractField(buf_aux, Separator, 2, Field, FieldSize)); 
+ strcpy(cd_municipio_origem, mExtractField(buf_aux, Separator, 3, Field, FieldSize));
+ strcpy(uf_destino, mExtractField(buf_aux, Separator, 4, Field, FieldSize));
+ strcpy(cd_municipio_destino, mExtractField(buf_aux, Separator, 5, Field, FieldSize));
+ strcpy(dt_mudanca, mExtractFieldFimLinha(buf_aux, Separator, 6, Field, FieldSize));
+ 
+  EXEC SQL  
+	INSERT INTO adm_objetos.DEFIS_D5360_MUDANCA_ENDERECO
+		   (
+			id_declaracao, 
+			nu_estabelecimento,
+			uf_origem, 
+			cd_municipio_origem, 
+			uf_destino, 
+			cd_municipio_destino, 
+			dt_mudanca        
+
+           )
+	VALUES (
+			:id_declaracao, 
+			:nu_estabelecimento,
+			:uf_origem, 
+			:cd_municipio_origem, 
+			:uf_destino, 
+			:cd_municipio_destino, 
+			:dt_mudanca 
+	       );
+		   
+  if (sqlca.sqlcode != 0)
+	 {
+	  fprintf(fp_output,"%s - erro INSERT INTO DEFIS_D5360_MUDANCA_ENDERECO.\n",CurrentDateTime(DataHora,1));
+	  sql_error(sqlca.sqlerrm.sqlerrmc);
+	 }
+	
+}
+/********************************************************/
+/*     Fun��o Gravar Informa��o Rateio de Receita SEFAZ */
+/********************************************************/
+void ProcessarInformRateioReceitaSEFAZ (char *buf_aux)
+{
+
+int   tp_rateio;
+char  dc_rateio_receita[50+1];
+char  cd_uf_rateio[2+1];
+char  cd_municipio[5+1];
+double vl_atribuido = 0;
+
+ tp_rateio    =  atol(mExtractField(buf_aux,Separator,2,Field,FieldSize));
+ strcpy(dc_rateio_receita,mExtractField(buf_aux,Separator,3,Field,FieldSize)); 
+ strcpy(cd_uf_rateio,mExtractField(buf_aux,Separator,4,Field,FieldSize)); 
+ strcpy(cd_municipio,mExtractField(buf_aux,Separator,5,Field,FieldSize));
+ vl_atribuido =  atof(mExtractFieldFloat(buf_aux,Separator,6,Field,FieldSize));
+  
+  EXEC SQL                  
+	INSERT INTO adm_objetos.DEFIS_D5357_RATEIO_REC_SEFAZ
+		   (
+			id_declaracao, 
+			nu_estabelecimento,
+			tp_rateio,
+			dc_rateio_receita,
+			cd_uf_rateio,
+			cd_municipio,
+			vl_atribuido 
+           )
+	VALUES (
+			:id_declaracao, 
+			:nu_estabelecimento,
+			:tp_rateio,
+			:dc_rateio_receita,
+			:cd_uf_rateio,
+			:cd_municipio,
+			:vl_atribuido
+	       );
+		   
+  if (sqlca.sqlcode != 0)
+	 {
+	  fprintf(fp_output,"%s - erro INSERT INTO DEFIS_D5357_RATEIO_REC_SEFAZ - id_declaracao: %s - tp_rateio: %d - dc_rateio_receita: %s - cd_uf_rateio: %s - cd_municipio: %s - vl_atribuido: %.2f.\n",CurrentDateTime(DataHora,1),id_declaracao,tp_rateio,dc_rateio_receita,cd_uf_rateio,cd_municipio,vl_atribuido);
+	  sql_error(sqlca.sqlerrm.sqlerrmc);
+	 }
+	
+}
+/***************************************************/
+/*     Fun��o Gravar Informa�?o Rateio de Receita  */
+/***************************************************/
+void ProcessarInformRateioReceita (char *buf_aux)
+{
+
+int   tp_rateio;
+char  dc_rateio_receita[100+1];
+char  cd_uf_rateio[2+1];
+char  cd_municipio[5+1];
+double vl_atribuido = 0;
+
+ tp_rateio    =  atol(mExtractField(buf_aux,Separator,2,Field,FieldSize));
+ strcpy(dc_rateio_receita,mExtractField(buf_aux,Separator,3,Field,FieldSize)); 
+ strcpy(cd_uf_rateio,mExtractField(buf_aux,Separator,4,Field,FieldSize)); 
+ strcpy(cd_municipio,mExtractField(buf_aux,Separator,5,Field,FieldSize));
+ vl_atribuido =  atof(mExtractFieldFloat(buf_aux,Separator,6,Field,FieldSize));
+ 
+  EXEC SQL  
+	INSERT INTO adm_objetos.DEFIS_d5014_rat_receita_sefaz 
+		   (
+			id_declaracao, 
+			tp_rateio,
+			dc_rateio_receita, 
+			cd_uf_rateio,
+			cd_municipio, 
+			vl_atribuido, 
+			nu_estabelecimento
+           )
+	VALUES (
+			:id_declaracao, 
+            :tp_rateio,
+			:dc_rateio_receita, 
+			:cd_uf_rateio,
+			:cd_municipio, 
+			:vl_atribuido, 
+			:nu_estabelecimento
+	       );
+		   
+  if (sqlca.sqlcode != 0)
+	 {
+	  fprintf(fp_output,"%s - erro INSERT INTO DEFIS_d5014_rat_receita_sefaz .\n",CurrentDateTime(DataHora,1));
+	  sql_error(sqlca.sqlerrm.sqlerrmc);
+	 }
+	
+}
+
+/****************************************************************************************/
+/*     Fun��o Gravar Informa��o Aquisicao Mercadoria Contrib. Dispensados de Inscricao  */
+/****************************************************************************************/
+void ProcessarInformAquisicaoMercContribDispensados (char *buf_aux)
+{
+
+char  sg_uf_origem[2+1];
+char  cd_municipio_origem[5+1];
+double vl_compra = 0;
+
+ strcpy(sg_uf_origem,mExtractField(buf_aux,Separator,2,Field,FieldSize)); 
+ strcpy(cd_municipio_origem,mExtractField(buf_aux,Separator,3,Field,FieldSize));
+ vl_compra           = atof(mExtractFieldFloat(buf_aux,Separator,4,Field,FieldSize));
+ 
+  EXEC SQL  
+	INSERT INTO adm_objetos.DEFIS_D5356_MERC_CONTRIB_DISP
+		   (
+			id_declaracao, 
+			nu_estabelecimento,
+            sg_uf_origem,
+            cd_municipio_origem,
+            vl_compra
+           )
+	VALUES (
+			:id_declaracao, 
+			:nu_estabelecimento,
+            :sg_uf_origem,
+            :cd_municipio_origem,
+            :vl_compra
+	       );
+		   
+  if (sqlca.sqlcode != 0)
+	 {
+	  fprintf(fp_output,"%s - erro INSERT INTO DEFIS_D5356_MERC_CONTRIB_DISP.\n",CurrentDateTime(DataHora,1));
+	  sql_error(sqlca.sqlerrm.sqlerrmc);
+	 }
+	
+}
+/*************************************************************/
+/*     Fun��o Gravar Informa��o Aquisicao Mercadoria Rural   */
+/*************************************************************/
+void ProcessarInformAquisicaoMercRural (char *buf_aux)
+{
+
+char  sg_uf_origem[2+1];
+char  cd_municipio_origem[5+1];
+double vl_compra = 0;
+
+ strcpy(sg_uf_origem,mExtractField(buf_aux,Separator,2,Field,FieldSize)); 
+ strcpy(cd_municipio_origem,mExtractField(buf_aux,Separator,3,Field,FieldSize));
+ vl_compra           = atof(mExtractFieldFloat(buf_aux,Separator,4,Field,FieldSize));
+ 
+  EXEC SQL  
+	INSERT INTO adm_objetos.DEFIS_D5355_AQUIS_MERC_RURAL
+		   (
+			id_declaracao, 
+			nu_estabelecimento,
+            sg_uf_origem,
+            cd_municipio_origem,
+            vl_compra
+           )
+	VALUES (
+			:id_declaracao, 
+			:nu_estabelecimento,
+            :sg_uf_origem,
+            :cd_municipio_origem,
+            :vl_compra
+	       );
+		   
+  if (sqlca.sqlcode != 0)
+	 {
+	  fprintf(fp_output,"%s - erro INSERT INTO DEFIS_D5355_AQUIS_MERC_RURAL.\n",CurrentDateTime(DataHora,1));
+	  sql_error(sqlca.sqlerrm.sqlerrmc);
+	 }
+   
+}
+/*************************************************/
+/*     Fun��o Gravar Informa��o Produtor Rural   */
+/*************************************************/
+void ProcessarInformProdutorRural (char *buf_aux)
+{
+char  cd_uf_producao[2+1];
+char  cd_municipio[5+1];
+double vl_venda = 0;
+
+ strcpy(cd_uf_producao,mExtractField(buf_aux,Separator,2,Field,FieldSize)); 
+ strcpy(cd_municipio,mExtractField(buf_aux,Separator,3,Field,FieldSize));
+ vl_venda            = atof(mExtractFieldFloat(buf_aux,Separator,4,Field,FieldSize));
+ 
+  EXEC SQL  
+	INSERT INTO adm_objetos.DEFIS_D5354_PRODUTOR_RURAL
+		   (
+			id_declaracao, 
+			nu_estabelecimento,
+			cd_uf_producao,
+            cd_municipio,
+            vl_venda 
+           )
+	VALUES (
+			:id_declaracao, 
+			:nu_estabelecimento,
+			:cd_uf_producao,
+            :cd_municipio,
+            :vl_venda 
+	       );
+		   
+  if (sqlca.sqlcode != 0)
+	 {
+	  fprintf(fp_output,"%s - erro INSERT INTO DEFIS_D5354_PRODUTOR_RURAL.\n",CurrentDateTime(DataHora,1));
+	  sql_error(sqlca.sqlerrm.sqlerrmc);
+	 }
+	
+}
+/*******************************************************/
+/*     Fun��o Gravar Informa��o Refeicoes Municipio    */
+/*******************************************************/
+void ProcessarInformRefeicoesMunicipioD5353 (char *buf_aux)
+{
+char  cd_uf_refeicao[2+1]; 
+char  cd_municipio[5+1];
+double vl_venda = 0;
+ 
+ strcpy(cd_uf_refeicao,mExtractField(buf_aux,Separator,2,Field,FieldSize)); 
+ strcpy(cd_municipio,mExtractField(buf_aux,Separator,3,Field,FieldSize));
+ vl_venda            = atof(mExtractFieldFloat(buf_aux,Separator,4,Field,FieldSize));
+ 
+  EXEC SQL  
+	INSERT INTO adm_objetos.DEFIS_D5353_REFEIC_MUNICIPIO 
+		   (
+			id_declaracao, 
+			nu_estabelecimento,
+			cd_uf_refeicao,
+            cd_municipio,
+            vl_venda 
+           )
+	VALUES (			
+			:id_declaracao, 
+			:nu_estabelecimento,
+			:cd_uf_refeicao,
+            :cd_municipio,
+            :vl_venda 
+	       );
+		   
+  if (sqlca.sqlcode != 0)
+	 {
+	  fprintf(fp_output,"%s - erro INSERT INTO DEFIS_D5353_REFEIC_MUNICIPIO.\n",CurrentDateTime(DataHora,1));
+	  sql_error(sqlca.sqlerrm.sqlerrmc);
+	 }
+	
+}
+/*****************************************************************/
+/*     Fun��o Gravar Informa��o Revendedor Ambulante Autonomo    */
+/*****************************************************************/
+void ProcessarInformRevAmbAutonomo (char *buf_aux)
+{
+
+char  cd_uf_venda[2+1];
+char  cd_municipio[5+1];
+double vl_venda = 0;
+
+ strcpy(cd_uf_venda,mExtractField(buf_aux,Separator,2,Field,FieldSize)); 
+ strcpy(cd_municipio,mExtractField(buf_aux,Separator,3,Field,FieldSize));
+ vl_venda            = atof(mExtractFieldFloat(buf_aux,Separator,4,Field,FieldSize));
+ 
+  EXEC SQL  
+	INSERT INTO adm_objetos.DEFIS_D5352_REV_AMB_AUTONOMO 
+		   (
+			id_declaracao, 
+			nu_estabelecimento,
+			cd_uf_venda,
+            cd_municipio,
+            vl_venda 
+           )
+	VALUES (
+			:id_declaracao, 
+			:nu_estabelecimento,
+			:cd_uf_venda,
+            :cd_municipio,
+            :vl_venda 
+	       );
+		   
+  if (sqlca.sqlcode != 0)
+	 {
+	  fprintf(fp_output,"%s - erro INSERT INTO DEFIS_D5352_REV_AMB_AUTONOMO.\n",CurrentDateTime(DataHora,1));
+	  sql_error(sqlca.sqlerrm.sqlerrmc);
+	 }
+	
+}
+/**********************************************************/
+/*     Fun��o Gravar Informa��es Opcionais da Empresa     */
+/**********************************************************/
+void ProcessarInformOpcionaisEmpresa (char *buf_aux)
+{
+
+double  vl_saida_transf_mercadoria = 0;
+double  vl_auto_infracao_pago = 0;
+
+ vl_saida_transf_mercadoria  = atof(mExtractFieldFloat(buf_aux,Separator,2,Field,FieldSize)); 
+ vl_auto_infracao_pago       = atof(mExtractFieldFloat(buf_aux,Separator,3,Field,FieldSize));  
+
+  EXEC SQL  
+	INSERT INTO adm_objetos.DEFIS_D5350_INFO_OPC_EMPRESA 
+		   (
+			id_declaracao, 
+			nu_estabelecimento,
+            vl_saida_transf_mercadoria,
+            vl_auto_infracao_pago  
+           )
+	VALUES (
+			:id_declaracao,
+			:nu_estabelecimento,
+            :vl_saida_transf_mercadoria,
+            :vl_auto_infracao_pago  
+	       );
+
+  if (sqlca.sqlcode != 0)
+	 {
+	  fprintf(fp_output,"%s - erro INSERT INTO DEFIS_D5350_INFO_OPC_EMPRESA.\n",CurrentDateTime(DataHora,1));
+	  sql_error(sqlca.sqlerrm.sqlerrmc);
+	 } 		   
+	
+}
+/************************************************************************/
+/*     Fun��o Gravar Informa��o Prestacao de Servico de Comunicacao     */
+/************************************************************************/
+void ProcessarInformPrestServComunic (char *buf_aux)
+{
+ 
+char  sg_uf[2+1];
+char  cd_municipio[5+1];
+double vl_servico = 0;
+ 
+ strcpy(sg_uf,mExtractField(buf_aux,Separator,2,Field,FieldSize));
+ strcpy(cd_municipio,mExtractField(buf_aux,Separator,3,Field,FieldSize));
+ vl_servico            = atof(mExtractFieldFloat(buf_aux,Separator,4,Field,FieldSize));
+ 
+  EXEC SQL  
+	INSERT INTO adm_objetos.DEFIS_D5330_PREST_SERV_COMUNIC 
+		   (
+			id_declaracao, 
+			nu_estabelecimento,
+			sg_uf, 
+			cd_municipio, 
+			vl_servico
+           )
+	VALUES (
+			:id_declaracao, 
+			:nu_estabelecimento,
+			:sg_uf, 
+			:cd_municipio, 
+			:vl_servico	
+	       );
+		   
+  if (sqlca.sqlcode != 0)
+	 {
+	  fprintf(fp_output,"%s - erro INSERT INTO DEFIS_D5330_PREST_SERV_COMUNIC.\n",CurrentDateTime(DataHora,1));
+	  sql_error(sqlca.sqlerrm.sqlerrmc);
+	 }
+		 
+}
+/***********************************************/
+/*     Fun��o Gravar Informa��o Iss Retido na Fonte     */
+/***********************************************/
+void ProcessarInformIssRetidoNaFonte (char *buf_aux)
+{
+
+double vl_retido_fonte = 0;
+char  sg_uf[2+1];
+char  cd_municipio[5+1]; 
+char  nm_municipio[50+1]; 
+
+vl_retido_fonte = atof(mExtractFieldFloat(buf_aux,Separator,2,Field,FieldSize));
+strcpy(sg_uf,mExtractField(buf_aux,Separator,3,Field,FieldSize));
+strcpy(cd_municipio,mExtractFieldFimLinha(buf_aux,Separator,4,Field,FieldSize));
+
+  EXEC SQL  
+	INSERT INTO adm_objetos.DEFIS_d5320_iss_ret_fonte  
+		   (
+			id_declaracao, 			
+			nu_estabelecimento,
+			vl_retido_fonte, 
+			sg_uf, 
+			cd_municipio
+           )
+	VALUES (
+			:id_declaracao, 	
+			:nu_estabelecimento,
+			:vl_retido_fonte, 
+			:sg_uf, 
+			:cd_municipio
+	       );
+		   
+  if (sqlca.sqlcode != 0)
+	 {
+	  fprintf(fp_output,"%s - erro INSERT INTO DEFIS_d5320_iss_ret_fonte.\n",CurrentDateTime(DataHora,1));
+	  sql_error(sqlca.sqlerrm.sqlerrmc);
+	 }
+		 
+}
+/************************************************************/
+/*     Fun��o Gravar Informa��o Operacoes Interestaduais por UF      */
+/***********************************************************/
+void ProcessarInformOperInterestadual (char *buf_aux)
+{
+
+int   tp_oper_interestadual;
+char  sg_uf_origem[2+1];
+double vl_total = 0;
+
+tp_oper_interestadual        = atol(mExtractField(buf_aux,Separator,2,Field,FieldSize));
+strcpy(sg_uf_origem,mExtractField(buf_aux,Separator,3,Field,FieldSize));
+vl_total                     = atof(mExtractFieldFloat(buf_aux,Separator,4,Field,FieldSize));
+
+  EXEC SQL  
+	INSERT INTO adm_objetos.DEFIS_d5310_oper_interestadual 
+		   (
+			id_declaracao, 
+			nu_estabelecimento,
+			tp_oper_interestadual, 
+			sg_uf_origem, 
+			vl_total
+		   )
+    VALUES (
+			:id_declaracao, 
+			:nu_estabelecimento,
+			:tp_oper_interestadual, 
+			:sg_uf_origem, 
+			:vl_total	
+           );	
+  if (sqlca.sqlcode != 0)
+	 {
+	  fprintf(fp_output,"%s - erro INSERT INTO DEFIS_d5310_oper_interestadual.\n",CurrentDateTime(DataHora,1));
+	  sql_error(sqlca.sqlerrm.sqlerrmc);
+	 }
+		 
+}
+/****************************************/
+/* Calcula o D�gito de Controle do CNPJ */
+/****************************************/
+char *CalculaDigitoCnpj (char *cnpj)
+{ 
+int    num    = 2;  /*  int    num    = 2 */
+int    prod   = 0;
+int    i      = 0;
+int    dig    = 0;
+int    auxnum = 0;
+int    nauxcpf = 0;
+char   auxcpf[1];
+	 
+  for(i = 11; i >= 0; i--)
+    {
+     auxcpf[0]  = cnpj[i];
+ 
+     nauxcpf    = atol(auxcpf);
+
+     prod = prod + num *  nauxcpf;
+     
+	 num = num + 1;
+	 
+     if (num == 10)  
+         num = 2;  
+
+    }
+ 
+  prod = prod % 11;
+    
+  if (prod < 2) 
+      dig = 0;
+  else
+      dig = 11 - prod;
+    
+  sprintf(calcdigcnpj,"%s%d",cnpj,dig);
+  
+  num  = 2;  
+  prod = 0;
+  dig  = 0;
+  
+  for(i = 12; i >= 0; i--)
+     {
+     auxcpf[0]  = calcdigcnpj[i];
+     nauxcpf    = atol(auxcpf);
+
+      prod = prod + num * nauxcpf;
+      
+	  num = num + 1;
+	  
+	  auxnum = num % 10;
+      
+	  if (auxnum == 0)
+          num = 2;
+
+    }	
+
+  prod = prod % 11;
+  if (prod < 2)
+      dig = 0;
+  else
+      dig = 11 - prod;
+    
+  sprintf(calcdigcnpj,"%s%d",calcdigcnpj,dig);
+  
+  return calcdigcnpj;
+
+}
+
+/*************************************************************/
+/*     Fun��o Gravar Informa��o Detalhamento por Estabelecimento       */
+/*************************************************************/
+void ProcessarInformDetalheEstabelec (char *buf_aux)
+{
+
+char  nNucleoCNPJ[8+1];
+char  nFilialCNPJ[4+1];
+ 
+int   fg_matriz_filial;
+double vl_estoque_inicial = 0;
+double vl_estoque_final = 0;
+double vl_saldo_cx_banco_inicial = 0;
+double vl_saldo_cx_banco_final = 0;
+double vl_tot_entradas = 0;
+double vl_tot_aquis_merc_com_ind = 0;
+double vl_tot_entradas_transf = 0;
+double vl_tot_devolucao_vendas = 0;
+double vl_tot_saidas_transf = 0;
+double vl_tot_devolucao_compras = 0;
+double vl_tot_despesas = 0;
+double vl_tot_aquis_merc_com_ind_int = 0;
+double vl_tot_aquis_merc_com_ind_ext = 0;		
+char  cd_uf_enderecado[2+1];
+char  cd_municipio_enderecado[5+1];
+char  nm_municipio_enderecado[100+1];
+int nLength = 0; 
+
+nLength = strlen(mExtractField(buf_aux,Separator,2,Field,FieldSize));
+
+if (nLength > 4)
+   {
+    strcpy(nu_estabelecimento,mExtractField(buf_aux,Separator,2,Field,FieldSize));     
+   }
+else
+   {
+    calcdigcnpj[0]='\0';
+    
+	strcpy(nFilialCNPJ,mExtractField(buf_aux,Separator,2,Field,FieldSize));    	
+    
+	int i =0;
+    int y =0;
+	for(i = 1; i < 9; i++)
+	   {
+	    cnpj[y] = id_declaracao[y];
+	    y++;
+	   }
+		      
+	i =0;
+	  
+	for(i = 1; i < 5; i++)
+	   {
+	    cnpj[y] = nFilialCNPJ[i-1];
+        y++;
+	   }	
+	  strncpy(calcdigcnpj,CalculaDigitoCnpj(cnpj),15);	
+	  
+      strncpy(nu_estabelecimento,calcdigcnpj,14);		  
+   }
+   
+fg_matriz_filial          = atol(mExtractField(buf_aux,Separator,3,Field,FieldSize));
+vl_estoque_inicial        = atof(mExtractFieldFloat(buf_aux,Separator,4,Field,FieldSize));
+vl_estoque_final          = atof(mExtractFieldFloat(buf_aux,Separator,5,Field,FieldSize));
+vl_saldo_cx_banco_inicial = atof(mExtractFieldFloat(buf_aux,Separator,6,Field,FieldSize));
+vl_saldo_cx_banco_final   = atof(mExtractFieldFloat(buf_aux,Separator,7,Field,FieldSize));
+vl_tot_entradas           = atof(mExtractFieldFloat(buf_aux,Separator,8,Field,FieldSize));	
+vl_tot_aquis_merc_com_ind = atof(mExtractFieldFloat(buf_aux,Separator,9,Field,FieldSize));
+
+     if (cd_versao >= 110) 
+	    {
+         vl_tot_aquis_merc_com_ind_int  = atof(mExtractFieldFloat(buf_aux,Separator,10,Field,FieldSize));
+         vl_tot_aquis_merc_com_ind_ext  = atof(mExtractFieldFloat(buf_aux,Separator,11,Field,FieldSize)); 
+		 vl_tot_entradas_transf         = atof(mExtractFieldFloat(buf_aux,Separator,12,Field,FieldSize));
+		 vl_tot_devolucao_vendas        = atof(mExtractFieldFloat(buf_aux,Separator,13,Field,FieldSize));
+		 vl_tot_saidas_transf           = atof(mExtractFieldFloat(buf_aux,Separator,14,Field,FieldSize));
+		 vl_tot_devolucao_compras       = atof(mExtractFieldFloat(buf_aux,Separator,15,Field,FieldSize));
+		 vl_tot_despesas                = atof(mExtractFieldFloat(buf_aux,Separator,16,Field,FieldSize));
+		 strcpy(cd_uf_enderecado,mExtractField(buf_aux,Separator,17,Field,FieldSize));
+		 strcpy(cd_municipio_enderecado,mExtractField(buf_aux,Separator,18,Field,FieldSize));
+
+		 strcpy(nm_municipio_enderecado,mExtractFieldFimLinha(buf_aux,Separator,19,Field,FieldSize));
+		 
+        }
+	 else
+	    {
+		 vl_tot_entradas_transf    = atof(mExtractFieldFloat(buf_aux,Separator,10,Field,FieldSize));
+		 vl_tot_devolucao_vendas   = atof(mExtractFieldFloat(buf_aux,Separator,11,Field,FieldSize));
+		 vl_tot_saidas_transf      = atof(mExtractFieldFloat(buf_aux,Separator,12,Field,FieldSize));
+		 vl_tot_devolucao_compras  = atof(mExtractFieldFloat(buf_aux,Separator,13,Field,FieldSize));
+		 vl_tot_despesas           = atof(mExtractFieldFloat(buf_aux,Separator,14,Field,FieldSize));
+		 strcpy(cd_uf_enderecado,mExtractField(buf_aux,Separator,15,Field,FieldSize));
+		 strcpy(cd_municipio_enderecado,mExtractField(buf_aux,Separator,16,Field,FieldSize));
+
+		 strcpy(nm_municipio_enderecado,mExtractFieldFimLinha(buf_aux,Separator,17,Field,FieldSize));
+		 
+        }  
+		
+  EXEC SQL  
+	INSERT INTO adm_objetos.DEFIS_D5300_DET_ESTABELECIM 
+		(
+		id_declaracao, 
+		nu_estabelecimento, 
+		fg_matriz_filial, 
+		vl_estoque_inicial, 
+		vl_estoque_final, 
+		vl_saldo_cx_banco_inicial, 
+		vl_saldo_cx_banco_final, 
+		vl_tot_entradas, 
+		vl_tot_aquis_merc_com_ind, 
+		
+        vl_tot_aquis_merc_com_ind_int,
+        vl_tot_aquis_merc_com_ind_ext,		
+		
+		vl_tot_entradas_transf, 
+		vl_tot_devolucao_vendas, 
+		vl_tot_saidas_transf, 
+		vl_tot_devolucao_compras, 
+		vl_tot_despesas,
+		cd_uf_enderecado,
+        cd_municipio_enderecado,
+        nm_municipio_enderecado
+       )
+	VALUES (
+		:id_declaracao, 
+		:nu_estabelecimento, 
+		:fg_matriz_filial, 
+		:vl_estoque_inicial, 
+		:vl_estoque_final, 
+		:vl_saldo_cx_banco_inicial, 
+		:vl_saldo_cx_banco_final, 
+		:vl_tot_entradas, 
+		:vl_tot_aquis_merc_com_ind,
+		
+        :vl_tot_aquis_merc_com_ind_int,
+        :vl_tot_aquis_merc_com_ind_ext,		
+
+		:vl_tot_entradas_transf, 
+		:vl_tot_devolucao_vendas, 
+		:vl_tot_saidas_transf, 
+		:vl_tot_devolucao_compras, 
+		:vl_tot_despesas,
+		:cd_uf_enderecado,
+        :cd_municipio_enderecado,
+        :nm_municipio_enderecado
+	       );
+		   
+  if (sqlca.sqlcode != 0)
+	 {
+	  fprintf(fp_output,"%s - erro INSERT INTO DEFIS_D5300_DET_ESTABELECIM.\n",CurrentDateTime(DataHora,1));
+	  fprintf(fp_output,"id_declaracao: %s.\n", id_declaracao);
+	  fprintf(fp_output,"nu_estabelecimento: %s.\n", nu_estabelecimento); 
+	  fprintf(fp_output,"fg_matriz_filial: %d.\n", fg_matriz_filial);
+	  fprintf(fp_output,"vl_estoque_inicial: %f.\n", vl_estoque_inicial);
+	  fprintf(fp_output,"vl_estoque_final: %f.\n", vl_estoque_final);
+	  fprintf(fp_output,"vl_saldo_cx_banco_inicial: %f.\n", vl_saldo_cx_banco_inicial); 
+	  fprintf(fp_output,"vl_saldo_cx_banco_final: %f.\n", vl_saldo_cx_banco_final);
+	  fprintf(fp_output,"vl_tot_entradas: %f.\n", vl_tot_entradas);
+	  fprintf(fp_output,"vl_tot_aquis_merc_com_ind: %f.\n", vl_tot_aquis_merc_com_ind);
+		
+	  fprintf(fp_output,"vl_tot_aquis_merc_com_ind_int: %f.\n", vl_tot_aquis_merc_com_ind_int);
+	  fprintf(fp_output,"vl_tot_aquis_merc_com_ind_ext: %f.\n", vl_tot_aquis_merc_com_ind_ext);
+
+	  fprintf(fp_output,"vl_tot_entradas_transf: %f.\n", vl_tot_entradas_transf);
+	  fprintf(fp_output,"vl_tot_devolucao_vendas: %f.\n", vl_tot_devolucao_vendas);
+	  fprintf(fp_output,"vl_tot_saidas_transf: %f.\n", vl_tot_saidas_transf);
+	  fprintf(fp_output,"vl_tot_devolucao_compras: %f.\n", vl_tot_devolucao_compras); 
+	  fprintf(fp_output,"vl_tot_despesas: %f.\n", vl_tot_despesas);
+	  fprintf(fp_output,"cd_uf_enderecado: %s.\n", cd_uf_enderecado);
+	  fprintf(fp_output,"cd_municipio_enderecado: %s.\n", cd_municipio_enderecado);
+	  fprintf(fp_output,"nm_municipio_enderecado: %s.\n", nm_municipio_enderecado);
+
+	  sql_error(sqlca.sqlerrm.sqlerrmc);
+	 }
+   	 
+}
+/***************************************************/
+/*     Fun��o Gravar Informa��o Rendimento dos S�cios      */
+/***************************************************/
+void ProcessarInformRendSocio (char *buf_aux)
+{
+ 
+char  cd_cpf_socio_titular[11+1]; 
+char  nm_socio[60+1]; 
+double vl_rend_isen_pg_socio = 0;
+double vl_rend_trib_pg_socio = 0;
+double pc_participacao_socio = 0;
+double vl_ir_retido = 0;
+
+strcpy(cd_cpf_socio_titular,mExtractField(buf_aux,Separator,2,Field,FieldSize));
+strcpy(nm_socio,mExtractField(buf_aux,Separator,3,Field,FieldSize));
+vl_rend_isen_pg_socio          = atof(mExtractFieldFloat(buf_aux,Separator,4,Field,FieldSize)); 
+vl_rend_trib_pg_socio          = atof(mExtractFieldFloat(buf_aux,Separator,5,Field,FieldSize)); 
+pc_participacao_socio          = atof(mExtractFieldFloat(buf_aux,Separator,6,Field,FieldSize)); 
+vl_ir_retido                   = atof(mExtractFieldFloat(buf_aux,Separator,7,Field,FieldSize)); 
+
+  EXEC SQL  
+	INSERT INTO adm_objetos.DEFIS_d5200_iden_rend_socio 
+		(
+		id_declaracao, 
+		cd_cpf_socio_titular, 
+		nm_socio, 	
+		vl_rend_isen_pg_socio, 
+		vl_rend_trib_pg_socio, 
+		pc_participacao_socio, 
+		vl_ir_retido
+		)
+VALUES (
+        :id_declaracao, 
+        :cd_cpf_socio_titular, 		
+		:nm_socio, 	
+        :vl_rend_isen_pg_socio, 
+        :vl_rend_trib_pg_socio, 
+        :pc_participacao_socio, 
+        :vl_ir_retido
+       );
+	   
+  if (sqlca.sqlcode != 0)
+	 {
+	  fprintf(fp_output,"%s - erro INSERT INTO DEFIS_d5200_iden_rend_socio.\n",CurrentDateTime(DataHora,1));
+	  sql_error(sqlca.sqlerrm.sqlerrmc);
+	 }
+   		 
+}
+/***************************************************************/
+/*     Fun��o Gravar Informa��o Receita Comerial Exportacao    */
+/***************************************************************/
+void ProcessarInformReceitaComerExportacao (char *buf_aux)
+{
+char  cd_cnpj[14+1];
+double vl_total = 0;
+
+  strcpy(cd_cnpj,mExtractField(buf_aux,Separator,2,Field,FieldSize));
+  vl_total          = atof(mExtractFieldFloat(buf_aux,Separator,3,Field,FieldSize)); 
+  
+  EXEC SQL  
+	INSERT INTO adm_objetos.DEFIS_d5100_rec_comerc_export 
+	             (
+					id_declaracao, 
+					cd_cnpj, 
+					vl_total				 
+				 )
+	 VALUES		 (
+				   :id_declaracao, 
+				   :cd_cnpj, 
+				   :vl_total				 
+				 );
+  if (sqlca.sqlcode != 0)
+	 {
+	  fprintf(fp_output,"%s - erro INSERT INTO DEFIS_d5100_rec_comerc_export.\n",CurrentDateTime(DataHora,1));
+	  sql_error(sqlca.sqlerrm.sqlerrmc);
+	 } 
+   		 
+}
+/***************************************/
+/*     Fun��o Gravar Informa��o EMpresa      */
+/***************************************/
+void ProcessarInformEmpresa (char *buf_aux)
+{
+
+  double vl_ganhos_capital = 0;
+  double vl_lucro_contabil = 0;
+  int   qt_empregados_inicial;
+  int   qt_empregados_final;
+  double vl_export_direta = 0;
+  double vl_tot_ganhos_liq = 0;
+  int   st_inativo_prim_sem;
+  float VL_PC_COTAS_TESOUR_CAP_SOCIAL = 0;
+  
+vl_ganhos_capital     = atof(mExtractFieldFloat(buf_aux,Separator,2,Field,FieldSize)); 
+vl_lucro_contabil     = atof(mExtractFieldFloat(buf_aux,Separator,3,Field,FieldSize)); 
+qt_empregados_inicial = atol(mExtractField(buf_aux,Separator,4,Field,FieldSize));
+qt_empregados_final   = atol(mExtractField(buf_aux,Separator,5,Field,FieldSize));
+vl_export_direta      = atof(mExtractFieldFloat(buf_aux,Separator,6,Field,FieldSize)); 
+vl_tot_ganhos_liq     = atof(mExtractFieldFloat(buf_aux,Separator,7,Field,FieldSize)); 
+st_inativo_prim_sem   = atol(mExtractFieldFimLinha(buf_aux,Separator,8,Field,FieldSize));  
+VL_PC_COTAS_TESOUR_CAP_SOCIAL = atof(mExtractFieldFloat(buf_aux,Separator,9,Field,FieldSize)); 
+
+  EXEC SQL  
+	INSERT INTO adm_objetos.DEFIS_d5000_info_empresa
+                (
+				id_declaracao, 			
+				vl_ganhos_capital, 
+				vl_lucro_contabil, 
+				qt_empregados_inicial, 
+				qt_empregados_final, 
+				vl_export_direta, 
+				vl_tot_ganhos_liq, 
+				st_inativo_prim_sem,
+				VL_PC_COTAS_TESOUR_CAP_SOCIAL
+                )
+     VALUES     (
+				:id_declaracao, 
+				:vl_ganhos_capital, 
+				:vl_lucro_contabil, 
+				:qt_empregados_inicial, 
+				:qt_empregados_final, 
+				:vl_export_direta, 
+				:vl_tot_ganhos_liq, 
+				:st_inativo_prim_sem,
+                :VL_PC_COTAS_TESOUR_CAP_SOCIAL 				
+                );
+
+  if (sqlca.sqlcode != 0)
+	 {
+	  fprintf(fp_output,"%s - erro INSERT INTO DEFIS_d5000_info_empresa.\n",CurrentDateTime(DataHora,1));
+	  sql_error(sqlca.sqlerrm.sqlerrmc);
+	 }
+
+}
+/******************************************************/
+/*     Fun��o Gravar Identifica��o Arquivo Digital    */
+/******************************************************/
+void GravarIdentArquivo (char *buf_aux)
+{
+ 
+char cnm_arquivo[250+1]; 
+char cdt_inicio[8+1]; 
+char dt_inicio[8+1]; 
+char cdt_final[8+1];
+char dt_final[8+1];
+char cdt_inclusao[18+1]; 
+char cnm_usuario_inclusao[30+1];
+
+cd_versao = atol(mExtractField(buf_aux,Separator,2,Field,FieldSize));
+strcpy(cnm_arquivo,p->d_name);
+
+strcpy(cdt_inclusao,CurrentDateTime(DataHora,2));
+strcpy(cnm_usuario_inclusao,usuario);
+
+
+strcpy(cdt_inicio,mExtractField(buf_aux,Separator,3,Field,FieldSize));
+
+/*
+cdt_inicio[0]=dt_inicio[0];
+cdt_inicio[1]=dt_inicio[1];
+cdt_inicio[2]=dt_inicio[2];
+cdt_inicio[3]=dt_inicio[3];
+cdt_inicio[4]=dt_inicio[4];
+cdt_inicio[5]=dt_inicio[5];
+cdt_inicio[6]=dt_inicio[6];
+cdt_inicio[7]=dt_inicio[7];
+cdt_inicio[8]='\0';
+*/
+
+strncpy(dt_final, mExtractFieldFimLinha(buf_aux,Separator,4,Field,FieldSize),8);
+
+cdt_final[0]=dt_final[0];
+cdt_final[1]=dt_final[1];
+cdt_final[2]=dt_final[2];
+cdt_final[3]=dt_final[3];
+cdt_final[4]=dt_final[4];
+cdt_final[5]=dt_final[5];
+cdt_final[6]=dt_final[6];
+cdt_final[7]=dt_final[7];
+cdt_final[8]='\0';
+
+  EXEC SQL 
+     INSERT INTO adm_objetos.DEFIS_ARQUIVO_DIGITAL 
+	                                    (sq_arquivo, 
+                                         cd_versao , 
+                                         nm_arquivo, 
+                                         dt_inicio, 
+                                         dt_final,
+                                         dt_inclusao, 
+                                         nm_usuario_inclusao) 
+     VALUES (:sq_arquivo,
+	         :cd_versao,
+			 :cnm_arquivo||chr(0),
+			 to_date(:cdt_inicio,'yyyymmdd')||chr(0),
+			 to_date(:cdt_final,'yyyymmdd')||chr(0),
+			 to_date(:cdt_inclusao,'yyyymmddhh24:mi:ss')||chr(0),
+			 :cnm_usuario_inclusao||chr(0)
+	        );					
+			 
+  if (sqlca.sqlcode != 0)
+     {
+      fprintf(fp_output,"%s - erro INSERT INTO DEFIS_ARQUIVO_DIGITAL.\n",CurrentDateTime(DataHora,1));
+      sql_error(sqlca.sqlerrm.sqlerrmc);
+     }     
+
+}
+/*****************************************************************/
+/*     Fun��o Tratamento Dados Nao Optante c/ Processo Administrativo       */
+/*****************************************************************/
+void ProcessarNaoOptProcAdministrativo (char *buf_aux)
+{
+ 
+int    id_adm_protocolado;
+char   nm_uf_reparticao[2+1];
+char   cd_munic_reparticao[5+1];
+char   nm_munic_reparticao[50+1];
+char   nu_processo[24+1];
+char   dt_inicio[6+1];
+char   dt_fim[6+1];
+
+  id_adm_protocolado = atol(mExtractField(buf_aux,Separator,2,Field,FieldSize));
+  strcpy(nm_uf_reparticao,mExtractField(buf_aux,Separator,3,Field,FieldSize));
+  strcpy(cd_munic_reparticao,mExtractField(buf_aux,Separator,4,Field,FieldSize));
+  strcpy(nm_munic_reparticao,mExtractField(buf_aux,Separator,5,Field,FieldSize));  
+  strcpy(nu_processo,mExtractField(buf_aux,Separator,6,Field,FieldSize));  
+  strcpy(dt_inicio,mExtractField(buf_aux,Separator,7,Field,FieldSize));
+  strcpy(dt_fim,mExtractFieldFimLinha(buf_aux,Separator,8,Field,FieldSize));
+    	
+    EXEC SQL 
+     INSERT INTO adm_objetos.DEFIS_d2001_nao_opt_proc_adm 
+	        (
+			id_declaracao, 
+            id_adm_protocolado, 
+            nm_uf_reparticao, 
+            cd_munic_reparticao, 
+            nm_munic_reparticao, 
+            nu_processo, 
+            dt_inicio, 
+            dt_fim
+	        )
+	 VALUES (
+			:id_declaracao, 
+            :id_adm_protocolado, 
+            :nm_uf_reparticao, 
+            :cd_munic_reparticao, 
+            :nm_munic_reparticao, 
+            :nu_processo, 
+            :dt_inicio, 
+            :dt_fim	 
+	        );
+			
+     if (sqlca.sqlcode != 0)
+        {
+         fprintf(fp_output,"%s - erro INSERT INTO DEFIS_d2001_nao_opt_proc_adm .\n",CurrentDateTime(DataHora,1));
+         sql_error(sqlca.sqlerrm.sqlerrmc);
+        }  			
+  
+}
+/****************************************************/
+/*     Fun��o Tratamento Dados Evento Situacao Especial      */
+/***************************************************/
+void ProcessarEventoSituacEspecial (char *buf_aux)
+{
+
+int    id_evento;
+char   dt_evento[8+1];
+
+  id_evento = atol(mExtractField(buf_aux,Separator,2,Field,FieldSize));
+
+  strcpy(dt_evento,mExtractFieldFimLinha(buf_aux,Separator,3,Field,FieldSize));
+  
+  EXEC SQL 
+     INSERT INTO adm_objetos.DEFIS_D2000_EVENTO_SITUAC_ESP 
+             (id_declaracao, 
+              id_evento, 
+              dt_evento)
+     VALUES  (:id_declaracao,
+	          :id_evento,
+			  :dt_evento
+	         );
+			 
+     if (sqlca.sqlcode != 0)
+        {
+         fprintf(fp_output,"%s - erro INSERT INTO DEFIS_D2000_EVENTO_SITUAC_ESP - Declaração : %s.\n",CurrentDateTime(DataHora,1),id_declaracao);
+         sql_error(sqlca.sqlerrm.sqlerrmc);
+        }    
+   			
+}
+/**************************************************/
+/*     Fun��o Tratamento Dados de Identifica��o Anual      */
+/**************************************************/
+void ProcessarIdentDeclarAnual (char *buf_aux)
+{
+
+int    tp_declaracao;
+int    nu_exercicio;
+char   nm_razao_social[150+1];
+char   dt_abertura[8+1];
+char   dt_inicio_atividades[8+1];
+long   nu_recibo;
+long   nu_autenticacao;
+char   dt_transmissao[14+1];
+char   cd_versao[9+1];
+char   tp_regime[1+1];
+
+  tp_declaracao = atol(mExtractField(buf_aux,Separator,3,Field,FieldSize));
+  nu_exercicio  = atol(mExtractField(buf_aux,Separator,4,Field,FieldSize));
+  strcpy(nm_razao_social,mExtractField(buf_aux,Separator,5,Field,FieldSize));
+  strcpy(dt_abertura,mExtractField(buf_aux,Separator,6,Field,FieldSize));
+  strcpy(dt_inicio_atividades,mExtractField(buf_aux,Separator,7,Field,FieldSize));
+  nu_recibo = atol(mExtractField(buf_aux,Separator,8,Field,FieldSize));
+  nu_autenticacao = atol(mExtractField(buf_aux,Separator,9,Field,FieldSize));
+  strcpy(dt_transmissao,mExtractField(buf_aux,Separator,10,Field,FieldSize));
+  strcpy(cd_versao,mExtractField(buf_aux,Separator,11,Field,FieldSize));
+  strncpy(tp_regime,mExtractFieldFimLinha(buf_aux,Separator,12,Field,FieldSize),1);
+  
+  EXEC SQL 
+     INSERT INTO adm_objetos.DEFIS_d1000_declaracao_anual 
+	                                   (id_declaracao, 
+                                        tp_declaracao, 
+                                        nu_exercicio, 
+                                        nm_razao_social, 
+                                        sq_arquivo, 
+                                        dt_abertura, 
+                                        dt_inicio_atividades, 
+                                        nu_recibo, 
+                                        nu_autenticacao, 
+                                        dt_transmissao, 
+                                        cd_versao,
+										tp_regime
+                                       )   
+
+              
+			       VALUES (:id_declaracao, 
+                                        :tp_declaracao, 
+                                        :nu_exercicio, 
+                                        :nm_razao_social, 
+                                        :sq_arquivo, 
+                                        :dt_abertura, 
+                                        :dt_inicio_atividades, 
+                                        :nu_recibo, 
+                                        :nu_autenticacao, 
+                                        :dt_transmissao, 
+                                        :cd_versao,
+										:tp_regime);
+										
+           if (sqlca.sqlcode != 0)
+              {
+               fprintf(fp_output,"%s - erro INSERT INTO DEFIS_d1000_declaracao_anual .\n",CurrentDateTime(DataHora,1));
+               sql_error(sqlca.sqlerrm.sqlerrmc);
+              }    
+					  
+}
+/*****************************************************************/
+/*                  Carregar as linhas do arquivo                */
+/*****************************************************************/
+Processa_Arquivo(char *base_file_dir)
+{
+
+int    ct_lidos      = 0;
+int    CtlHeader     = 0;
+int    CtlDetalhe    = 0;
+int    CtlTrailler   = 0;
+int    WordSize      = 0;
+int    Tamanho       = 0;
+char   vCodVersao[3+1];
+int    nEncCnpjRN = 0;
+char   vNucleoCnpj[8+1];
+strcpy(Separator,"|");
+int    tp_declaracao;
+int    nu_exercicio;
+char   vTipoRegistro[5];
+FieldSize = sizeof(Field); 
+char   buf_aux[4096];
+
+while ((fgets(buf_aux,sizeof(buf_aux),fp_input) != 0) )
+   {  
+   
+    ct_lidos++;
+       
+	strncpy(vTipoRegistro,mExtractField(buf_aux,Separator,1,Field,FieldSize),5);
+
+	strcpy(vDepurarTipoRegistro,vTipoRegistro);
+
+/*    printf("Registro Lidos => %d - TipoRegistro: %s.\n",ct_lidos,vTipoRegistro);	*/
+	
+	if (strncmp(vTipoRegistro,"AAAAA",5)==0)
+       {	
+        EXEC SQL 
+           Select ADM_OBJETOS.DEFIS_SQ_ARQUIVO.nextval
+           Into   :sq_arquivo
+           from   dual;
+
+        if (sqlca.sqlcode != 0)
+           {
+            fprintf(fp_output,"%s - Erro Obtendo Valor da SEQUENCE DEFIS_SQ_ARQUIVO.\n",CurrentDateTime(DataHora,1));
+            sql_error(sqlca.sqlerrm.sqlerrmc);
+           }	
+	   	   
+        GravarIdentArquivo (buf_aux);
+		
+       }		   
+	else 
+	  {	
+       if (strncmp(vTipoRegistro,"D1000",5)==0)
+          { 
+		    nEncCnpjRN = 0;
+            strcpy(id_declaracao,mExtractField(buf_aux,Separator,2,Field,FieldSize));
+            tp_declaracao = atol(mExtractField(buf_aux,Separator,3,Field,FieldSize));
+            nu_exercicio  = atol(mExtractField(buf_aux,Separator,4,Field,FieldSize));		 
+            
+			strcpy(vDepurarDeclaracao,id_declaracao); 
+
+			vNucleoCnpj[0] = id_declaracao[0];
+            vNucleoCnpj[1] = id_declaracao[1];
+            vNucleoCnpj[2] = id_declaracao[2];
+            vNucleoCnpj[3] = id_declaracao[3];
+            vNucleoCnpj[4] = id_declaracao[4];
+            vNucleoCnpj[5] = id_declaracao[5];
+            vNucleoCnpj[6] = id_declaracao[6];
+            vNucleoCnpj[7] = id_declaracao[7];
+            vNucleoCnpj[8] = 0;
+
+			EXEC SQL 
+			   Select 1
+			   Into   :nEncCnpjRN
+			   From   ADM_OBJETOS.CAD_CONTRIBUINTE C
+			   Where  substr(nu_cnpj,1,8) = :vNucleoCnpj
+			   And    rownum              = 1;
+
+			if ((sqlca.sqlcode != 0) && (sqlca.sqlcode != 1403))
+			   {
+				fprintf(fp_output,"%s - erro SELECT CAD_CONTRIBUINTE .\n",CurrentDateTime(DataHora,1));
+				sql_error(sqlca.sqlerrm.sqlerrmc);
+			   }		   
+
+			if (nEncCnpjRN==1) 
+                {			
+                 EXEC SQL 
+                    SELECT 0
+				    INTO   :nEncCnpjRN
+                    FROM   adm_objetos.DEFIS_d1000_declaracao_anual
+                    WHERE  ID_DECLARACAO = :id_declaracao
+                    AND    TP_DECLARACAO = :tp_declaracao
+                    AND    NU_EXERCICIO  = :nu_exercicio			
+                    AND    rownum        = 1;
+
+	             if ((sqlca.sqlcode != 0) && (sqlca.sqlcode != 1403))
+			        {
+                     fprintf(fp_output,"%s - erro Pesquisa DEFIS_d1000_declaracao_anual .\n",CurrentDateTime(DataHora,1));
+                     sql_error(sqlca.sqlerrm.sqlerrmc);
+                    }	
+										
+			    }
+/*		    else
+               {
+                fprintf(fp_output,"%s - Reg. Desprezado - Sem Inscrição Municipal - Núcleo CNPJ: %s - id_declaracao: %s - tp_declaracao: %d - nu_exercicio: %d .\n",CurrentDateTime(DataHora,1),vNucleoCnpj,id_declaracao,tp_declaracao,nu_exercicio);			   
+               }			   
+*/				
+            if (nEncCnpjRN == 1)
+               {
+                ProcessarIdentDeclarAnual (buf_aux);			 			   
+               }			   
+          }    
+	   else	
+      {	   
+       if (strncmp(vTipoRegistro,"D2000",5)==0)
+          { 
+		   if (nEncCnpjRN == 1)		   
+               ProcessarEventoSituacEspecial (buf_aux);
+          }    
+	   else		   
+      {
+       if (strncmp(vTipoRegistro,"D2001",5)==0)
+          {   
+ 		   if (nEncCnpjRN == 1)
+               ProcessarNaoOptProcAdministrativo (buf_aux);
+          }    
+	   else
+      {	   
+       if (strncmp(vTipoRegistro,"D5000",5)==0)
+          { 
+		   if (nEncCnpjRN == 1)		  
+               ProcessarInformEmpresa (buf_aux); 
+          }							  
+       else
+      {
+       if ((strncmp(vTipoRegistro,"D5100",5)==0))
+          { 
+		   if (nEncCnpjRN == 1)		  
+               ProcessarInformReceitaComerExportacao (buf_aux); 
+          }							  
+       else
+      {
+       if ((strncmp(vTipoRegistro,"D5200",5)==0))
+          { 
+		   if (nEncCnpjRN == 1)		  
+               ProcessarInformRendSocio (buf_aux); 
+          }							  
+       else
+      {
+       if ((strncmp(vTipoRegistro,"D5300",5)==0))
+          { 
+		   if (nEncCnpjRN == 1)		  
+               ProcessarInformDetalheEstabelec (buf_aux); 
+          }							  
+       else
+      {
+       if ((strncmp(vTipoRegistro,"D5310",5)==0))
+          { 
+		   if (nEncCnpjRN == 1)		  
+               ProcessarInformOperInterestadual (buf_aux); 
+          }							  
+       else
+      {
+       if ((strncmp(vTipoRegistro,"D5320",5)==0))
+          { 
+		   if (nEncCnpjRN == 1)		  
+               ProcessarInformIssRetidoNaFonte (buf_aux); 
+          }							  
+       else
+      {
+       if ((strncmp(vTipoRegistro,"D5330",5)==0))
+          { 
+		   if (nEncCnpjRN == 1)		  
+               ProcessarInformPrestServComunic (buf_aux); 
+          }							  
+       else
+      {
+       if ((strncmp(vTipoRegistro,"D5350",5)==0))
+          { 
+		   if (nEncCnpjRN == 1)		  
+               ProcessarInformOpcionaisEmpresa (buf_aux); 
+          }							  
+       else
+	  {
+       if ((strncmp(vTipoRegistro,"D5352",5)==0))
+          { 
+		   if (nEncCnpjRN == 1)		  
+               ProcessarInformRevAmbAutonomo (buf_aux); 
+          }							  
+       else
+	  {
+       if ((strncmp(vTipoRegistro,"D5353",5)==0))
+          { 
+		   if (nEncCnpjRN == 1)		
+		   
+               ProcessarInformRefeicoesMunicipioD5353 (buf_aux); 
+          }							  
+       else
+	  {
+       if ((strncmp(vTipoRegistro,"D5354",5)==0))
+          { 
+		   if (nEncCnpjRN == 1)		
+				   
+               ProcessarInformProdutorRural (buf_aux); 
+          }							  
+       else
+	  {
+       if ((strncmp(vTipoRegistro,"D5355",5)==0))
+          { 
+		   if (nEncCnpjRN == 1)		 
+			   
+               ProcessarInformAquisicaoMercRural (buf_aux); 
+          }							  
+       else
+	  {
+       if ((strncmp(vTipoRegistro,"D5356",5)==0))
+          { 
+		   if (nEncCnpjRN == 1)		
+	   
+               ProcessarInformAquisicaoMercContribDispensados (buf_aux); 
+          }							  
+       else
+	  {
+       if (strncmp(vTipoRegistro,"D5014",5)==0) 
+          { 
+		   if (nEncCnpjRN == 1)		
+				   
+               ProcessarInformRateioReceita (buf_aux); 
+          }							  
+       else
+	  {
+       if (strncmp(vTipoRegistro,"D5357",5)==0) 
+          { 
+		   if (nEncCnpjRN == 1)	
+			   
+               ProcessarInformRateioReceitaSEFAZ (buf_aux); 
+          }							  
+       else
+	  {
+       if (strncmp(vTipoRegistro,"D5370",5)==0)
+          { 
+		   if (nEncCnpjRN == 1)		  
+ 
+               ProcessarInformPrestacaoServTransp (buf_aux); 
+          }	
+	   else
+	  {
+	   if (strncmp(vTipoRegistro,"D5360",5)==0)
+          { 
+		   if (nEncCnpjRN == 1)	
+	   
+               ProcessarInformMudancaEndereco (buf_aux); 
+          }	
+	   else
+	   {
+	   if (strncmp(vTipoRegistro,"D5361",5)==0)
+          { 
+		   if (nEncCnpjRN == 1)		 
+ 
+               ProcessarInformOpcionais (buf_aux); 
+          }	
+	   else
+	   {
+	   if (strncmp(vTipoRegistro,"D5362",5)==0)
+          { 
+		   if (nEncCnpjRN == 1)		  
+					   
+               ProcessarInformRevenAmbAuto (buf_aux); 
+          }	
+	   else	
+	   {
+	   if (strncmp(vTipoRegistro,"D5363",5)==0)
+          { 
+		   if (nEncCnpjRN == 1)		  
+
+               ProcessarInformRefeicoesMunicipioD5363 (buf_aux); 
+          }	
+	   else	   
+  	   {	
+	   if (strncmp(vTipoRegistro,"D5364",5)==0)
+          { 
+		   if (nEncCnpjRN == 1)	
+	   
+               ProcessarInformProducaoRural (buf_aux); 
+          }	
+	   else		
+  	   {	
+	   if (strncmp(vTipoRegistro,"D5365",5)==0)
+          { 
+		   if (nEncCnpjRN == 1)		
+
+               ProcessarInformAquisicaoMerRural (buf_aux); 
+          }	
+	   else		   
+  	   {	   
+	   if (strncmp(vTipoRegistro,"D5366",5)==0)
+          { 
+		   if (nEncCnpjRN == 1)		  
+
+               ProcessarInformAquiMerContrib (buf_aux); 
+          }	
+	   else	
+  	   {	   
+	   if (strncmp(vTipoRegistro,"D5367",5)==0)
+          { 
+		   if (nEncCnpjRN == 1)		 
+
+               ProcessarInformRateioRecSefaz (buf_aux); 
+          }		   
+	   else
+	   {
+	   if ((strncmp(vTipoRegistro,"99999",5)!=0)&&(strncmp(vTipoRegistro,"D9999",5)!=0)&&(strncmp(vTipoRegistro,"ZZZZZ",5)!=0)&&(strncmp(vTipoRegistro,"     ",5)!=0))
+          {
+			fprintf(fp_output,"%s - Tipo Registro Invalido : %s - ct_lidos: %d.\n",CurrentDateTime(DataHora,1),vTipoRegistro,ct_lidos);
+
+            EXEC SQL ROLLBACK;
+			
+            Move_Files_Erro();
+			  			  		  					
+			EXEC SQL 
+				 UPDATE adm_objetos.DEFIS_NIGHT_BATCH_QUEUE
+				 SET ST_PROCESSO = 'OFF';     
+					 
+			EXEC SQL COMMIT;	
+			  
+            DesconectaBD();
+                            
+            exit(1);
+
+		  }		
+	  }
+      }   
+      }						   
+      }						
+      }					 
+      }				  
+	  }
+      } 
+	  }
+	  }
+      }							  
+      }						   
+      }						
+      }					 
+      }				  
+      }			   
+	  }
+	  }
+	  }
+      }
+      }
+      }
+      }
+      }
+      }
+      }
+      }
+      }	  
+	  
+   }   
+
+} 
+/************************************************************************/
+/*                      Abre arquivo de Log                             */
+/************************************************************************/
+Open_Log(char *prog, char *log_dir)
+{
+  if(strchr(prog,'/'))
+    strcpy(prog_name,strrchr(prog,'/') + 1);
+  else
+    strcpy(prog_name,prog);
+
+  sprintf(log_file,"%s/%s_%s.LOG", log_dir, prog_name,CurrentDateTime(DataHora,2));    
+
+  if((fp_output=fopen(log_file,"a+")) == NULL)
+       {
+         fprintf(stderr,"%s - Falha na abertura do arquivo de log: %s.\nErrno %d \n",CurrentDateTime(DataHora,1),
+                      log_file, errno);									  
+         DesconectaBD();
+		 exit(1);
+       }
+}
+
+/**********************************************************************/
+/*                 Conecta ao Banco de Dados			      */
+/**********************************************************************/
+ConectaBD(char *User, char *Password, char *Database)
+{
+  EXEC SQL BEGIN DECLARE SECTION;
+    varchar dbUser       [ 40 ];
+    varchar dbPassword   [ 40 ];
+    varchar dbDatabase   [ 40 ];
+  EXEC SQL END DECLARE SECTION;
+
+  dbUser.len     = strlen(User);
+  dbPassword.len = strlen(Password);
+  dbDatabase.len = strlen(Database);
+
+  strncpy (dbUser.arr    , User    , dbUser.len    );
+  strncpy (dbPassword.arr, Password, dbPassword.len);
+  strncpy (dbDatabase.arr, Database, dbDatabase.len);
+
+  oraca.orastxtf = ORASTFERR;
+  EXEC SQL CONNECT :dbUser
+     IDENTIFIED BY :dbPassword
+             USING :dbDatabase;
+
+  return(0);
+}
+
+/**********************************************************************/
+/*                 Desconecta ao Banco de Dados			      */
+/**********************************************************************/
+DesconectaBD()
+{
+  EXEC SQL ROLLBACK;
+  EXEC SQL COMMIT WORK RELEASE;
+  fprintf(fp_output,"Desconexao com o BD efetuada com sucesso.\n");
+
+}
+
+/**********************************************************************/
+sql_error(msg)
+char *msg;
+{
+    fprintf(fp_output,"\n%s", msg);
+    sqlca.sqlerrm.sqlerrmc[sqlca.sqlerrm.sqlerrml] = '\0';
+    oraca.orastxt.orastxtc[oraca.orastxt.orastxtl] = '\0';
+    oraca.orasfnm.orasfnmc[oraca.orasfnm.orasfnml] = '\0';
+    fprintf(fp_output,"\n%s\n", sqlca.sqlerrm.sqlerrmc);
+    fprintf(fp_output,"in \"%s...\"\n", oraca.orastxt.orastxtc);
+    fprintf(fp_output,"on line %d of %s.\n\n", 
+    oraca.oraslnr, oraca.orasfnm.orasfnmc);  
+
+    EXEC SQL ROLLBACK;		
+	
+    EXEC SQL 
+	  UPDATE adm_objetos.DEFIS_NIGHT_BATCH_QUEUE
+	  SET ST_PROCESSO = 'OFF';     
+			 
+    EXEC SQL COMMIT;
+		
+    DesconectaBD();
+    exit(1);
+}
+/**************************************************************/
+/*     Move arquivo processado para diretorio especifico      */
+/**************************************************************/
+void Move_Files()
+{
+  fprintf(fp_output,"Movendo arquivo %s para %s.\n", input_file_name, proc_input_file_name);
+  if(rename(input_file_name,proc_input_file_name) == ERRO)
+    { 
+       fprintf(fp_output,"errno = %d .\n",errno);
+
+	   EXEC SQL 
+		  UPDATE adm_objetos.DEFIS_NIGHT_BATCH_QUEUE
+		  SET ST_PROCESSO = 'OFF';     
+				 
+	   EXEC SQL COMMIT;
+	   			
+       DesconectaBD();
+       exit(1);
+    }
+
+}
+/**************************************************************/
+/*       Move arquivo c/ erro para diretorio especifico       */
+/**************************************************************/
+void Move_Files_Erro()
+{
+  fprintf(fp_output,"Movendo arquivo %s para %s.\n", input_file_name, erro_input_file_name);
+  if(rename(input_file_name,erro_input_file_name) == ERRO)
+    { 
+       fprintf(fp_output,"errno = %d .\n",errno);
+
+	   EXEC SQL 
+		  UPDATE adm_objetos.DEFIS_NIGHT_BATCH_QUEUE
+		  SET ST_PROCESSO = 'OFF';     
+				 
+	   EXEC SQL COMMIT;
+	   
+       DesconectaBD();
+
+       exit(1);
+    }
+
+}
+/**********************************************************************/
+void Close_Input_Output_Files()
+{
+  fclose(fp_input);
+
+}
+/******************************************************************************/
+char *mExtractFieldOcorrencias (const char *Line, char *Separator, int Ord, char *Field, int FieldSize)
+{
+  int N = 1, i, j;
+
+  if (Ord < 1)
+     Field[0] = 0;
+  else {
+     i = 0;  while (N < Ord && Line[i] != '\n' && Line[i] != '\r' && Line[i] != 0) if (Line[i++] == *Separator) N++;
+     j = i;  while (Line[j] != *Separator && Line[j] != '\n' && Line[j] != '\r' && Line[j] != 0) j++;
+
+	 if ((Line[j] == '\n') || (Line[j] == '\r') || (Line[j] == 0))
+         EncFimLinha = 1;
+	 
+     N = j - i;  if (N >= FieldSize) N = FieldSize - 1;
+     memcpy (Field, Line + i, N);
+     Field[N] = 0;
+  }
+
+  return Field;
+}
+/******************************************************************************/
+char *mExtractField (const char *Line, char *Separator, int Ord, char *Field, int FieldSize)
+{
+  int N = 1, i, j;
+
+  if (Ord < 1)
+     Field[0] = 0;
+  else {
+     i = 0;  while (N < Ord && Line[i] != '\n' && Line[i] != '\r' && Line[i] != 0) if (Line[i++] == *Separator) N++;
+     j = i;  while (Line[j] != *Separator && Line[j] != '\n' && Line[j] != '\r' && Line[j] != 0) j++;
+
+     N = j - i;  if (N >= FieldSize) N = FieldSize - 1;
+     memcpy (Field, Line + i, N);
+     Field[N] = 0;
+  }
+  
+  return Field;
+  
+}
+/******************************************************************************/
+char *mExtractFieldFimLinha (const char *Line, char *Separator, int Ord, char *Field, int FieldSize)
+{
+  int N = 1, i, j;
+  int Y = 0;
+  
+  if (Ord < 1)
+     Field[0] = 0;
+  else {
+     i = 0;  while (N < Ord && Line[i] != '\n' && Line[i] != '\r' && Line[i] != 0) if (Line[i++] == *Separator) N++;
+     j = i;  while (Line[j] != *Separator && Line[j] != '\n' && Line[j] != '\r' && Line[j] != 0) j++;
+
+     Y = j; while (  Line[Y] == '\n' || Line[Y] == '\r' || Line[Y] == ' ') Y--; 
+
+	 N = (Y + 1) - i;
+	 
+     memcpy (Field, Line + i, N);
+
+     Field[N] = 0;
+  }
+  
+  return Field;
+  
+}
+/******************************************************************************/
+char *mExtractFieldFloatOcorrencias (const char *Line, char *Separator, int Ord, char *Field, int FieldSize)
+{
+  int N = 1, i, j;
+
+  if (Ord < 1)
+     Field[0] = 0;
+  else {
+     i = 0;  
+	 while (N < Ord && Line[i] != '\n' && Line[i] != '\r' && Line[i] != 0 && Line[i] != ' ') if (Line[i++] == *Separator) N++;
+     j = i;  while (Line[j] != *Separator && Line[j] != '\n' && Line[j] != '\r' && Line[j] != 0 && Line[j] != ' ') j++;
+
+ 	 if ((Line[j] == '\n') || (Line[j] == '\r') || (Line[j] == 0) || (Line[j] == ' '))
+         EncFimLinha = 1;
+	 
+     N = j - i;  if (N >= FieldSize) N = FieldSize - 1;
+     memcpy (Field, Line + i, N);
+     Field[N] = 0;
+  }
+  
+  i = 0;
+  for(i = 0; i < strlen(Field); i++)
+  {
+   if (Field[i] == ',')
+      {
+       Field[i] = '.';
+      }
+
+  } 
+  
+  
+  
+  
+  return Field;
+}
+/******************************************************************************/
+char *mExtractFieldFloat (const char *Line, char *Separator, int Ord, char *Field, int FieldSize)
+{
+  int N = 1, i, j;
+
+  if (Ord < 1)
+     Field[0] = 0;
+  else {
+     i = 0;  
+	 while (N < Ord && Line[i] != '\n' && Line[i] != '\r' && Line[i] != 0 && Line[i] != ' ') if (Line[i++] == *Separator) N++;
+     j = i;  while (Line[j] != *Separator && Line[j] != '\n' && Line[j] != '\r' && Line[j] != 0 && Line[j] != ' ') j++;
+     N = j - i;  if (N >= FieldSize) N = FieldSize - 1;
+     memcpy (Field, Line + i, N);
+     Field[N] = 0;
+  }
+  
+  i = 0;
+  for(i = 0; i < strlen(Field); i++)
+  {
+   if (Field[i] == ',')
+      {
+       Field[i] = '.';
+      }
+
+  } 
+    
+  return Field;
+}
+/********************************/
+/* Devolve a data/hora corrente */
+/********************************/
+char *CurrentDateTime (char *DataHora,int formato)
+{
+  int  dia,mes,ano,hora,minuto,segundo;
+  struct tm *local;
+  time_t t;
+  t= time(NULL);
+  local=localtime(&t);
+
+  dia=local->tm_mday;
+  mes=local->tm_mon+1;
+  ano=local->tm_year+1900;
+  hora=local->tm_hour;
+  minuto=local->tm_min;
+  segundo=local->tm_sec;
+  
+  if (formato == 1) {
+      sprintf(DataHora,"%02lu/%02lu/%02lu %02d:%02d:%02d",dia,mes,ano,hora,minuto,segundo);
+     }
+  else {
+        if (formato == 2)
+		   {
+            sprintf(DataHora,"%04lu%02d%02d%02d%02d%02d",ano,mes,dia,hora,minuto,segundo);
+		   }
+	   }
+  return DataHora;
+}
+/************************************************************************/
+/*          Funcao verifica status do Pid da extracao no Unix           */
+/************************************************************************/
+int StatusProcUnixPid(int N)
+{
+int w_ind_status_seq_unix_Pid;
+   
+   w_ind_status_seq_unix_Pid = CmdUnix ("-0",N);  
+   
+   return w_ind_status_seq_unix_Pid;	
+}
+/************************************************************************/
+/*           Funcao verifica status do PID da extracao no Unix          */
+/************************************************************************/
+int CmdUnix (char *tipoParm, int numPid)
+{
+int   verPid         = numPid; 	
+char  cmd_shell_unix [15]="";
+char *tipo_Parm_unix = tipoParm;
+int   resCmd         = 0;
+
+    sprintf(cmd_shell_unix,"kill %s %d",tipo_Parm_unix,verPid);
+    resCmd = system(cmd_shell_unix);
+
+    printf("cmd: %s - Resulta: %d\n",cmd_shell_unix,resCmd); 
+      
+    return resCmd;
+    
+}
+
+/**********************************************************************/
+void Get_Password()
+{
+
+  char buf_aux[255];
+
+  sprintf(input_file_name,"/sistemas/INCORPORACAO/SIMPLES_NACIONAL/DEFIS/LCK/%s", usuario);
+
+  if((fp_input=fopen(input_file_name,"r")) == NULL)
+    {
+      fprintf(fp_output,"[%s] Erro na abertura do arquivo restrito de senha.\n",CurrentDateTime(DataHora,1));
+      fprintf(fp_output,"[%s] errno = %d.\n", CurrentDateTime(DataHora,1),errno );
+      exit(1);
+    }
+
+  fread(buf_aux, 1, sizeof(buf_aux), fp_input);
+
+  int i, j = 0;
+  for(i = 0; buf_aux[i] != '\n'; i++)
+  {
+          cPassword[j] = buf_aux[i];
+
+          j++;
+  }
+
+
+}
