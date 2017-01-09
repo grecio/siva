@@ -13,7 +13,7 @@ namespace siva.api.Filters
 
                 filterContext.Result = new RedirectResult("~/Login/Index");
 
-                return;                
+                return;
             }
 
             base.OnActionExecuting(filterContext);
