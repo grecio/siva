@@ -20,21 +20,21 @@ namespace siva.api.Controllers
         [HttpPost]
         public ActionResult Entrar([System.Web.Http.FromBody]Dominio.Usuario usuario)
         {
-            try
+            //try
+            //{
+            var usuarioDb = bpUsuario.EfetuarLogin(usuario.LOGIN, usuario.SENHA);
+
+            if (usuarioDb.SQ_USUARIO > 0)
             {
-                var usuarioDb = bpUsuario.EfetuarLogin(usuario.LOGIN, usuario.SENHA);
-
-                if (usuarioDb.SQ_USUARIO > 0)
-                {
-                    Session["UsuarioLogado"] = usuarioDb;
-                }
-
-                return RedirectToAction("Index", "Principal");
+                Session["UsuarioLogado"] = usuarioDb;
             }
-            catch (Exception ex)
-            {
-                return RedirectToAction("Index");
-            }            
+
+            return RedirectToAction("Index", "Principal");
+            //}
+            //catch (Exception ex)
+            //{
+            //    return RedirectToAction("Index");
+            //}            
         }            
     }
 }
