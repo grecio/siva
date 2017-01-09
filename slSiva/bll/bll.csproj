@@ -41,6 +41,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BLLContador.cs" />
+    <Compile Include="BLLCteDestinatario.cs" />
+    <Compile Include="BLLCteTomadorRecebedor.cs" />
+    <Compile Include="BLLCteTomadorExpedidor.cs" />
+    <Compile Include="BLLCteTomadorServico.cs" />
+    <Compile Include="BLLCteEmitente.cs" />
+    <Compile Include="BLLCteRemetente.cs" />
     <Compile Include="BLLGim.cs" />
     <Compile Include="BLLInformativoFiscal.cs" />
     <Compile Include="BLLPrefeitura.cs" />

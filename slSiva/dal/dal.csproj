@@ -54,6 +54,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DbCteDestinatario.cs" />
+    <Compile Include="DbCteTomadorRecebedor.cs" />
+    <Compile Include="DbCteTomadorExpedidor.cs" />
+    <Compile Include="DbCteTomadorServico.cs" />
+    <Compile Include="DbCteEmitente.cs" />
+    <Compile Include="DbCteRemetente.cs" />
     <Compile Include="DbContador.cs" />
     <Compile Include="DbGIM.cs" />
     <Compile Include="DbInformativoFiscal.cs" />

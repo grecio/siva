@@ -20,12 +20,59 @@
                     <div class="x_content">
                         <form class="form-horizontal form-label-left" method="post" action="@Url.Action("Consultar")" novalidate>
 
+
                             <div class="item form-group">
                                 <label class="control-label col-md-3 col-sm-3 col-xs-12">
-                                    CNPJ <span class="required">*</span>
+                                    CNPJ Tomador Expedidor: <span class="required">*</span>
                                 </label>
                                 <div class="col-md-2">
-                                    <input id="cnpj" class="form-control" name="CNPJ" placeholder="Informe o CNPJ" required="required" type="text" data-mask="cnpj">
+                                    <input id="cnpj" class="form-control" name="CnpjTomadorExpedidor" type="text" data-mask="cnpj" placeholder="Informe o CNPJ" required="required">
+                                </div>
+                            </div>
+
+                            <div class="item form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12">
+                                    CNPJ Destinatário:
+                                </label>
+                                <div class="col-md-2">
+                                    <input id="cnpj" class="form-control" name="CnpjDestinatario" type="text" data-mask="cnpj">
+                                </div>
+                            </div>
+
+                            <div class="item form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12">
+                                    CNPJ Emitente:
+                                </label>
+                                <div class="col-md-2">
+                                    <input id="cnpj" class="form-control" name="CnpjEmitente" type="text" data-mask="cnpj">
+                                </div>
+                            </div>
+
+                            <div class="item form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12">
+                                    CNPJ Remetente:
+                                </label>
+                                <div class="col-md-2">
+                                    <input id="cnpj" class="form-control" name="CnpjRemetente" type="text" data-mask="cnpj">
+                                </div>
+                            </div>
+
+
+                            <div class="item form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12">
+                                    CNPJ Tomador de Serviço:
+                                </label>
+                                <div class="col-md-2">
+                                    <input id="cnpj" class="form-control" name="CnpjTomadorServico" type="text" data-mask="cnpj">
+                                </div>
+                            </div>
+
+                            <div class="item form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12">
+                                    CNPJ Tomador Recebedor: 
+                                </label>
+                                <div class="col-md-2">
+                                    <input id="cnpj" class="form-control" name="CnpjTomadorRecebedor" type="text" data-mask="cnpj">
                                 </div>
                             </div>
 
@@ -34,17 +81,17 @@
                                     Período <span class="required">*</span>
                                 </label>
                                 <div class="col-md-1">
-                                    <input id="data_inicial" class="form-control date-picker" name="dataInicial" placeholder="Informe a Data Inicial" required="required" type="text" data-mask="date">
+                                    <input id="data_inicial" class="form-control" name="dataInicial" placeholder="DD/MM/AAAA" required="required" type="text" data-mask="date">
                                 </div>
                                 <div class="col-md-1">
-                                    <input id="data_final" class="form-control date-picker" name="dataFinal" placeholder="Informe a Data Final" required="required" type="text" data-mask="date">
+                                    <input id="data_final" class="form-control" name="dataFinal" placeholder="DD/MM/AAAA" required="required" type="text" data-mask="date">
                                 </div>
                             </div>
 
                             <div class="ln_solid"></div>
                             <div class="form-group">
                                 <div class="col-md-6 col-md-offset-3">
-                                    <button id="cmdConsultar" type="submit" class="btn btn-success" onclick="alert('em desenvolvimento'); return false;">Consultar</button>
+                                    <button id="cmdConsultar" type="submit" class="btn btn-success">Consultar</button>
                                 </div>
                             </div>
                         </form>

@@ -155,6 +155,7 @@
     </Compile>
     <Compile Include="Models\ContadorContribuinteViewModel.cs" />
     <Compile Include="Models\ContadorViewModel.cs" />
+    <Compile Include="Models\CteViewModel.cs" />
     <Compile Include="Models\GIMReferenciaViewModel.cs" />
     <Compile Include="Models\InformativoFiscalViewModel.cs" />
     <Compile Include="Models\GIMViewModel.cs" />
@@ -3130,6 +3131,12 @@
     <Content Include="Views\TomadorServicoCte\Index.cshtml" />
     <Content Include="Views\TomadorExpedidorCte\Index.cshtml" />
     <Content Include="Views\TomadorRecebedorCte\Index.cshtml" />
+    <Content Include="Views\RemetenteCte\Consultar.cshtml" />
+    <Content Include="Views\DestinatarioCte\Consultar.cshtml" />
+    <Content Include="Views\EmitenteCte\Consultar.cshtml" />
+    <Content Include="Views\TomadorServicoCte\Consultar.cshtml" />
+    <Content Include="Views\TomadorExpedidorCte\Consultar.cshtml" />
+    <Content Include="Views\TomadorRecebedorCte\Consultar.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="Content\vendors\moment\moment.d.ts" />

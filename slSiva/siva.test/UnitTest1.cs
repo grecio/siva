@@ -17,7 +17,7 @@ namespace siva.test
                 Assert.Fail();
 
             }
-            catch (Exception ex)
+            catch
             {
 
                 throw;

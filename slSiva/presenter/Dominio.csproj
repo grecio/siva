@@ -40,6 +40,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CteDestinatario.cs" />
+    <Compile Include="CteTomadorRecebedor.cs" />
+    <Compile Include="CteTomadorExpedidor.cs" />
+    <Compile Include="CteTomadorServico.cs" />
+    <Compile Include="CteEmitente.cs" />
+    <Compile Include="CteRemetente.cs" />
     <Compile Include="Contador.cs" />
     <Compile Include="Contribuinte.cs" />
     <Compile Include="GIM.cs" />
