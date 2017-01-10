@@ -19,16 +19,13 @@ namespace BLL
 
             using (var dao = new DAL.DbCteDestinatario())
             {
-
-                Validador.Validar(false, pDtInicioIntervalo + " - " + pDtFinalIntervalo);
-
+                
                 Validador.Validar(Validador.ValidarData(pDtInicioIntervalo), "Informe uma data inicial válida.");
                 Validador.Validar(Validador.ValidarData(pDtFinalIntervalo), "Informe uma data final válida.");
 
                 Validador.Validar(Convert.ToDateTime(pDtInicioIntervalo) <= Convert.ToDateTime(pDtFinalIntervalo), "A data inicial deve ser menor ou igual a data final.");
 
-                
-
+               
                 return dao.Listar(pNuCnpjRemetente, pNuCnpjEmitente, pNuCnpjDestinatario,
                     pNuCnpjTomadorServico, pNuCnpjTomExpedidor, pNuCnpjTomRecebedor, pDtInicioIntervalo, pDtFinalIntervalo, pCdMunicipio);
             }
