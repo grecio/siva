@@ -29,28 +29,28 @@ namespace siva.api.Controllers
                                         DateTime? dataInicial, DateTime? dataFinal, decimal? pCdMunicipio)
         {
 
-            try
+            //try
+            //{
+
+            var cteDestinatarioList = bpCteDestinatario.Listar(CnpjRemetente, CnpjEmitente, CnpjDestinatario,
+                                                        CnpjTomadorServico, CnpjTomadorExpedidor, CnpjTomadorRecebedor,
+                                                        dataInicial, dataFinal, pCdMunicipio);
+
+            var lista = new List<CteViewModel>();
+
+            foreach (var item in cteDestinatarioList)
             {
-
-                var cteDestinatarioList = bpCteDestinatario.Listar(CnpjRemetente, CnpjEmitente, CnpjDestinatario,
-                                                            CnpjTomadorServico, CnpjTomadorExpedidor, CnpjTomadorRecebedor,
-                                                            dataInicial, dataFinal, pCdMunicipio);
-
-                var lista = new List<CteViewModel>();
-
-                foreach (var item in cteDestinatarioList)
-                {
-                    lista.Add(new CteViewModel() { Destinatario = item });
-                }
-
-                return View(lista);
-
+                lista.Add(new CteViewModel() { Destinatario = item });
             }
-            catch (Exception ex)
-            {
-                ShowMsg(ex.Message);
-                return RedirectToAction("Index");
-            }
+
+            return View(lista);
+
+            //}
+            //catch (Exception ex)
+            //{
+            //    ShowMsg(ex.Message);
+            //    return RedirectToAction("Index");
+            //}
 
         }
     }
