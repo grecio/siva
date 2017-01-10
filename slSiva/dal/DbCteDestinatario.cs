@@ -15,7 +15,7 @@ namespace DAL
     {
         public IEnumerable<CteDestinatario> Listar(string pNuCnpjRemetente, string pNuCnpjEmitente, string pNuCnpjDestinatario,
                                             string pNuCnpjTomadorServico, string pNuCnpjTomExpedidor, string pNuCnpjTomRecebedor,
-                                            DateTime? pDtInicioIntervalo, DateTime? pDtFinalIntervalo, decimal? pCdMunicipio)
+                                            string pDtInicioIntervalo, string pDtFinalIntervalo, decimal? pCdMunicipio)
         {
             using (OracleConnection cnn = new OracleConnection(Properties.Settings.Default.ConnectionString))
             {
@@ -30,25 +30,10 @@ namespace DAL
                 parameters.Add("pNuCnpjTomExpedidor", Formatador.SoNumero(pNuCnpjTomExpedidor));
                 parameters.Add("pNuCnpjTomRecebedor", Formatador.SoNumero(pNuCnpjTomRecebedor));
 
-                if (pDtInicioIntervalo.HasValue)
-                {
-                    parameters.Add("pDtInicioIntervalo", pDtInicioIntervalo.Value.ToString("yyyyMMdd"));
-                }
-                else
-                {
-                    parameters.Add("pDtInicioIntervalo", null);
-                }
+                parameters.Add("pDtInicioIntervalo", Convert.ToDateTime(pDtInicioIntervalo).ToString("yyyyMMdd"));
 
-                if (pDtFinalIntervalo.HasValue)
-                {
-                    parameters.Add("pDtFinalIntervalo", pDtFinalIntervalo.Value.ToString("yyyyMMdd"));
-                }
-                else
-                {
-                    parameters.Add("pDtFinalIntervalo", null);
-                }
-
-
+                parameters.Add("pDtFinalIntervalo", Convert.ToDateTime(pDtFinalIntervalo).ToString("yyyyMMdd"));
+                
                 parameters.Add("pCdMunicipio", pCdMunicipio);
 
 

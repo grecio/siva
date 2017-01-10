@@ -26,7 +26,7 @@ namespace siva.api.Controllers
         [SessionExpire]
         public ActionResult Consultar(string CnpjRemetente, string CnpjEmitente, string CnpjDestinatario,
                                         string CnpjTomadorServico, string CnpjTomadorExpedidor, string CnpjTomadorRecebedor,
-                                        DateTime? dataInicial, DateTime? dataFinal, decimal? pCdMunicipio)
+                                        string dataInicial, string dataFinal, decimal? pCdMunicipio)
         {
 
             //try
