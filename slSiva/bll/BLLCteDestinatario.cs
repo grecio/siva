@@ -20,6 +20,8 @@ namespace BLL
             using (var dao = new DAL.DbCteDestinatario())
             {
 
+                Validador.Validar(false, pDtInicioIntervalo + " - " + pDtFinalIntervalo);
+
                 Validador.Validar(Validador.ValidarData(pDtInicioIntervalo), "Informe uma data inicial válida.");
                 Validador.Validar(Validador.ValidarData(pDtFinalIntervalo), "Informe uma data final válida.");
 
