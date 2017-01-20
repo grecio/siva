@@ -50,6 +50,7 @@
     <Compile Include="BLLGim.cs" />
     <Compile Include="BLLInformativoFiscal.cs" />
     <Compile Include="BLLPrefeitura.cs" />
+    <Compile Include="BLLResumoFinanceiro.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="BLLUsuario.cs" />
   </ItemGroup>

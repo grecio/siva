@@ -61,6 +61,7 @@
     <Compile Include="DbCteEmitente.cs" />
     <Compile Include="DbCteRemetente.cs" />
     <Compile Include="DbContador.cs" />
+    <Compile Include="DbResumoFinanceiro.cs" />
     <Compile Include="DbGIM.cs" />
     <Compile Include="DbInformativoFiscal.cs" />
     <Compile Include="DbPrefeitura.cs" />

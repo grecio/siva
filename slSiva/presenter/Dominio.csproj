@@ -55,6 +55,7 @@
     <Compile Include="InformativoFiscal.cs" />
     <Compile Include="ReferenciaInformativoFiscal.cs" />
     <Compile Include="Referencia.cs" />
+    <Compile Include="ResumoFinanceiro.cs" />
     <Compile Include="Usuario.cs" />
     <Compile Include="UsuarioPrefeitura.cs" />
   </ItemGroup>
