@@ -39,7 +39,7 @@
                                             {
                                                 if (item.Value != null)
                                                 {
-                                                   <td>@Html.Raw(Convert.ToDecimal(item.Value).ToString("C"))</td>
+                                                    <td>@Html.Raw(Convert.ToDecimal(item.Value).ToString("C"))</td>
                                                 }
                                                 else
                                                 {
@@ -91,19 +91,43 @@
         $(document).ready(function () {
 
             // Bar chart
+            var anos = [];
+            @foreach (var item in Model.Resumo.ANOS_RECEITA)
+             {
+                  <text>
+            anos.push(@item.Key);
+            </text>
+
+             }
+
+            var valores = [];
+            @foreach (var item in Model.Resumo.ANOS_RECEITA)
+            {
+                if (@item.Value == null)
+                {
+                        <text>
+            valores.push(0);
+            </text>
+                }
+                else
+                {
+                                    <text>
+            valores.push(@item.Value.ToString().Replace(",",""));
+            </text>
+                }
+
+            }
+
+
             var ctx = document.getElementById("mybarChart");
             var mybarChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: ["Janeiro", "Fevereiro", "Março'", "Abril", "Maio", "Junho", "Julho"],
+                    labels: anos,
                     datasets: [{
-                        label: '# of Votes',
-                        backgroundColor: "#26B99A",
-                        data: [51, 30, 40, 28, 92, 50, 45]
-                    }, {
-                        label: '# of Votes',
+                        label: 'Resumo',
                         backgroundColor: "#03586A",
-                        data: [41, 56, 25, 48, 72, 34, 12]
+                        data: valores
                     }]
                 },
 
