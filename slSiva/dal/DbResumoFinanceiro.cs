@@ -14,20 +14,20 @@ namespace DAL
 {
     public class DbResumoFinanceiro : IDisposable
     {
-
-        public ResumoFinanceiro RetornaResumoFinanceiro(string Cnpj, int AnoInicial, int AnoFinal)
+        public IEnumerable<ResumoFinanceiro> RetornaResumoFinanceiro(long? codigoMunicipio, string Cnpj, int AnoInicial, int AnoFinal)
         {
             using (OracleConnection cnn = new OracleConnection(Properties.Settings.Default.ConnectionString))
             {
                 var parameters = new OracleDynamicParameters();
-                parameters.Add("pCdMunicipio", 1837);
+
+                parameters.Add("pCdMunicipio", codigoMunicipio);
                 parameters.Add("pNuCnpj", Formatador.SoNumero(Cnpj));
                 parameters.Add("pAnoInicio", AnoInicial);
                 parameters.Add("pAnoFinal", AnoFinal);
                 parameters.Add("pErro", dbType: OracleDbType.Varchar2, direction: ParameterDirection.Output, size: 500);
                 parameters.Add("pCursor", dbType: OracleDbType.RefCursor, direction: ParameterDirection.Output);
                                 
-                var resumoFinanceiro =  cnn.Query("ADM_OBJETOS.VADPKG_CALCULA_VLR_ADICIONADO.SP_CONSULTA_RECEITA_PERIODO", param: parameters, commandType: CommandType.StoredProcedure)
+                var resumoFinanceiroList =  cnn.Query("ADM_OBJETOS.VADPKG_CALCULA_VLR_ADICIONADO.SP_CONSULTA_RECEITA_PERIODO", param: parameters, commandType: CommandType.StoredProcedure)
                      .Select(x =>
                      {
                          var result = new ResumoFinanceiro { NU_CNPJ_FILIAL = x.NU_CNPJ_FILIAL, TP_RECEITA = x.TP_RECEITA };
@@ -43,11 +43,28 @@ namespace DAL
 
                          }
                          return result;
-                     }).FirstOrDefault();
+                     }).ToList();
 
-                return resumoFinanceiro;
+                return resumoFinanceiroList;
             }
-        }                
+        }
+
+        public IEnumerable<ResumoFinanceiroPorTipo> RetornaResumoFinanceiroPorTipo(long? codigoMunicipio, string Cnpj, int AnoInicial, int AnoFinal)
+        {
+            using (OracleConnection cnn = new OracleConnection(Properties.Settings.Default.ConnectionString))
+            {
+                var parameters = new OracleDynamicParameters();
+
+                parameters.Add("pCdMunicipio", codigoMunicipio);
+                parameters.Add("pNuCnpj", Formatador.SoNumero(Cnpj));
+                parameters.Add("pAnoInicio", AnoInicial);
+                parameters.Add("pAnoFinal", AnoFinal);
+                parameters.Add("pErro", dbType: OracleDbType.Varchar2, direction: ParameterDirection.Output, size: 500);
+                parameters.Add("pCursor", dbType: OracleDbType.RefCursor, direction: ParameterDirection.Output);
+
+                return cnn.Query<ResumoFinanceiroPorTipo>("ADM_OBJETOS.VADPKG_CALCULA_VLR_ADICIONADO.SP_CONSULTA_TIPO_RECEITA", param: parameters, commandType: CommandType.StoredProcedure);
+            }
+        }
 
         #region IDisposable Support
         private bool disposedValue = false; // To detect redundant calls

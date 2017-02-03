@@ -50,11 +50,13 @@
     <Compile Include="Contribuinte.cs" />
     <Compile Include="GIM.cs" />
     <Compile Include="GIMReferencia.cs" />
+    <Compile Include="Municipio.cs" />
     <Compile Include="Prefeitura.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="InformativoFiscal.cs" />
     <Compile Include="ReferenciaInformativoFiscal.cs" />
     <Compile Include="Referencia.cs" />
+    <Compile Include="ResumoFinanceiroPorTipo.cs" />
     <Compile Include="ResumoFinanceiro.cs" />
     <Compile Include="Usuario.cs" />
     <Compile Include="UsuarioPrefeitura.cs" />

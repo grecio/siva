@@ -27,7 +27,7 @@ var validator = (function(){
 		password_repeat	: 'Senhas não conferem.',
 		repeat			: 'Sem correpondência.',
 		complete		: 'Campo incompleto.',
-		select			: 'Selecione uma opção'
+		select			: 'Campo requerido'
 	};
 	
 	// defaults

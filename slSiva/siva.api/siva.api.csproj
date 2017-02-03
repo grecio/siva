@@ -142,6 +142,7 @@
     <Compile Include="Controllers\LogoutController.cs" />
     <Compile Include="Controllers\PrefeiturasController.cs" />
     <Compile Include="Controllers\PrincipalController.cs" />
+    <Compile Include="Controllers\ReceitaPorTipoController.cs" />
     <Compile Include="Controllers\RemetenteCteController.cs" />
     <Compile Include="Controllers\ResumoFinanceiroController.cs" />
     <Compile Include="Controllers\SessionExpiresAttribute.cs" />
@@ -160,6 +161,7 @@
     <Compile Include="Models\GIMReferenciaViewModel.cs" />
     <Compile Include="Models\InformativoFiscalViewModel.cs" />
     <Compile Include="Models\GIMViewModel.cs" />
+    <Compile Include="Models\ResumoFinanceiroPorTipoViewModel.cs" />
     <Compile Include="Models\ResumoFinanceiroViewModel.cs" />
     <Compile Include="Models\UsuarioPrefeituraViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -3141,6 +3143,8 @@
     <Content Include="Views\TomadorRecebedorCte\Consultar.cshtml" />
     <Content Include="Views\ResumoFinanceiro\Index.cshtml" />
     <Content Include="Views\ResumoFinanceiro\Consultar.cshtml" />
+    <Content Include="Views\ReceitaPorTipo\Index.cshtml" />
+    <Content Include="Views\ReceitaPorTipo\Consultar.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="Content\vendors\moment\moment.d.ts" />

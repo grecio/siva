@@ -1,19 +1,21 @@
 ﻿using siva.api.Filters;
 using siva.api.Models;
-using System.Web.Mvc;
-using System.Linq;
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
 
 namespace siva.api.Controllers
 {
-    public class ResumoFinanceiroController : BaseController
+    public class ReceitaPorTipoController : BaseController
     {
 
         private readonly BLL.BLLResumoFinanceiro bpResumoFinanceiro;
         private readonly BLL.BLLMunicipio bpMunicipio;
 
-        public ResumoFinanceiroController()
+        public ReceitaPorTipoController()
         {
             bpResumoFinanceiro = new BLL.BLLResumoFinanceiro();
             bpMunicipio = new BLL.BLLMunicipio();
@@ -25,22 +27,22 @@ namespace siva.api.Controllers
             return View();
         }
 
-
         [SessionExpire]
         public ActionResult Consultar(long? codigoMunicipio, string cnpj, int anoInicial, int AnoFinal)
         {
             try
             {
-                var resumoList = bpResumoFinanceiro.RetornaResumoFinanceiro(codigoMunicipio, cnpj, anoInicial, AnoFinal);
+                var resumoList = bpResumoFinanceiro.RetornaResumoFinanceiroPorTipo(codigoMunicipio, cnpj, anoInicial, AnoFinal);
 
-                if (resumoList.Any())                
-                    return View(new ResumoFinanceiroViewModel() {  ResumoList = resumoList.ToList(), AnoInicial = anoInicial, AnoFinal = AnoFinal, CodigoMunicipio = codigoMunicipio});
+                if (resumoList.Any())
+                    return View(new ResumoFinanceiroPorTipoViewModel() { ResumoList = resumoList.ToList(), AnoInicial = anoInicial, AnoFinal = AnoFinal, CodigoMunicipio = codigoMunicipio });
 
                 ShowMsg("Nenhum registro encontrado.");
                 return RedirectToAction("Index");
 
             }
-            catch(Exception ex)
+            
+            catch (Exception ex)
             {
                 ShowMsg(ex.Message);
                 return RedirectToAction("Index");
@@ -69,25 +71,5 @@ namespace siva.api.Controllers
                 return Json(new { ex = ex.Message });
             }
         }
-
-        [SessionExpire]
-        [HttpGet]
-        public JsonResult GerarGrafico(long? codigoMunicipio, string cnpj, int anoInicial, int AnoFinal)
-        {
-            try
-            {
-                var resumoList = bpResumoFinanceiro.RetornaResumoFinanceiro(codigoMunicipio, cnpj, anoInicial, AnoFinal);
-
-                if (resumoList.Any())                    
-                    return Json(new { result = "ok", grafico = resumoList.FirstOrDefault() }, JsonRequestBehavior.AllowGet);
-
-                return Json(new { result = "none" }, JsonRequestBehavior.AllowGet);
-            }
-            catch (Exception ex)
-            {
-                return Json(new { ex = ex.Message });
-            }
-        }
-
     }
 }

@@ -6,7 +6,7 @@
     <div>
         <div class="page-title">
             <div class="title_left">
-                <h3>Receita Por Período</h3>
+                <h3>Receita Por Tipo</h3>
             </div>
         </div>
         <div class="clearfix"></div>
@@ -30,7 +30,7 @@
                                     </select>
                                 </div>
                             </div>
-                           
+
                             <div class="item form-group">
                                 <label class="control-label col-md-3 col-sm-3 col-xs-12" for="cnpj">
                                     CNPJ:
@@ -45,7 +45,7 @@
                                     Período <span class="required">*</span>
                                 </label>
                                 <div class="col-md-1">
-                                    <input id="data_inicial" class="form-control" name="anoInicial" placeholder="AAAA" required="required" type="text" data-mask="year" >
+                                    <input id="data_inicial" class="form-control" name="anoInicial" placeholder="AAAA" required="required" type="text" data-mask="year">
                                 </div>
                                 <div class="col-md-1">
                                     <input id="data_final" class="form-control" name="AnoFinal" placeholder="AAAA" required="required" type="text" data-mask="year">
@@ -102,10 +102,10 @@
             $(".select2_single").select2({
                 placeholder: "Selecione um município",
                 allowClear: true
-            });           
+            });
 
             $.ajax({
-                url: '@Url.Action("PreencherMunicipio")',                
+                url: '@Url.Action("PreencherMunicipio")',
                 type: 'get'
             }).done(function (data) {
 

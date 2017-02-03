@@ -6,9 +6,9 @@ using System.Web;
 
 namespace siva.api.Models
 {
-    public class ResumoFinanceiroViewModel
+    public class ResumoFinanceiroPorTipoViewModel
     {
-        public List<ResumoFinanceiro> ResumoList { get; set; }
+        public List<ResumoFinanceiroPorTipo> ResumoList { get; set; }
         public int AnoInicial { get; set; }
         public int AnoFinal { get; set; }
         public long? CodigoMunicipio { get; set; }

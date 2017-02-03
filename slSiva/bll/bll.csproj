@@ -49,6 +49,7 @@
     <Compile Include="BLLCteRemetente.cs" />
     <Compile Include="BLLGim.cs" />
     <Compile Include="BLLInformativoFiscal.cs" />
+    <Compile Include="BLLMunicipio.cs" />
     <Compile Include="BLLPrefeitura.cs" />
     <Compile Include="BLLResumoFinanceiro.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

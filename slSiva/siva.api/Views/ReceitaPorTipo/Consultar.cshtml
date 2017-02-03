@@ -1,10 +1,10 @@
-﻿@model siva.api.Models.ResumoFinanceiroViewModel
+﻿@model siva.api.Models.ResumoFinanceiroPorTipoViewModel
 
 <div role="main" class="right_col">
     <div>
         <div class="page-title">
             <div class="title_left">
-                <h3>Receita Por Período</h3>
+                <h3>Receita Por Tipo</h3>
             </div>
         </div>
         <div class="clearfix"></div>
@@ -22,35 +22,25 @@
                                     <thead>
                                         <tr>
                                             <th>CNPJ/CPF</th>
-                                            <th>Tipo Receita</th>
-
-                                            @foreach (var item in Model.ResumoList[0].ANOS_RECEITA)
-                                            {
-                                                <th>@Html.Raw(item.Key)</th>
-                                            }
+                                            <th>Ref.</th>
+                                            <th>GIM</th>
+                                            <th>CTE</th>
+                                            <th>DAS</th>
+                                            <th>DASNSIMEI</th>
                                             <th></th>
                                         </tr>
-
                                     </thead>
                                     <tbody>
 
                                         @foreach (var item in Model.ResumoList)
                                         {
-                                            <tr>
+                                            <tr data-cnpj="@item.NU_CNPJ_FILIAL" data-ref="@item.NU_REFERENCIA" data-gim="@item.GIM" data-cte="@item.CTE" data-das="@item.DAS" data-dasnsimei="@item.DASNSIMEI">
                                                 <td>@item.NU_CNPJ_FILIAL</td>
-                                                <td>@item.TP_RECEITA</td>
-
-                                                @foreach (var ano in item.ANOS_RECEITA)
-                                                {
-                                                    if (ano.Value != null)
-                                                    {
-                                                        <td>@Html.Raw(Convert.ToDecimal(ano.Value).ToString("C"))</td>
-                                                    }
-                                                    else
-                                                    {
-                                                        <td>@Html.Raw(ano.Value)</td>
-                                                    }
-                                                }
+                                                <td>@item.NU_REFERENCIA</td>
+                                                <td>@item.GIM</td>
+                                                <td>@item.CTE</td>
+                                                <td>@item.DAS</td>
+                                                <td>@item.DASNSIMEI</td>
                                                 <td>
                                                     <a href="#" class="cmdGrafico"><span class="fa fa-line-chart" title="ver gráfico"></span></a>
                                                 </td>
@@ -101,66 +91,43 @@
 
             $(".cmdGrafico").on('click', function () {
 
-                var _data =
-                    {
-                        codigomunicipio : '@Model.CodigoMunicipio', 
-                        cnpj: $(this).closest('tr').find('td:first').html(),
-                        anoinicial : '@Model.AnoInicial',
-                        anofinal : '@Model.AnoFinal'
-                    };
+                var self = $(this).closest('tr').data();                
+              
+                var tipos = ['GIM', 'CTE', 'DAS', 'DASNSIMEI'];
+                var valores = [];
 
-                $.ajax({
-                    url: '@Url.Action("GerarGrafico")',
-                    type: 'get',
-                    data: _data
-                }).done(function (data) {
+                valores.push(self.gim == '' ? 0 : parseFloat(self.gim.replace(',', '.')));
+                valores.push(self.cte == '' ? 0 : parseFloat(self.cte.replace(',', '.')));
+                valores.push(self.das == '' ? 0 : parseFloat(self.das.replace(',','.')));
+                valores.push(self.dasnsimei == '' ? 0 : self.dasnsimei);
 
-                    var ctx = $("#mybarChart");
+                var ctx = $("#mybarChart");
 
-                    var anos = [];
-                    var valores = [];
+                var mybarChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: tipos,
+                        datasets: [{
+                            label: 'Resumo',
+                            backgroundColor: "#03586A",
+                            data: valores
+                        }]
+                    },
 
-                    for (i in data.grafico.ANOS_RECEITA)
-                    {
-                        anos.push(data.grafico.ANOS_RECEITA[i].Key);
-                    }
-                                        
-                    for (i in data.grafico.ANOS_RECEITA)
-                    {
-                        if (data.grafico.ANOS_RECEITA[i].Value == 'undefined' || data.grafico.ANOS_RECEITA[i].Value == null) {
-                            data.grafico.ANOS_RECEITA[i].Value = 0;
-                        }
-                        
-                        valores.push(data.grafico.ANOS_RECEITA[i].Value);
-                    }
-
-                    var mybarChart = new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            labels: anos,
-                            datasets: [{
-                                label: 'Resumo',
-                                backgroundColor: "#03586A",
-                                data: valores
+                    options: {
+                        scales: {
+                            yAxes: [{
+                                ticks: {
+                                    beginAtZero: true
+                                }
                             }]
-                        },
-
-                        options: {
-                            scales: {
-                                yAxes: [{
-                                    ticks: {
-                                        beginAtZero: true
-                                    }
-                                }]
-                            }
                         }
-                    });
-                    
-                }).fail(function (err) {
-                    console.log(err);
+                    }
                 });
+
+
             });
-          
+
             var handleDataTableButtons = function () {
                 if ($("#datatable-buttons").length) {
                     $("#datatable-buttons").DataTable({
