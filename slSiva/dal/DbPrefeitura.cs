@@ -83,6 +83,7 @@ namespace DAL
                                                 NM_SEC_TRIBUTACAO = :NM_SEC_TRIBUTACAO,
                                                 NM_CONTADOR = :NM_CONTADOR,
                                                 NM_LOGRADOURO = :NM_LOGRADOURO,
+                                                TX_COMPLEMENTO = :TX_COMPLEMENTO,
                                                 NU_NUMERO = :NU_NUMERO,
                                                 TX_CONTATO = :TX_CONTATO,
                                                 DT_ALTERACAO = SYSDATE,

@@ -177,6 +177,7 @@
     <Content Include="Content\images\cropper.jpg" />
     <Content Include="Content\images\img.jpg" />
     <Content Include="Content\images\inbox.png" />
+    <Content Include="Content\images\logo.png" />
     <Content Include="Content\images\mastercard.png" />
     <Content Include="Content\images\media.jpg" />
     <Content Include="Content\images\paypal.png" />
@@ -3145,6 +3146,7 @@
     <Content Include="Views\ResumoFinanceiro\Consultar.cshtml" />
     <Content Include="Views\ReceitaPorTipo\Index.cshtml" />
     <Content Include="Views\ReceitaPorTipo\Consultar.cshtml" />
+    <Content Include="Views\Prefeituras\Editar.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="Content\vendors\moment\moment.d.ts" />

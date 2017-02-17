@@ -17,16 +17,9 @@ namespace siva.api.Controllers
         [SessionExpire]
         public ActionResult Index()
         {
-            try
-            {
-                var dt = bpPrefeitura.Listar();
-                return View(dt);
+            var dt = bpPrefeitura.Listar();
 
-            }
-            catch (Exception ex)
-            {
-                throw;
-            }            
+            return View(dt);
         }
 
         [SessionExpire]
@@ -35,7 +28,25 @@ namespace siva.api.Controllers
             return View(UsuarioLogado);
         }
 
-        
+        [SessionExpire]
+        public ActionResult Editar(decimal Id)
+        {
+            try
+            {
+                var prefeitura = bpPrefeitura.Selecionar(Id);
+
+                return View(prefeitura);
+
+            }
+            catch (Exception ex)
+            {
+                ShowMsg(ex.Message);
+
+                return RedirectToAction("Index");
+            }
+        }
+
+
         [SessionExpire]
         public ActionResult Selecionar(decimal Id)
         {
@@ -48,12 +59,13 @@ namespace siva.api.Controllers
             }
             catch (Exception ex)
             {
+                ShowMsg(ex.Message);
 
-                throw;
+                return RedirectToAction("Index");
             }
         }
 
-        [SessionExpire]        
+        [SessionExpire]
         public ActionResult Excluir(decimal Id)
         {
             try
@@ -77,7 +89,7 @@ namespace siva.api.Controllers
             try
             {
 
-                bpPrefeitura.Incluir(prefeitura);                
+                bpPrefeitura.Incluir(prefeitura);
 
                 return RedirectToAction("Index");
             }
@@ -85,6 +97,24 @@ namespace siva.api.Controllers
             {
                 ShowMsg(ex.Message);
                 return RedirectToAction("Novo");
+            }
+        }
+
+        [SessionExpire]
+        [HttpPost]
+        public ActionResult Alterar([System.Web.Http.FromBody]Dominio.Prefeitura prefeitura)
+        {
+            try
+            {
+                    
+                bpPrefeitura.Atualizar(prefeitura);
+
+                return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+                ShowMsg(ex.Message);
+                return RedirectToAction("Editar", new { Id = prefeitura.SQ_PREFEITURA});
             }
         }
     }

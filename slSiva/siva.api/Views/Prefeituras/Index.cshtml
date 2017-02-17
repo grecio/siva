@@ -33,24 +33,18 @@
                                         <td>@row.NM_PREFEITO</td>
                                         <td class="col-lg-2">
                                             <div class="btn-group">
-                                                <button type="button" class="btn btn-success dropdown-toggle btn-xs">Ações</button>
-                                                <button type="button" class="btn btn-success dropdown-toggle btn-xs" data-toggle="dropdown" aria-expanded="false">
-                                                    <span class="caret"></span>
-                                                    <span class="sr-only">Toggle Dropdown</span>
-                                                </button>
-                                                <ul class="dropdown-menu" role="menu">
-                                                    <li>
-                                                        <a href="@Url.Action("Selecionar", new { Id = row.SQ_PREFEITURA })" class="cmdSel" data-key="@row.SQ_PREFEITURA"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span> Exibir</a>
-                                                    </li>
-                                                    <li>
-                                                        @*<a href="@Url.Action("Editar", new { Id = row.SQ_PREFEITURA })" class="cmdEdit" data-key="@row.SQ_PREFEITURA"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span> Editar</a>*@
-                                                        <a href="#" onclick="javascript: return alert('em desenvolvimento');"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span> Editar</a>
-                                                    </li>
-                                                    <li>
-                                                        <a href="@Url.Action("Excluir", new { Id = row.SQ_PREFEITURA })" class="cmdDel" data-key="@row.SQ_PREFEITURA"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Excluir</a>                                                        
-                                                    </li>
-                                                </ul>
+
+                                                <a href="@Url.Action("Selecionar", new { Id = row.SQ_PREFEITURA })" class="btn btn-success btn-sm" data-key="@row.SQ_PREFEITURA"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>&nbsp;Exibir</a>
+                                            </div>    
+
+                                            <div class="btn-group">
+                                                <a href="@Url.Action("Editar", new { Id = row.SQ_PREFEITURA })" class="btn btn-primary btn-sm"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span>&nbsp;Editar</a>
                                             </div>
+                                                
+                                            <div class="btn-group">
+                                                <a href="#" onclick="javascript: if(confirm('deseja realmente excluir?')) document.location.href = '@Url.Action("Excluir", new { Id = row.SQ_PREFEITURA })' " class="btn btn-danger btn-sm" data-key="@row.SQ_PREFEITURA"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span>&nbsp;Excluir</a>
+                                            </div>
+                                            
                                         </td>
                                     </tr>
                                 }
@@ -102,9 +96,9 @@
                 var _self = $(this);
 
                 e.preventDefault();
-                
+
                 if (confirm('deseja realmente excluir?')) {
-                    
+
                     document.location.href = _self.attr('href');
                 }
 
@@ -114,29 +108,7 @@
                 if ($("#datatable-buttons").length) {
                     $("#datatable-buttons").DataTable({
                         dom: "Bfrtip",
-                        buttons: [
-                        {
-                            extend: "copy",
-                            className: "btn-sm"
-                        },
-                        {
-                            extend: "csv",
-                            className: "btn-sm"
-                        },
-                        {
-                            extend: "excel",
-                            className: "btn-sm"
-                        },
-                        {
-                            extend: "pdfHtml5",
-                            className: "btn-sm"
-                        },
-                        {
-                            extend: "print",
-                            className: "btn-sm"
-                        },
-                        ],
-                        responsive: true
+                        buttons: []
                     });
                 }
             };
@@ -178,7 +150,7 @@
             TableManageButtons.init();
         });
 
-        @Html.Raw(TempData["msg"])        
+        @Html.Raw(TempData["msg"])
     </script>
 
 }
