@@ -1,5 +1,8 @@
 ﻿using siva.api.Filters;
+using siva.api.Models;
 using System;
+using System.Collections;
+using System.Linq;
 using System.Web.Mvc;
 
 namespace siva.api.Controllers
@@ -8,10 +11,12 @@ namespace siva.api.Controllers
     {
 
         private readonly BLL.BLLPrefeitura bpPrefeitura;
+        private readonly BLL.BLLMunicipio bpMunicipio;
 
         public PrefeiturasController()
         {
             bpPrefeitura = new BLL.BLLPrefeitura();
+            bpMunicipio = new BLL.BLLMunicipio();
         }
 
         [SessionExpire]
@@ -33,9 +38,13 @@ namespace siva.api.Controllers
         {
             try
             {
-                var prefeitura = bpPrefeitura.Selecionar(Id);
+                var prefeituraViewModel = new PrefeituraViewModel();
 
-                return View(prefeitura);
+                prefeituraViewModel.Prefeitura = bpPrefeitura.Selecionar(Id);
+                prefeituraViewModel.MunicipioList = bpMunicipio.RetornaMunicipio().ToList();
+
+
+                return View(prefeituraViewModel);
 
             }
             catch (Exception ex)
@@ -45,7 +54,6 @@ namespace siva.api.Controllers
                 return RedirectToAction("Index");
             }
         }
-
 
         [SessionExpire]
         public ActionResult Selecionar(decimal Id)
@@ -117,5 +125,29 @@ namespace siva.api.Controllers
                 return RedirectToAction("Editar", new { Id = prefeitura.SQ_PREFEITURA});
             }
         }
+
+        [SessionExpire]
+        [HttpGet]
+        public JsonResult PreencherMunicipio()
+        {
+            try
+            {
+                var municipioList = bpMunicipio.RetornaMunicipio().ToList();
+
+                var lista = new ArrayList();
+
+                foreach (var item in municipioList)
+                {
+                    lista.Add(new { id = item.CD_MUNICIPIO_RFB, text = item.NM_MUNICIPIO_RFB });
+                }
+
+                return Json(new { result = "ok", municipioList = lista }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { ex = ex.Message });
+            }
+        }
+
     }
 }

@@ -45,7 +45,8 @@ namespace DAL
                                                 DT_INCLUSAO,
                                                 NM_USUARIO_INCLUSAO,
                                                 NU_HABITANTES,
-                                                QT_EXTENSAO_TERRITORIAL)
+                                                QT_EXTENSAO_TERRITORIAL,
+                                                CD_MUNICIPIO)
                                                 VALUES(
                                                 :NM_PREFEITURA,
                                                 :NM_PREFEITO,
@@ -57,7 +58,8 @@ namespace DAL
                                                 SYSDATE,
                                                 USER,
                                                 :NU_HABITANTES,
-                                                :QT_EXTENSAO_TERRITORIAL)", prefeitura);
+                                                :QT_EXTENSAO_TERRITORIAL, 
+                                                :CD_MUNICIPIO)", prefeitura);
             }
 
         }
@@ -89,7 +91,8 @@ namespace DAL
                                                 DT_ALTERACAO = SYSDATE,
                                                 NM_USUARIO_ALTERACAO = USER,
                                                 NU_HABITANTES = :NU_HABITANTES,
-                                                QT_EXTENSAO_TERRITORIAL = :QT_EXTENSAO_TERRITORIAL", prefeitura);
+                                                QT_EXTENSAO_TERRITORIAL = :QT_EXTENSAO_TERRITORIAL,
+                                                CD_MUNICIPIO = :CD_MUNICIPIO", prefeitura);
             }
 
         }

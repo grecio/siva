@@ -19,6 +19,7 @@ namespace Dominio
         public string NM_USUARIO_ALTERACAO { get; set; }
         public decimal NU_HABITANTES { get; set; }
         public decimal QT_EXTENSAO_TERRITORIAL { get; set; }
+        public decimal CD_MUNICIPIO { get; set; }
 
     }
 }

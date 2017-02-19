@@ -1,4 +1,4 @@
-﻿@model Dominio.Prefeitura
+﻿@model  siva.api.Models.PrefeituraViewModel
 
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -22,20 +22,23 @@
                     <div class="x_content">
                         <form class="form-horizontal form-label-left" method="post" action="@Url.Action("Alterar")" novalidate>
 
-                            @*<div class="item form-group">
-                                    <label class="control-label col-md-3 col-sm-3 col-xs-12" for="cd_municipio">
-                                        UF <span class="required">*</span>
-                                    </label>
-                                    <div class="col-md-6 col-sm-6 col-xs-12">
-                                        <input id="cd_municipio" class="form-control col-md-7 col-xs-12" name="CD_MUNICIPIO" placeholder="Informe o nome da prefeitura" required="required" type="text">
-                                    </div>
-                                </div>*@
+                            <div class="item form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="municipio">
+                                    Município: <span class="required">*</span>
+                                </label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    <select class="select2_single form-control" tabindex="-1" name="CD_MUNICIPIO" id="CD_MUNICIPIO" required="required">
+                                        <option value=""></option>
+                                    </select>                                                                                                        
+                                </div>
+                            </div>
+                          
                             <div class="item form-group">
                                 <label class="control-label col-md-3 col-sm-3 col-xs-12" for="prefeitura">
                                     Prefeitura <span class="required">*</span>
                                 </label>
                                 <div class="col-md-6 col-sm-6 col-xs-12">
-                                    @Html.TextBoxFor(item => item.NM_PREFEITURA, new { @class  = "form-control col-md-7 col-xs-12", required = "required", name = "NM_PREFEITURA", placeholder = "Informe o nome da prefeitura" })
+                                    @Html.TextBoxFor(item => item.Prefeitura.NM_PREFEITURA, new { @class  = "form-control col-md-7 col-xs-12", required = "required", name = "NM_PREFEITURA", placeholder = "Informe o nome da prefeitura" })
                                 </div>
                             </div>
 
@@ -45,7 +48,7 @@
                                 </label>
                                 <div class="col-md-6 col-sm-6 col-xs-12">
 
-                                    @Html.TextBoxFor(item => item.NM_PREFEITO, new { @class = "form-control col-md-7 col-xs-12", required = "required", name = "NM_PREFEITO", placeholder = "Informe o prefeito" })
+                                    @Html.TextBoxFor(item => item.Prefeitura.NM_PREFEITO, new { @class = "form-control col-md-7 col-xs-12", required = "required", name = "NM_PREFEITO", placeholder = "Informe o prefeito" })
                                     
                                 </div>
                             </div>
@@ -56,7 +59,7 @@
                                 </label>
                                 <div class="col-md-6 col-sm-6 col-xs-12">
 
-                                    @Html.TextBoxFor(item => item.NM_SEC_TRIBUTACAO, new { @class = "form-control col-md-7 col-xs-12", required = "required", name = "NM_SEC_TRIBUTACAO", placeholder = "Informe o secretário de tributação" })
+                                    @Html.TextBoxFor(item => item.Prefeitura.NM_SEC_TRIBUTACAO, new { @class = "form-control col-md-7 col-xs-12", required = "required", name = "NM_SEC_TRIBUTACAO", placeholder = "Informe o secretário de tributação" })
                                     
                                 </div>
                             </div>
@@ -67,7 +70,7 @@
                                 </label>
                                 <div class="col-md-6 col-sm-6 col-xs-12">
 
-                                    @Html.TextBoxFor(item => item.NM_CONTADOR, new { @class = "form-control col-md-7 col-xs-12", required = "required", name = "NM_CONTADOR", placeholder = "Informe o contador" })
+                                    @Html.TextBoxFor(item => item.Prefeitura.NM_CONTADOR, new { @class = "form-control col-md-7 col-xs-12", required = "required", name = "NM_CONTADOR", placeholder = "Informe o contador" })
                                     
                                 </div>
                             </div>
@@ -78,7 +81,7 @@
                                 </label>
                                 <div class="col-md-6 col-sm-6 col-xs-12">
 
-                                    @Html.TextBoxFor(item => item.NM_LOGRADOURO, new { @class = "form-control col-md-7 col-xs-12", required = "required", name = "NM_LOGRADOURO", placeholder = "Informe o logradouro" })
+                                    @Html.TextBoxFor(item => item.Prefeitura.NM_LOGRADOURO, new { @class = "form-control col-md-7 col-xs-12", required = "required", name = "NM_LOGRADOURO", placeholder = "Informe o logradouro" })
                                     
                                 </div>
                             </div>
@@ -89,7 +92,7 @@
                                 </label>
                                 <div class="col-md-6 col-sm-6 col-xs-12">
 
-                                    @Html.TextBoxFor(item => item.NU_NUMERO, new { @class = "form-control col-md-7 col-xs-12", required = "required", name = "NU_NUMERO", placeholder = "Informe o número" })
+                                    @Html.TextBoxFor(item => item.Prefeitura.NU_NUMERO, new { @class = "form-control col-md-7 col-xs-12", required = "required", name = "NU_NUMERO", placeholder = "Informe o número" })
                                     
                                 </div>
                             </div>
@@ -100,7 +103,7 @@
                                 </label>
                                 <div class="col-md-6 col-sm-6 col-xs-12">
 
-                                    @Html.TextBoxFor(item => item.TX_COMPLEMENTO, new { @class = "form-control col-md-7 col-xs-12", required= "required", name = "TX_COMPLEMENTO", placeholder = "Informe o complemento" })
+                                    @Html.TextBoxFor(item => item.Prefeitura.TX_COMPLEMENTO, new { @class = "form-control col-md-7 col-xs-12", required= "required", name = "TX_COMPLEMENTO", placeholder = "Informe o complemento" })
                                     
                                 </div>
                             </div>
@@ -111,7 +114,7 @@
                                 </label>
                                 <div class="col-md-6 col-sm-6 col-xs-12">
 
-                                    @Html.TextBoxFor(item => item.TX_CONTATO, new { @class = "form-control col-md-7 col-xs-12", required = "required", name = "TX_CONTATO", placeholder = "Informe o contato" })
+                                    @Html.TextBoxFor(item => item.Prefeitura.TX_CONTATO, new { @class = "form-control col-md-7 col-xs-12", required = "required", name = "TX_CONTATO", placeholder = "Informe o contato" })
                                     
                                 </div>
                             </div>
@@ -122,7 +125,7 @@
                                 </label>
                                 <div class="col-md-6 col-sm-6 col-xs-13">
 
-                                    @Html.TextBoxFor(item => item.NU_HABITANTES, new { @class = "form-control col-md-7 col-xs-12", required = "required", name = "NU_HABITANTES", placeholder = "Informe Nº de habitantes" })
+                                    @Html.TextBoxFor(item => item.Prefeitura.NU_HABITANTES, new { @class = "form-control col-md-7 col-xs-12", required = "required", name = "NU_HABITANTES", placeholder = "Informe Nº de habitantes" })
                                     
                                 </div>
                             </div>
@@ -133,7 +136,7 @@
                                 </label>
                                 <div class="col-md-6 col-sm-6 col-xs-3">
 
-                                    @Html.TextBoxFor(item => item.QT_EXTENSAO_TERRITORIAL, new { @class = "form-control col-md-7 col-xs-12", required = "required", name = "QT_EXTENSAO_TERRITORIAL", placeholder = "Informe território" })
+                                    @Html.TextBoxFor(item => item.Prefeitura.QT_EXTENSAO_TERRITORIAL, new { @class = "form-control col-md-7 col-xs-12", required = "required", name = "QT_EXTENSAO_TERRITORIAL", placeholder = "Informe território" })
                                     
                                 </div>
                             </div>
@@ -147,7 +150,8 @@
                                 </div>
                             </div>
 
-                            @Html.HiddenFor(item => item.SQ_PREFEITURA, new { name = "SQ_PREFEITURA"})
+                            @Html.HiddenFor(item => item.Prefeitura.SQ_PREFEITURA, new { name = "SQ_PREFEITURA"})
+                            @Html.HiddenFor(item => item.Prefeitura.CD_MUNICIPIO, new { name = "hdfCD_MUNICIPIO", id= "hdfCD_MUNICIPIO" })
 
                         </form>
                     </div>
@@ -196,6 +200,30 @@
                 return false;
             });
 
+
+
+            $.ajax({
+                url: '@Url.Action("PreencherMunicipio")',
+                type: 'get'
+            }).done(function (data) {
+
+                var lista = data.municipioList;
+
+                $(".select2_single").select2({
+                    data: lista
+                }).val($("#hdfCD_MUNICIPIO").val()).change();
+
+                $(".select2_single").on('change', function () {
+
+                    var self = $(this);
+
+                    $("#hdfCD_MUNICIPIO").val(self.val());
+
+                });
+
+            }).fail(function () {
+                alert('Não foi possível obter as referências.');
+            });
 
         });
 

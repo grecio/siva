@@ -34,26 +34,18 @@
                                         <td>@row.LOGIN</td>
                                         <td>@row.EhAdministrador</td>
                                         <td class="col-lg-2">
+                                                                                        
                                             <div class="btn-group">
-                                                <button type="button" class="btn btn-success dropdown-toggle btn-xs">Ações</button>
-                                                <button type="button" class="btn btn-success dropdown-toggle btn-xs" data-toggle="dropdown" aria-expanded="false">
-                                                    <span class="caret"></span>
-                                                    <span class="sr-only">Toggle Dropdown</span>
-                                                </button>
-                                                <ul class="dropdown-menu" role="menu">
-                                                    <li>
-                                                        <a class="cmdExcluir" data-key="@row.SQ_USUARIO"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Excluir</a>
-                                                    </li>                                                    
-                                                    <li>                                                        
-                                                        <a href="@Url.Action("VincularPrefeitura", new {Id = row.SQ_USUARIO })" class="cmdVincularPrefeitura" data-key="@row.SQ_USUARIO"><span class="glyphicon glyphicon-th-list" aria-hidden="true"></span> Vincular Prefeituras</a>
-                                                    </li>
-                                                </ul>
+                                                <a href="@Url.Action("VincularPrefeitura", new {Id = row.SQ_USUARIO })" class="btn btn-success btn-sm" data-key="@row.SQ_USUARIO"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span> Vincular Prefeituras</a>                                                
+                                           </div>
+                                            
+                                            <div class="btn-group">
+                                                <a href="#" class="cmdExcluir btn btn-danger btn-sm" data-key="@row.SQ_USUARIO"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span>&nbsp;Excluir</a>                                                
                                             </div>
+                                                                                    
                                         </td>
                                     </tr>
                                 }
-
-
                             </tbody>
                         </table>
                     </div>

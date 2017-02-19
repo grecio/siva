@@ -161,6 +161,7 @@
     <Compile Include="Models\GIMReferenciaViewModel.cs" />
     <Compile Include="Models\InformativoFiscalViewModel.cs" />
     <Compile Include="Models\GIMViewModel.cs" />
+    <Compile Include="Models\PrefeituraViewModel.cs" />
     <Compile Include="Models\ResumoFinanceiroPorTipoViewModel.cs" />
     <Compile Include="Models\ResumoFinanceiroViewModel.cs" />
     <Compile Include="Models\UsuarioPrefeituraViewModel.cs" />

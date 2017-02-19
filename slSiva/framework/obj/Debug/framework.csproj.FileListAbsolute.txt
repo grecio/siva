@@ -1,4 +1,4 @@
-C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\framework\bin\Debug\framework.dll
-C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\framework\bin\Debug\framework.pdb
-C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\framework\obj\Debug\framework.dll
-C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\framework\obj\Debug\framework.pdb
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\framework\bin\Debug\Framework.dll
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\framework\bin\Debug\Framework.pdb
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\framework\obj\Debug\Framework.dll
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\framework\obj\Debug\Framework.pdb

@@ -20,14 +20,17 @@
                     </div>
                     <div class="x_content">
                         <form class="form-horizontal form-label-left" method="post" action="@Url.Action("Registrar")" novalidate>
-                            @*<div class="item form-group">
-                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="cd_municipio">
-                                    UF <span class="required">*</span>
+
+                            <div class="item form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="municipio">
+                                    Município: <span class="required">*</span>
                                 </label>
                                 <div class="col-md-6 col-sm-6 col-xs-12">
-                                    <input id="cd_municipio" class="form-control col-md-7 col-xs-12" name="CD_MUNICIPIO" placeholder="Informe o nome da prefeitura" required="required" type="text">
+                                    <select class="select2_single form-control" tabindex="-1" name="CD_MUNICIPIO" id="CD_MUNICIPIO" required="required">
+                                        <option value=""></option>
+                                    </select>
                                 </div>
-                            </div>*@
+                            </div>
                             <div class="item form-group">
                                 <label class="control-label col-md-3 col-sm-3 col-xs-12" for="prefeitura">
                                     Prefeitura <span class="required">*</span>
@@ -173,6 +176,20 @@
                 return false;
             });
 
+            $.ajax({
+                url: '@Url.Action("PreencherMunicipio")',
+                type: 'get'
+            }).done(function (data) {
+
+                var lista = data.municipioList;
+
+                $(".select2_single").select2({
+                    data: lista
+                });
+
+            }).fail(function () {
+                alert('Não foi possível obter as referências.');
+            });
 
         });
 

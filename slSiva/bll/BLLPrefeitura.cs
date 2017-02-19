@@ -28,6 +28,7 @@ namespace BLL
             using (var dao = new DAL.DbPrefeitura())
             {
 
+                Validador.Validar(prefeitura.CD_MUNICIPIO > 0, "Informe o município.");
                 Validador.Validar(!string.IsNullOrWhiteSpace(prefeitura.NM_PREFEITURA), "Informe o nome da prefeitura");
                 Validador.Validar(!string.IsNullOrWhiteSpace(prefeitura.NM_PREFEITO), "Informe o nome do prefeito.");
                 Validador.Validar(!string.IsNullOrWhiteSpace(prefeitura.NM_CONTADOR), "Informe o nome do contador.");
@@ -46,6 +47,7 @@ namespace BLL
             {
 
                 Validador.Validar(prefeitura.SQ_PREFEITURA > 0, "Selecione a prefeitura");
+                Validador.Validar(prefeitura.CD_MUNICIPIO > 0, "Informe o município.");
                 Validador.Validar(!string.IsNullOrWhiteSpace(prefeitura.NM_PREFEITURA), "Informe o nome da prefeitura");
                 Validador.Validar(!string.IsNullOrWhiteSpace(prefeitura.NM_PREFEITO), "Informe o nome do prefeito.");
                 Validador.Validar(!string.IsNullOrWhiteSpace(prefeitura.NM_CONTADOR), "Informe o nome do contador.");
