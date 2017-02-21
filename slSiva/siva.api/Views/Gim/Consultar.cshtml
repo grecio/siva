@@ -25,7 +25,7 @@
                                     <th>CNPJ/CPF</th>                                    
                                     <th>Nome Fantasia</th>
                                     <th>Razão Social</th>
-                                    <th class="col-lg-2">#</th>
+                                    <th class="col-lg-1">#</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -39,18 +39,9 @@
                                         <td>@row.Gim.NU_CNPJ_CPF</td>
                                         <td>@row.Gim.NM_FANTASIA</td>
                                         <td>@row.Gim.NM_RAZAO_SOCIAL</td>
-                                        <td class="col-lg-2">
+                                        <td class="col-lg-1">
                                             <div class="btn-group">
-                                                <button type="button" class="btn btn-success dropdown-toggle btn-xs">Ações</button>
-                                                <button type="button" class="btn btn-success dropdown-toggle btn-xs" data-toggle="dropdown" aria-expanded="false">
-                                                    <span class="caret"></span>
-                                                    <span class="sr-only">Toggle Dropdown</span>
-                                                </button>
-                                                <ul class="dropdown-menu" role="menu">
-                                                    <li>                                                        
-                                                        <a href="@Url.Action("Emitir", new { Ie = row.Gim.NU_INSCRICAO_ESTADUAL, Referencia = row.Gim.NU_REFERENCIA })" class="cmdEmitir"><span class="glyphicon glyphicon glyphicon-file" aria-hidden="true"></span>Detalhar GIM</a>
-                                                    </li>                                                    
-                                                </ul>
+                                                <a href="@Url.Action("Emitir", new { Ie = row.Gim.NU_INSCRICAO_ESTADUAL, Referencia = row.Gim.NU_REFERENCIA })" class="btn btn-success btn-sm"><span class="glyphicon glyphicon glyphicon-file" aria-hidden="true"></span> Detalhar GIM</a>
                                             </div>
                                         </td>
                                     </tr>
@@ -101,29 +92,8 @@
                 if ($("#datatable-buttons").length) {
                     $("#datatable-buttons").DataTable({
                         dom: "Bfrtip",
-                        buttons: [
-                        {
-                            extend: "copy",
-                            className: "btn-sm"
-                        },
-                        {
-                            extend: "csv",
-                            className: "btn-sm"
-                        },
-                        {
-                            extend: "excel",
-                            className: "btn-sm"
-                        },
-                        {
-                            extend: "pdfHtml5",
-                            className: "btn-sm"
-                        },
-                        {
-                            extend: "print",
-                            className: "btn-sm"
-                        },
-                        ],
-                        responsive: true
+                        buttons: [],
+                        responsive: false
                     });
                 }
             };

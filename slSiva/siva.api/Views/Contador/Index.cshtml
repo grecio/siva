@@ -33,25 +33,19 @@
                                         <td>@row.NM_CONTADOR</td>
                                         <td>@row.NU_CRC</td>
                                         <td>@row.NU_TELEFONE</td>
-                                        <td class="col-lg-2">
+                                        <td class="col-lg-3">
+
                                             <div class="btn-group">
-                                                <button type="button" class="btn btn-success dropdown-toggle btn-xs">Ações</button>
-                                                <button type="button" class="btn btn-success dropdown-toggle btn-xs" data-toggle="dropdown" aria-expanded="false">
-                                                    <span class="caret"></span>
-                                                    <span class="sr-only">Toggle Dropdown</span>
-                                                </button>
-                                                <ul class="dropdown-menu" role="menu">
-                                                    <li>
-                                                        <a href="@Url.Action("Selecionar", new { Id = row.SQ_CONTADOR })" class="cmdSel" data-key="@row.SQ_CONTADOR"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span> Exibir</a>
-                                                    </li>                                                    
-                                                    <li>
-                                                        <a class="cmdExcluir" data-key="@row.SQ_CONTADOR"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Excluir</a>                                                        
-                                                    </li>
-                                                    <li>
-                                                        <a href="@Url.Action("ExibirContribuinte", new {Id = row.SQ_CONTADOR })" class="cmdVincularContribuinte" data-key="@row.SQ_CONTADOR"><span class="glyphicon glyphicon-th-list" aria-hidden="true"></span> Exibir Empresas</a>
-                                                    </li>
-                                                </ul>
+                                                <a href="@Url.Action("Selecionar", new { Id = row.SQ_CONTADOR })" class="btn btn-success btn-sm" data-key="@row.SQ_CONTADOR"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span> Exibir</a>
                                             </div>
+
+                                            <div class="btn-group">
+                                                <a href="@Url.Action("ExibirContribuinte", new {Id = row.SQ_CONTADOR })" class="btn btn-success btn-sm" data-key="@row.SQ_CONTADOR"><span class="glyphicon glyphicon-th-list" aria-hidden="true"></span> Exibir Empresas</a>
+                                            </div>
+
+                                            <div class="btn-group">
+                                                <a href="#" class="btn btn-danger btn-sm cmdExcluir" data-key="@row.SQ_CONTADOR"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span>Excluir</a>
+                                            </div>                                            
                                         </td>
                                     </tr>
                                 }
@@ -138,29 +132,8 @@
                 if ($("#datatable-buttons").length) {
                     $("#datatable-buttons").DataTable({
                         dom: "Bfrtip",
-                        buttons: [
-                        {
-                            extend: "copy",
-                            className: "btn-sm"
-                        },
-                        {
-                            extend: "csv",
-                            className: "btn-sm"
-                        },
-                        {
-                            extend: "excel",
-                            className: "btn-sm"
-                        },
-                        {
-                            extend: "pdfHtml5",
-                            className: "btn-sm"
-                        },
-                        {
-                            extend: "print",
-                            className: "btn-sm"
-                        },
-                        ],
-                        responsive: true
+                        buttons: [],                       
+                        responsive: false
                     });
                 }
             };
