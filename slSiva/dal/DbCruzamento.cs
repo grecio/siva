@@ -24,8 +24,16 @@ namespace DAL
         public IEnumerable<CruzamentoCabecalho> RetornarCabecalhoCruzamento()
         {
             using (OracleConnection cnn = new OracleConnection(Properties.Settings.Default.ConnectionString))
+            {                
+                return cnn.Query<CruzamentoCabecalho>("select t.dc_cruzamento, c.* from ADM_OBJETOS.ctl_controle_processo c, crz_tipo_cruzamento t where c.cd_cruzamento = t.cd_cruzamento order by c.nu_processo desc");
+            }
+        }
+
+        public IEnumerable<CruzamentoDetalhamento> RetornarDetalhamentoCruzamento(decimal numeroProcesso)
+        {
+            using (OracleConnection cnn = new OracleConnection(Properties.Settings.Default.ConnectionString))
             {
-                return cnn.Query<CruzamentoCabecalho>("select * from ctl_controle_processo");
+                return cnn.Query<CruzamentoDetalhamento>(string.Format("select * from ADM_OBJETOS.CRZ_CRUZAMENTO_DET d  WHERE d.NU_PROCESSO = {0}", numeroProcesso));
             }
         }
 

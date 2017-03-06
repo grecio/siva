@@ -12,38 +12,46 @@
             <div class="col-md-12 col-sm-12 col-xs-12">
                 <div class="x_panel">
                     <div class="x_title">
-                        <h2>Listagem</h2>
+                        <h2>Detalhamento</h2>
                         <div class="clearfix"></div>
                     </div>
                     <div class="x_content">
                         <table id="datatable-buttons" class="table table-striped table-bordered">
                             <thead>
-                                <tr>
-                                    <th class="col-lg-1">#</th>
+                                <tr>                                    
                                     <th>Nº Processo</th>
+                                    <th>CNPJ</th>
+                                    <th>Nº Referência</th>
                                     <th>Descrição</th>
-                                    <th>Parametros Informados</th>
+                                    <th>Vl. Apurado</th>
+                                    <th>Vl. Referência</th>
+                                    <th>Vl. Diferença</th>
+                                    <th>Vl. Expectativa Receita</th>
                                 </tr>
                             </thead>
                             <tbody>
 
                                 @foreach (siva.api.Models.CruzamentoViewModel row in Model)
                                 {
-                                    <tr>
-                                        <td class="col-lg-1">
-                                            <div class="btn-group">
-                                                <a href="@Url.Action("Detalhar", new { numeroProcesso = row.Cabecalho.NU_PROCESSO})" class="btn btn-success btn-sm"><span class="glyphicon glyphicon glyphicon-file" aria-hidden="true"></span> Detalhar Processamento</a>
-                                            </div>
-                                        </td>
-                                        <td>@row.Cabecalho.NU_PROCESSO</td>
-                                        <td>@row.Cabecalho.DC_CRUZAMENTO</td>
-                                        <td>@row.CabecalhoParametros</td>
+                                    <tr>                                        
+                                        <td>@row.Detalhamento.NU_PROCESSO</td>
+                                        <td>@row.Detalhamento.NU_CNPJ_CPF</td>
+                                        <td>@row.Detalhamento.NU_REFERENCIA</td>
+                                        <td>@row.Detalhamento.DC_CRUZAMENTO</td>
+                                        <td>@row.Detalhamento.VL_APURADO</td>
+                                        <td>@row.Detalhamento.VL_REFERENCIA</td>
+                                        <td>@row.Detalhamento.VL_DIFERENCA</td>
+                                        <td>@row.Detalhamento.VL_EXPECTATIVA_RECEITA</td>
                                     </tr>
                                 }
 
                             </tbody>
                         </table>
-                    </div>                    
+                    </div>
+
+                    <div class="col-xs-6">
+                        <a href="@Url.Action("Index")" class="btn btn-danger">Cancelar</a>
+                    </div>
                 </div>
             </div>
         </div>

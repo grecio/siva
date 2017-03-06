@@ -18,6 +18,24 @@ namespace BLL
             }
         }
 
+        public IEnumerable<CruzamentoCabecalho> RetornarCabecalhoCruzamento()
+        {
+            using (var dao = new DAL.DbCruzamento())
+            {
+                return dao.RetornarCabecalhoCruzamento();
+            }
+        }
+
+        public IEnumerable<CruzamentoDetalhamento> RetornarDetalhamentoCruzamento(decimal numeroProcesso)
+        {
+            Validador.Validar(numeroProcesso > 0, "Informe o número do processamento.");
+
+            using (var dao = new DAL.DbCruzamento())
+            {
+                return dao.RetornarDetalhamentoCruzamento(numeroProcesso);
+            }
+        }
+
         public void ExecutarCruzamento(decimal codigoMunicipio, int tipoCruzamento, int anoInicial, int anoFinal)
         {
             Validador.Validar(codigoMunicipio > 0, "Informe o município.");

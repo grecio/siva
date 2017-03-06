@@ -1,4 +1,5 @@
-﻿using Dominio;
+﻿using CommonFrameWork;
+using Dominio;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,6 +15,16 @@ namespace BLL
             using (var dao = new DAL.DbMunicipio())
             {
                 return dao.RetornaMunicipio();
+            }
+        }
+
+        public Municipio RetornaMunicipioPorCodigo(decimal codigo)
+        {
+            Validador.Validar(codigo > 0, "Informe o município.");
+
+            using (var dao = new DAL.DbMunicipio())
+            {
+                return dao.RetornaMunicipioPorCodigo(codigo);
             }
         }
 

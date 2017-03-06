@@ -3152,6 +3152,7 @@
     <Content Include="Views\Prefeituras\Editar.cshtml" />
     <Content Include="Views\Cruzamento\Index.cshtml" />
     <Content Include="Views\Cruzamento\Consultar.cshtml" />
+    <Content Include="Views\Cruzamento\Detalhar.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="Content\vendors\moment\moment.d.ts" />

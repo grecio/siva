@@ -20,6 +20,14 @@ namespace DAL
             }
         }
 
+        public Municipio RetornaMunicipioPorCodigo(decimal codigo)
+        {
+            using (OracleConnection cnn = new OracleConnection(Properties.Settings.Default.ConnectionString))
+            {
+                return cnn.Query<Municipio>(string.Format("select m.CD_MUNICIPIO_RFB, m.NM_MUNICIPIO_RFB from ADM_OBJETOS.CAD_MUNICIPIO_RFB m where m.SG_UF_MUNICIPIO1 = 'RN' and m.CD_MUNICIPIO_RFB = {0}", codigo)).SingleOrDefault();
+            }
+        }
+
         public IEnumerable<Municipio> RetornaMunicipio(Usuario usuario)
         {
             using (OracleConnection cnn = new OracleConnection(Properties.Settings.Default.ConnectionString))

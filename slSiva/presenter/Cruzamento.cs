@@ -8,6 +8,7 @@ namespace Dominio
 {
     public class CruzamentoCabecalho
     {
+        public string DC_CRUZAMENTO { get; set; }
         public int NU_PROCESSO { get; set; }
         public string CD_PROCESSO { get; set; }
         public int ST_PROCESSO { get; set; }
@@ -15,7 +16,7 @@ namespace Dominio
         public DateTime DT_FINAL_EXECUCAO { get; set; }
         public string TX_ERRO { get; set; }
         public string DC_PARAMETROS { get; set; }
-        public decimal CD_CRUZAMENTO { get; set; }        
+        public decimal CD_CRUZAMENTO { get; set; }
     }
 
     public class CruzamentoDetalhamento

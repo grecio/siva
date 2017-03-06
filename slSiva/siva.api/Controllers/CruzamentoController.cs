@@ -1,7 +1,9 @@
 ﻿using Dominio;
 using siva.api.Filters;
+using siva.api.Models;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
 
@@ -28,7 +30,38 @@ namespace siva.api.Controllers
         [SessionExpire]
         public ActionResult Consultar()
         {
-            return View();
+            var cruzamentosList = bpCruzamento.RetornarCabecalhoCruzamento();
+
+            var cruzamentosViewModelList = new List<CruzamentoViewModel>();
+
+            if (cruzamentosList.Any())
+            {                
+                foreach (var item in cruzamentosList)
+                {
+                    cruzamentosViewModelList.Add(new CruzamentoViewModel() { Cabecalho = item });
+                }
+            }
+                        
+            return View(cruzamentosViewModelList);
+        }
+
+        [SessionExpire]
+        public ActionResult Detalhar(decimal numeroProcesso)
+        {
+
+            var cruzamentosDetList = bpCruzamento.RetornarDetalhamentoCruzamento(numeroProcesso);
+
+            var cruzamentosViewModelList = new List<CruzamentoViewModel>();
+
+            if (cruzamentosDetList.Any())
+            {
+                foreach (var item in cruzamentosDetList)
+                {
+                    cruzamentosViewModelList.Add(new CruzamentoViewModel() { Detalhamento = item });
+                }
+            }
+
+            return View(cruzamentosViewModelList);
         }
 
         [SessionExpire]
