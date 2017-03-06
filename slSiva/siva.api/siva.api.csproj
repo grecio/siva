@@ -133,6 +133,7 @@
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\ContadorController.cs" />
+    <Compile Include="Controllers\CruzamentoController.cs" />
     <Compile Include="Controllers\DestinatarioCteController.cs" />
     <Compile Include="Controllers\EmitenteCteController.cs" />
     <Compile Include="Controllers\GimController.cs" />
@@ -157,6 +158,7 @@
     </Compile>
     <Compile Include="Models\ContadorContribuinteViewModel.cs" />
     <Compile Include="Models\ContadorViewModel.cs" />
+    <Compile Include="Models\CruzamentoViewModel.cs" />
     <Compile Include="Models\CteViewModel.cs" />
     <Compile Include="Models\GIMReferenciaViewModel.cs" />
     <Compile Include="Models\InformativoFiscalViewModel.cs" />
@@ -3148,6 +3150,8 @@
     <Content Include="Views\ReceitaPorTipo\Index.cshtml" />
     <Content Include="Views\ReceitaPorTipo\Consultar.cshtml" />
     <Content Include="Views\Prefeituras\Editar.cshtml" />
+    <Content Include="Views\Cruzamento\Index.cshtml" />
+    <Content Include="Views\Cruzamento\Consultar.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="Content\vendors\moment\moment.d.ts" />

@@ -50,6 +50,7 @@
     <Compile Include="Contribuinte.cs" />
     <Compile Include="GIM.cs" />
     <Compile Include="GIMReferencia.cs" />
+    <Compile Include="Cruzamento.cs" />
     <Compile Include="Municipio.cs" />
     <Compile Include="Prefeitura.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

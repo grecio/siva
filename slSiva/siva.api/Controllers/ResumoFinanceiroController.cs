@@ -23,7 +23,7 @@ namespace siva.api.Controllers
         public ActionResult Index()
         {
             return View();
-        }
+        }       
 
         [SessionExpire]
         public ActionResult Consultar(long? codigoMunicipio, string cnpj, int anoInicial, int AnoFinal)
