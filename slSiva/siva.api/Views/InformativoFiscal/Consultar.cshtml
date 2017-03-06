@@ -19,13 +19,13 @@
                         <table id="datatable-buttons" class="table table-striped table-bordered">
                             <thead>
                                 <tr>
+                                    <th class="col-lg-1">#</th>
                                     <th>Ref.</th>
                                     <th>Data Envio</th>
                                     <th>I.E</th>
                                     <th>CNPJ/CPF</th>
                                     <th>Nome Fantasia</th>
-                                    <th>Razão Social</th>
-                                    <th class="col-lg-1">#</th>
+                                    <th>Razão Social</th>                                    
                                 </tr>
                             </thead>
                             <tbody>
@@ -33,19 +33,17 @@
                                 @foreach (siva.api.Models.InformativoFiscalViewModel row in Model)
                                 {
                                     <tr>
+                                        <td class="col-lg-1">
+                                            <div class="btn-group">
+                                                <a href="@Url.Action("Emitir", new { Ie = row.Referencia.NU_INSCRICAO_ESTADUAL, Referencia = row.Referencia.NU_REFERENCIA })" class="btn btn-success btn-sm"><span class="glyphicon glyphicon glyphicon-file" aria-hidden="true"></span> Detalhar Informativo</a>
+                                            </div>
+                                        </td>
                                         <td>@row.Referencia.NU_REFERENCIA</td>
                                         <td>@row.Referencia.DT_ENVIO.ToString("dd/MM/yyyy")</td>
                                         <td>@row.Referencia.NU_INSCRICAO_ESTADUAL</td>
                                         <td>@row.Referencia.NU_CNPJ_CPF</td>
                                         <td>@row.Referencia.NM_FANTASIA</td>
-                                        <td>@row.Referencia.NM_RAZAO_SOCIAL</td>
-                                        <td class="col-lg-1">
-
-                                            <div class="btn-group">
-                                                <a href="@Url.Action("Emitir", new { Ie = row.Referencia.NU_INSCRICAO_ESTADUAL, Referencia = row.Referencia.NU_REFERENCIA })" class="btn btn-success btn-sm"><span class="glyphicon glyphicon glyphicon-file" aria-hidden="true"></span> Detalhar Informativo</a>
-                                            </div>
-                                 
-                                        </td>
+                                        <td>@row.Referencia.NM_RAZAO_SOCIAL</td>                                        
                                     </tr>
                                 }
 
@@ -90,8 +88,10 @@
                     $("#datatable-buttons").DataTable({
                         dom: "Bfrtip",
                         buttons: [],
-                        responsive: false
+                        responsive: true
                     });
+
+                    $("#datatable-buttons").css('width', '');
                 }
             };
             TableManageButtons = function () {
@@ -102,33 +102,7 @@
                     }
                 };
             }();
-            $('#datatable').dataTable();
-            $('#datatable-keytable').DataTable({
-                keys: true
-            });
-            $('#datatable-responsive').DataTable();
-            $('#datatable-scroller').DataTable({
-                ajax: "js/datatables/json/scroller-demo.json",
-                deferRender: true,
-                scrollY: 380,
-                scrollCollapse: true,
-                scroller: true
-            });
-            $('#datatable-fixed-header').DataTable({
-                fixedHeader: true
-            });
-            var $datatable = $('#datatable-checkbox');
-            $datatable.dataTable({
-                'order': [[1, 'asc']],
-                'columnDefs': [
-                { orderable: false, targets: [0] }
-                ]
-            });
-            $datatable.on('draw.dt', function () {
-                $('input').iCheck({
-                    checkboxClass: 'icheckbox_flat-green'
-                });
-            });
+           
             TableManageButtons.init();
         });
 

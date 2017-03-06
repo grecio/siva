@@ -20,7 +20,23 @@ namespace DAL
             }
         }
 
-           
+        public IEnumerable<Municipio> RetornaMunicipio(Usuario usuario)
+        {
+            using (OracleConnection cnn = new OracleConnection(Properties.Settings.Default.ConnectionString))
+            {
+
+                var sql = new StringBuilder();
+
+                sql.AppendLine("select m.CD_MUNICIPIO_RFB, m.NM_MUNICIPIO_RFB from ADM_OBJETOS.CAD_MUNICIPIO_RFB m where m.SG_UF_MUNICIPIO1 = 'RN' AND ");
+                sql.AppendLine("m.CD_MUNICIPIO_RFB IN( ");
+                sql.AppendLine("select p.CD_MUNICIPIO from ADM_OBJETOS.SIG_PREFEITURA p ");
+                sql.AppendLine("inner join ADM_OBJETOS.SIG_USUARIO_PREFEITURA up on up.SQ_PREFEITURA = p.SQ_PREFEITURA WHERE up.SQ_USUARIO = {0})");
+
+                return cnn.Query<Municipio>(string.Format(sql.ToString(), usuario.SQ_USUARIO));
+            }
+        }
+
+
         #region IDisposable Support
         private bool disposedValue = false; // To detect redundant calls
 

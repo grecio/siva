@@ -55,7 +55,11 @@ namespace siva.api.Controllers
         {
             try
             {
-                var municipioList = bpMunicipio.RetornaMunicipio().ToList();
+
+                if (UsuarioLogado == null)
+                    throw new Exception("Usuário não autenticado!");
+
+                var municipioList = bpMunicipio.RetornaMunicipio(UsuarioLogado).ToList();
 
                 var lista = new ArrayList();
 

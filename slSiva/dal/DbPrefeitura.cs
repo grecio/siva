@@ -92,7 +92,7 @@ namespace DAL
                                                 NM_USUARIO_ALTERACAO = USER,
                                                 NU_HABITANTES = :NU_HABITANTES,
                                                 QT_EXTENSAO_TERRITORIAL = :QT_EXTENSAO_TERRITORIAL,
-                                                CD_MUNICIPIO = :CD_MUNICIPIO", prefeitura);
+                                                CD_MUNICIPIO = :CD_MUNICIPIO WHERE SQ_PREFEITURA = :SQ_PREFEITURA", prefeitura);
             }
 
         }

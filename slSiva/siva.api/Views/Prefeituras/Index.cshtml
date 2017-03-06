@@ -19,9 +19,9 @@
                         <table id="datatable-buttons" class="table table-striped table-bordered">
                             <thead>
                                 <tr>
+                                    <th class="col-lg-1 text-center">#</th>
                                     <th>Prefeitura</th>
-                                    <th>Prefeito</th>
-                                    <th class="col-lg-2">#</th>
+                                    <th>Prefeito</th>                                    
                                 </tr>
                             </thead>
                             <tbody>
@@ -29,27 +29,24 @@
                                 @foreach (Dominio.Prefeitura row in Model.ToList())
                                 {
                                     <tr>
-                                        <td>@row.NM_PREFEITURA</td>
-                                        <td>@row.NM_PREFEITO</td>
-                                        <td class="col-lg-2">
-                                            <div class="btn-group">
-
-                                                <a href="@Url.Action("Selecionar", new { Id = row.SQ_PREFEITURA })" class="btn btn-success btn-sm" data-key="@row.SQ_PREFEITURA"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>&nbsp;Exibir</a>
-                                            </div>    
-
-                                            <div class="btn-group">
-                                                <a href="@Url.Action("Editar", new { Id = row.SQ_PREFEITURA })" class="btn btn-primary btn-sm"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span>&nbsp;Editar</a>
+                                        <td class="col-lg-1 text-center">
+                                            <div class="dropdown">
+                                                <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                                    Opções
+                                                    <span class="caret"></span>
+                                                </button>
+                                                <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                                                    <li><a href="@Url.Action("Selecionar", new { Id = row.SQ_PREFEITURA })" class="btn btn-group-lg" data-key="@row.SQ_PREFEITURA"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>&nbsp;Exibir</a></li>
+                                                    <li><a href="@Url.Action("Editar", new { Id = row.SQ_PREFEITURA })" class="btn btn-group-lg"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span>&nbsp;Editar</a></li>
+                                                    <li role="separator" class="divider"></li>
+                                                    <li><a href="#" onclick="javascript: if(confirm('deseja realmente excluir?')) document.location.href = '@Url.Action("Excluir", new { Id = row.SQ_PREFEITURA })' " class="btn btn-group-lg" data-key="@row.SQ_PREFEITURA"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span>&nbsp;Excluir</a></li>
+                                                </ul>
                                             </div>
-                                                
-                                            <div class="btn-group">
-                                                <a href="#" onclick="javascript: if(confirm('deseja realmente excluir?')) document.location.href = '@Url.Action("Excluir", new { Id = row.SQ_PREFEITURA })' " class="btn btn-danger btn-sm" data-key="@row.SQ_PREFEITURA"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span>&nbsp;Excluir</a>
-                                            </div>
-                                            
                                         </td>
+                                        <td>@row.NM_PREFEITURA</td>
+                                        <td>@row.NM_PREFEITO</td>                                       
                                     </tr>
                                 }
-
-
                             </tbody>
                         </table>
                     </div>
@@ -108,8 +105,11 @@
                 if ($("#datatable-buttons").length) {
                     $("#datatable-buttons").DataTable({
                         dom: "Bfrtip",
-                        buttons: []
+                        buttons: [],
+                        responsive : true
                     });
+
+                    $("#datatable-buttons").css('width', '');
                 }
             };
             TableManageButtons = function () {
@@ -120,33 +120,7 @@
                     }
                 };
             }();
-            $('#datatable').dataTable();
-            $('#datatable-keytable').DataTable({
-                keys: true
-            });
-            $('#datatable-responsive').DataTable();
-            $('#datatable-scroller').DataTable({
-                ajax: "js/datatables/json/scroller-demo.json",
-                deferRender: true,
-                scrollY: 380,
-                scrollCollapse: true,
-                scroller: true
-            });
-            $('#datatable-fixed-header').DataTable({
-                fixedHeader: true
-            });
-            var $datatable = $('#datatable-checkbox');
-            $datatable.dataTable({
-                'order': [[1, 'asc']],
-                'columnDefs': [
-                { orderable: false, targets: [0] }
-                ]
-            });
-            $datatable.on('draw.dt', function () {
-                $('input').iCheck({
-                    checkboxClass: 'icheckbox_flat-green'
-                });
-            });
+           
             TableManageButtons.init();
         });
 

@@ -65,9 +65,12 @@ namespace DAL
                         dbConnection.Execute(@"DELETE FROM SIG_USUARIO_PREFEITURA WHERE SQ_USUARIO = :SQ_USUARIO", new { SQ_USUARIO = usuarioPrefeitura.Usuario.SQ_USUARIO }, trn);
 
 
-                        foreach (var prefeitura in usuarioPrefeitura.PrefeituraList)
+                        if (usuarioPrefeitura.PrefeituraList != null)
                         {
-                            dbConnection.Execute(@"INSERT INTO SIG_USUARIO_PREFEITURA (SQ_USUARIO, SQ_PREFEITURA) VALUES (:SQ_USUARIO, :SQ_PREFEITURA)", new { usuarioPrefeitura.Usuario.SQ_USUARIO, prefeitura.SQ_PREFEITURA }, trn);
+                            foreach (var prefeitura in usuarioPrefeitura.PrefeituraList)
+                            {
+                                dbConnection.Execute(@"INSERT INTO SIG_USUARIO_PREFEITURA (SQ_USUARIO, SQ_PREFEITURA) VALUES (:SQ_USUARIO, :SQ_PREFEITURA)", new { usuarioPrefeitura.Usuario.SQ_USUARIO, prefeitura.SQ_PREFEITURA }, trn);
+                            }
                         }
 
                         trn.Commit();

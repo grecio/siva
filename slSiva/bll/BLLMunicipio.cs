@@ -16,5 +16,13 @@ namespace BLL
                 return dao.RetornaMunicipio();
             }
         }
+
+        public IEnumerable<Municipio> RetornaMunicipio(Usuario usuario)
+        {
+            using (var dao = new DAL.DbMunicipio())
+            {
+                return dao.RetornaMunicipio(usuario);
+            }
+        }
     }
 }

@@ -25,7 +25,6 @@ namespace siva.api.Controllers
             return View();
         }
 
-
         [SessionExpire]
         public ActionResult Consultar(long? codigoMunicipio, string cnpj, int anoInicial, int AnoFinal)
         {
@@ -53,7 +52,11 @@ namespace siva.api.Controllers
         {
             try
             {
-                var municipioList = bpMunicipio.RetornaMunicipio().ToList();
+
+                if (UsuarioLogado == null)
+                    throw new Exception("Usuário não está autenticado.");
+
+                var municipioList = bpMunicipio.RetornaMunicipio(UsuarioLogado).ToList();
 
                 var lista = new ArrayList();
 

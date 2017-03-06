@@ -98,9 +98,12 @@ namespace siva.api.Controllers
                 usuarioPrefeitura.Usuario = usuarioPrefeituraViewModel.Usuario;
                 usuarioPrefeitura.PrefeituraList = new List<Prefeitura>();
 
-                foreach (var sqPrefeitura in usuarioPrefeituraViewModel.UsuarioPrefeituraList)
+                if (usuarioPrefeituraViewModel.UsuarioPrefeituraList != null)
                 {
-                    usuarioPrefeitura.PrefeituraList.Add(new Prefeitura() { SQ_PREFEITURA = sqPrefeitura });
+                    foreach (var sqPrefeitura in usuarioPrefeituraViewModel.UsuarioPrefeituraList)
+                    {
+                        usuarioPrefeitura.PrefeituraList.Add(new Prefeitura() { SQ_PREFEITURA = sqPrefeitura });
+                    }
                 }
 
                 bpUsuario.VincularPrefeituras(usuarioPrefeitura);
@@ -110,7 +113,9 @@ namespace siva.api.Controllers
             }
             catch (Exception ex)
             {
-                throw;
+                ShowMsg(ex.Message);
+
+                return null;
             }
         }
 
