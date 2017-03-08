@@ -16,3 +16,5 @@ C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.test\bin\Debug\Dominio.dll
 C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.test\bin\Debug\Dominio.pdb
 C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.test\bin\Debug\Framework.dll
 C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.test\bin\Debug\Framework.pdb
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.test\bin\Debug\Newtonsoft.Json.dll
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\siva.test\bin\Debug\Newtonsoft.Json.xml

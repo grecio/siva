@@ -8,6 +8,7 @@ namespace Dominio
 {
     public class ResumoFinanceiroPorTipo
     {
+        public string NM_RAZAO_SOCIAL { get; set; }
         public string NU_CNPJ_FILIAL { get; set; }
         public int NU_REFERENCIA { get; set; }
         public decimal? GIM { get; set; }

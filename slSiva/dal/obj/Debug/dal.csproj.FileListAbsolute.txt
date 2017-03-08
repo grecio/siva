@@ -11,3 +11,5 @@ C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\dal\bin\Debug\Dapper.xml
 C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\dal\obj\Debug\DAL.csprojResolveAssemblyReference.cache
 C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\dal\obj\Debug\DAL.dll
 C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\dal\obj\Debug\DAL.pdb
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\dal\bin\Debug\Newtonsoft.Json.dll
+C:\inetpub\wwwroot\projetos_git\siva\siva\slSiva\dal\bin\Debug\Newtonsoft.Json.xml

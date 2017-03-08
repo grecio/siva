@@ -37,9 +37,8 @@
     <div class="container body">
         <div class="main_container">
             <div class="col-md-3 left_col">
-                <div class="left_col scroll-view">                    
-                    <div class="clearfix"></div><br>
-                    <div class="profile">
+                <div class="left_col scroll-view">
+                    <div class="profile clearfix">
                         <div class="profile_pic">
                             <img src="~/Content/images/user.png" alt="..." class="img-circle profile_img">
                         </div>
@@ -48,10 +47,12 @@
                             <h2>@Html.Raw(usuarioLogado.LOGIN)</h2>
                         </div>
                     </div>
+
                     <div class="clearfix"></div><br>
                     <!-- sidebar menu-->
                     <div id="sidebar-menu" class="main_menu_side hidden-print main_menu">
                         <div class="menu_section">
+                            <h3>MENU DO SISTEMA</h3>
                             <ul class="nav side-menu">
                                 <li>
                                     <a href="@Url.Action("Index", "Principal")"><i class="fa fa-home"></i> Início</a>
@@ -72,7 +73,7 @@
                                                 <li><a href="@Url.Action("Index", "TomadorRecebedorCte")">Tomador Recebedor</a></li>
                                             </ul>
                                         </li>
-                                        <li><a href="#">DAS</a></li>                                        
+                                        <li><a href="#">DAS</a></li>
                                     </ul>
                                 </li>
                                 <li>
@@ -90,7 +91,7 @@
                                         <li><a href="@Url.Action("Index", "ReceitaPorTipo")">Receita Por Tipo</a></li>
                                     </ul>
                                 </li>
-                                
+
                                 <li>
                                     <a><i class="fa fa-cogs"></i> Cruzamentos <span class="fa fa-chevron-down"></span></a>
                                     <ul class="nav child_menu">

@@ -5,7 +5,7 @@
     <div class="col-md-12 col-sm-12 col-xs-12">
         <div class="page-title">
             <div class="title_left">
-                <h3>Receita Por Tipo</h3>
+                <h3>Receita Por Tipo</h3><small>Clique no registro para acessar o gráfico</small>
             </div>
         </div>
         <div class="x_panel">
@@ -15,43 +15,61 @@
             </div>
             <div class="x_content">
                 <div class="col-md-12 col-sm-12 col-xs-12">
-                    <table id="datatable-buttons" class="table table-responsive table-bordered">
+                    <table id="datatable-buttons" class="table table-responsive table-bordered table-hover">
                         <thead>
                             <tr>
                                 <th>CNPJ/CPF</th>
+                                <th>Razão Social</th>
                                 <th>Ref.</th>
                                 <th>GIM</th>
                                 <th>CTE</th>
                                 <th>DAS</th>
-                                <th>DASNSIMEI</th>
-                                <th></th>
+                                <th>DASNSIMEI</th>                                
                             </tr>
                         </thead>
                         <tbody>
 
                             @foreach (var item in Model.ResumoList)
                             {
-                                <tr data-cnpj="@item.NU_CNPJ_FILIAL" data-ref="@item.NU_REFERENCIA" data-gim="@item.GIM" data-cte="@item.CTE" data-das="@item.DAS" data-dasnsimei="@item.DASNSIMEI">
+                                <tr class="cmdGrafico" style="cursor:pointer;" title="ver Gráfico" data-cnpj="@item.NU_CNPJ_FILIAL" data-razaosocial="@item.NM_RAZAO_SOCIAL" data-ref="@item.NU_REFERENCIA" data-gim="@item.GIM" data-cte="@item.CTE" data-das="@item.DAS" data-dasnsimei="@item.DASNSIMEI">                                    
                                     <td>@item.NU_CNPJ_FILIAL</td>
+                                    <td>@item.NM_RAZAO_SOCIAL</td>
                                     <td>@item.NU_REFERENCIA</td>
                                     <td>@item.GIM</td>
                                     <td>@item.CTE</td>
                                     <td>@item.DAS</td>
-                                    <td>@item.DASNSIMEI</td>
-                                    <td>
-                                        <a href="#" class="cmdGrafico"><span class="fa fa-line-chart" title="ver gráfico"></span></a>
-                                    </td>
+                                    <td>@item.DASNSIMEI</td>                                    
                                 </tr>
                             }
                         </tbody>
                     </table>
-                </div>
-                <div class="col-md-12 col-sm-12 col-xs-12">
-                    <canvas id="mybarChart"></canvas>
-                </div>
-                
+                </div>                               
                 <div class="col-xs-6">
                     <a href="@Url.Action("Index")" class="btn btn-danger">Cancelar</a>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">
+                            <span aria-hidden="true">×</span>
+                        </button>
+                        <h4 class="modal-title" id="myModalLabel">Gráfico</h4>
+                    </div>
+                    <div class="modal-body">
+                        <h4>Receita Por Tipo</h4>
+                        <p>CNPJ: <span id="modal_cnpj"></span></p>
+                        <p>Razão Social: <span id="modal_razaosocial"></span></p>
+                        <p>Referência: <span id="modal_ref"></span></p>
+                        <br />
+                        <canvas id="mybarChart"></canvas>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -80,33 +98,53 @@
     <script src="~/Content/vendors/pdfmake/build/pdfmake.min.js"></script>
     <script src="~/Content/vendors/pdfmake/build/vfs_fonts.js"></script>
     <script>
+
+        var chatInstance = {};
+
         $(document).ready(function () {
 
             $(".cmdGrafico").on('click', function () {
 
-                var self = $(this).closest('tr').data();
-
+                var self = $(this);
+                
                 var tipos = ['GIM', 'CTE', 'DAS', 'DASNSIMEI'];
                 var valores = [];
 
-                valores.push(self.gim == '' ? 0 : parseFloat(self.gim.replace(',', '.')));
-                valores.push(self.cte == '' ? 0 : parseFloat(self.cte.replace(',', '.')));
-                valores.push(self.das == '' ? 0 : parseFloat(self.das.replace(',', '.')));
-                valores.push(self.dasnsimei == '' ? 0 : self.dasnsimei);
+                valores.push(self.data('gim') == '' ? 0 : parseFloat(self.data('gim').replace(',', '.')));
+                valores.push(self.data('cte') == '' ? 0 : parseFloat(self.data('cte').replace(',', '.')));
+                valores.push(self.data('das') == '' ? 0 : parseFloat(self.data('das').replace(',', '.')));
+                valores.push(self.data('dasnsimei') == '' ? 0 : self.data('dasnsimei'));
+                
+                chatInstance =  buildChart(tipos, valores);
+                
+                $("#modal_cnpj").text(self.data('cnpj'));
+                $("#modal_razaosocial").text(self.data('razaosocial'));
+                $("#modal_ref").text(self.data('ref'));
+                
+                $('.modal')
+                    .modal('show')
+                        .on('hidden.bs.modal', function () {
 
-                var ctx = $("#mybarChart");
+                            chatInstance.destroy();
 
-                var mybarChart = new Chart(ctx, {
+                        });
+
+            });
+
+
+            var buildChart = function (label, table) {
+
+                return new Chart($("#mybarChart"), {
+
                     type: 'bar',
                     data: {
-                        labels: tipos,
+                        labels: label,
                         datasets: [{
                             label: 'Resumo',
                             backgroundColor: "#03586A",
-                            data: valores
+                            data: table
                         }]
                     },
-
                     options: {
                         scales: {
                             yAxes: [{
@@ -116,9 +154,9 @@
                             }]
                         }
                     }
-                });
-            });
 
+                });
+            };
 
             var handleDataTableButtons = function () {
                 if ($("#datatable-buttons").length) {

@@ -30,7 +30,7 @@ namespace DAL
                 var resumoFinanceiroList =  cnn.Query("ADM_OBJETOS.VADPKG_CALCULA_VLR_ADICIONADO.SP_CONSULTA_RECEITA_PERIODO", param: parameters, commandType: CommandType.StoredProcedure)
                      .Select(x =>
                      {
-                         var result = new ResumoFinanceiro { NU_CNPJ_FILIAL = x.NU_CNPJ_FILIAL, TP_RECEITA = x.TP_RECEITA };
+                         var result = new ResumoFinanceiro { NM_RAZAO_SOCIAL = x.NM_RAZAO_SOCIAL, NU_CNPJ_FILIAL = x.NU_CNPJ_FILIAL, TP_RECEITA = x.TP_RECEITA };
 
                          int i = 0;
 

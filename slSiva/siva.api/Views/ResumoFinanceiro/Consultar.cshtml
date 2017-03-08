@@ -4,28 +4,28 @@
     <div class="col-md-12 col-sm-12 col-xs-12">
         <div class="page-title">
             <div class="title_left">
-                <h3>Receita Por Período</h3>
+                <h3>Receita Por Período</h3><small>Clique no registro para acessar o gráfico</small>
             </div>
         </div>
     </div>
     <div class="x_panel">
         <div class="x_title">
-            <h2>Listagem</h2>
+            <h2>Listagem </h2>                        
             <div class="clearfix"></div>
         </div>
         <div class="x_content">
             <div class="col-md-12 col-sm-12 col-xs-12">
-                <table id="datatable-buttons" class="table table-striped table-bordered">
+                <table id="datatable-buttons" class="table table-striped table-bordered table-hover">
                     <thead>
                         <tr>
                             <th>CNPJ/CPF</th>
+                            <th>RAZÃO SOCIAL</th>
                             <th>Tipo Receita</th>
 
                             @foreach (var item in Model.ResumoList[0].ANOS_RECEITA)
                             {
                                 <th>@Html.Raw(item.Key)</th>
                             }
-                            <th></th>
                         </tr>
 
                     </thead>
@@ -33,8 +33,9 @@
 
                         @foreach (var item in Model.ResumoList)
                         {
-                            <tr>
+                            <tr class="cmdGrafico" style="cursor:pointer;" title="ver Gráfico" data-tipo="@item.TP_RECEITA" data-cnpj="@item.NU_CNPJ_FILIAL" data-razaosocial="@item.NM_RAZAO_SOCIAL" data-table="@item.Data">
                                 <td>@item.NU_CNPJ_FILIAL</td>
+                                <td>@item.NM_RAZAO_SOCIAL</td>
                                 <td>@item.TP_RECEITA</td>
 
                                 @foreach (var ano in item.ANOS_RECEITA)
@@ -48,24 +49,46 @@
                                         <td>@Html.Raw(ano.Value)</td>
                                     }
                                 }
-                                <td>
-                                    <a href="#" class="cmdGrafico"><span class="fa fa-line-chart" title="ver gráfico"></span></a>
-                                </td>
                             </tr>
                         }
                     </tbody>
                 </table>
             </div>
-            <div class="col-md-12 col-sm-12 col-xs-12">
-                <canvas id="mybarChart"></canvas>
-            </div>
 
             <div class="col-xs-6">
                 <a href="@Url.Action("Index")" class="btn btn-danger">Cancelar</a>
             </div>
-        </div>      
+        </div>
+        <div class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">
+                            <span aria-hidden="true">×</span>
+                        </button>
+                        <h4 class="modal-title" id="myModalLabel">Gráfico</h4>
+                    </div>
+                    <div class="modal-body">
+                        <h4>Receita Por Período</h4>
+                        <p>CNPJ: <span id="modal_cnpj"></span></p>
+                        <p>Razão Social: <span id="modal_razaosocial"></span></p>
+                        <p>Tipo Receita: <span id="modal_tipo"></span></p>
+                        <br />
+                        <canvas id="mybarChart"></canvas>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
+
+
+
 
 @section scripts {
 
@@ -89,92 +112,97 @@
     <script src="~/Content/vendors/pdfmake/build/pdfmake.min.js"></script>
     <script src="~/Content/vendors/pdfmake/build/vfs_fonts.js"></script>
     <script>
+
+
+        var chatInstance = {};
+
         $(document).ready(function () {
 
             $(".cmdGrafico").on('click', function () {
 
-                var _data =
-                    {
-                        codigomunicipio : '@Model.CodigoMunicipio', 
-                        cnpj: $(this).closest('tr').find('td:first').html(),
-                        anoinicial : '@Model.AnoInicial',
-                        anofinal : '@Model.AnoFinal'
-                    };
 
-                $.ajax({
-                    url: '@Url.Action("GerarGrafico")',
-                    type: 'get',
-                    data: _data
-                }).done(function (data) {
+                var self = $(this);
 
-                    var ctx = $("#mybarChart");
+                var buildArray = function (prop) {
 
-                    var anos = [];
-                    var valores = [];
+                    var arr = [];
 
-                    for (i in data.grafico.ANOS_RECEITA)
-                    {
-                        anos.push(data.grafico.ANOS_RECEITA[i].Key);
-                    }
-                                        
-                    for (i in data.grafico.ANOS_RECEITA)
-                    {
-                        if (data.grafico.ANOS_RECEITA[i].Value == 'undefined' || data.grafico.ANOS_RECEITA[i].Value == null) {
-                            data.grafico.ANOS_RECEITA[i].Value = 0;
-                        }
-                        
-                        valores.push(data.grafico.ANOS_RECEITA[i].Value);
-                    }
-
-                    var mybarChart = new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            labels: anos,
-                            datasets: [{
-                                label: 'Resumo',
-                                backgroundColor: "#03586A",
-                                data: valores
-                            }]
-                        },
-
-                        options: {
-                            scales: {
-                                yAxes: [{
-                                    ticks: {
-                                        beginAtZero: true
-                                    }
-                                }]
-                            }
-                        }
+                    $.each(self.data('table'), function (i, o) {
+                        arr.push(o[prop]);
                     });
-                    
-                }).fail(function (err) {
-                    console.log(err);
-                });
+
+                    return arr;
+                };
+
+                chatInstance =  buildChart(buildArray('ano'), buildArray('Value'));
+
+                $("#modal_cnpj").text(self.data('cnpj'));
+                $("#modal_razaosocial").text(self.data('razaosocial'));
+                $("#modal_tipo").text(self.data('tipo'));
+
+                
+                $('.modal')
+                    .modal('show')
+                        .on('hidden.bs.modal', function () {
+
+                            chatInstance.destroy();
+
+                        });
+
             });
-          
-            var handleDataTableButtons = function () {
-                if ($("#datatable-buttons").length) {
-                    $("#datatable-buttons").DataTable({
-                        dom: "Bfrtip",
-                        buttons: [],
-                        responsive: true
-                    });
 
-                    $("#datatable-buttons").css('width', '');
+            var buildChart = function (label, table) {
+
+                return new Chart($("#mybarChart"), {
+
+                    type : 'bar',
+                    data : {
+                        labels: label,
+                        datasets: [{
+                            label: 'Resumo',
+                            backgroundColor: "#03586A",
+                            data: table
+                        }]
+                    },
+                    options : {
+                        scales: {
+                            yAxes: [{
+                                ticks: {
+                                    beginAtZero: true
+                                }
+                            }]
+                        }
+                    }
+
+            });
+        };
+
+        var destroyChart = function (c) {
+            c.destroy();
+        };
+
+        var handleDataTableButtons = function () {
+            if ($("#datatable-buttons").length) {
+                $("#datatable-buttons").DataTable({
+                    dom: "Bfrtip",
+                    buttons: [],
+                    responsive: true
+                });
+
+                $("#datatable-buttons").css('width', '');
+            }
+        };
+
+        TableManageButtons = function () {
+            "use strict";
+            return {
+                init: function () {
+                    handleDataTableButtons();
                 }
             };
+        }();
 
-            TableManageButtons = function () {
-                "use strict";
-                return {
-                    init: function () {
-                        handleDataTableButtons();
-                    }
-                };
-            }();
-           
-            TableManageButtons.init();
+        TableManageButtons.init();
         });
 
         @Html.Raw(TempData["msg"])
