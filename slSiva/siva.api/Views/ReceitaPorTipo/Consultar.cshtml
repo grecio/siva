@@ -31,7 +31,7 @@
 
                             @foreach (var item in Model.ResumoList)
                             {
-                                <tr class="cmdGrafico" style="cursor:pointer;" title="ver Gráfico" data-cnpj="@item.NU_CNPJ_FILIAL" data-razaosocial="@item.NM_RAZAO_SOCIAL" data-ref="@item.NU_REFERENCIA" data-gim="@item.GIM" data-cte="@item.CTE" data-das="@item.DAS" data-dasnsimei="@item.DASNSIMEI">                                    
+                                <tr class="cmdGrafico" style="cursor:pointer;" title="ver Gráfico" data-table="@item.Data">                                    
                                     <td>@item.NU_CNPJ_FILIAL</td>
                                     <td>@item.NM_RAZAO_SOCIAL</td>
                                     <td>@item.NU_REFERENCIA</td>
@@ -105,21 +105,21 @@
 
             $(".cmdGrafico").on('click', function () {
 
-                var self = $(this);
+                var self = $(this).data('table');
                 
                 var tipos = ['GIM', 'CTE', 'DAS', 'DASNSIMEI'];
                 var valores = [];
 
-                valores.push(self.data('gim') == '' ? 0 : parseFloat(self.data('gim').replace(',', '.')));
-                valores.push(self.data('cte') == '' ? 0 : parseFloat(self.data('cte').replace(',', '.')));
-                valores.push(self.data('das') == '' ? 0 : parseFloat(self.data('das').replace(',', '.')));
-                valores.push(self.data('dasnsimei') == '' ? 0 : self.data('dasnsimei'));
+                valores.push(self.GIM == '' ? 0 : self.GIM);
+                valores.push(self.CTE == '' ? 0 : self.CTE);
+                valores.push(self.DAS == '' ? 0 : self.DAS);
+                valores.push(self.DASNSIMEI == '' ? 0 : self.DASNSIMEI);
                 
                 chatInstance =  buildChart(tipos, valores);
                 
-                $("#modal_cnpj").text(self.data('cnpj'));
-                $("#modal_razaosocial").text(self.data('razaosocial'));
-                $("#modal_ref").text(self.data('ref'));
+                $("#modal_cnpj").text(self.NU_CNPJ_FILIAL);
+                $("#modal_razaosocial").text(self.NM_RAZAO_SOCIAL);
+                $("#modal_ref").text(self.NU_REFERENCIA);
                 
                 $('.modal')
                     .modal('show')

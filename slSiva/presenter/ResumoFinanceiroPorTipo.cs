@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,5 +16,21 @@ namespace Dominio
         public decimal? CTE { get; set; }
         public decimal? DAS { get; set; }
         public decimal? DASNSIMEI { get; set; }
+
+        public string Data
+        {
+            get
+            {
+                return JsonConvert.SerializeObject(new {
+                    NM_RAZAO_SOCIAL = NM_RAZAO_SOCIAL,
+                    NU_CNPJ_FILIAL = NU_CNPJ_FILIAL,
+                    NU_REFERENCIA = NU_REFERENCIA,
+                    GIM = GIM.HasValue ? GIM : 0,
+                    CTE = CTE.HasValue ? CTE : 0,
+                    DAS = DAS.HasValue ? DAS : 0,
+                    DASNSIMEI = DASNSIMEI.HasValue ? DASNSIMEI : 0,
+                });                    
+            }
+        }
     }
 }
