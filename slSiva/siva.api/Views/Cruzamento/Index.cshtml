@@ -21,10 +21,10 @@
                         <form class="form-horizontal form-label-left" method="post" action="@Url.Action("Executar")" novalidate>
 
                             <div class="item form-group">
-                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="municipio">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-3" for="municipio">
                                     Município: <span class="required">*</span>
                                 </label>
-                                <div class="col-md-3 col-sm-3 col-xs-12">
+                                <div class="col-md-6 col-sm-6 col-xs-6">
                                     <select class="select2_municipio form-control" tabindex="-1" name="CD_MUNICIPIO" id="CD_MUNICIPIO" required="required">
                                         <option value=""></option>
                                     </select>
@@ -35,13 +35,13 @@
                                 <label class="control-label col-md-3 col-sm-3 col-xs-12" for="municipio">
                                     Tipo de Cruzamento: <span class="required">*</span>
                                 </label>
-                                <div class="col-md-3 col-sm-3 col-xs-12">
+                                <div class="col-md-6 col-sm-6 col-xs-6">
                                     <select class="select2_single form-control" tabindex="-1" name="CD_CRUZAMENTO" id="CD_CRUZAMENTO" required="required">
                                         <option value=""></option>
                                     </select>
                                 </div>
                             </div>
-                                                       
+
                             <div class="item form-group">
                                 <label class="control-label col-md-3 col-sm-3 col-xs-12">
                                     Período <span class="required">*</span>
@@ -95,8 +95,7 @@
                     submit = false;
                 }
 
-                if (submit)
-                {
+                if (submit) {
                     this.submit();
                 }
 
@@ -145,10 +144,25 @@
                 alert('Não foi possível recuperar os tipos de cruzamento.');
             });
 
+
+            @if (TempData["confirm"] != null)
+       {
+           <text>
+
+            if (@Html.Raw(TempData["confirm"]))
+            {
+                window.location.href = '@Url.Action("Detalhar", new { numeroProcesso = TempData["processamento"] })';
+        }
+
+           </text>
+       }
+
+           @Html.Raw(TempData["msg"])
+
+
         });
 
 
-        @Html.Raw(TempData["msg"])
 
     </script>
 

@@ -13,7 +13,7 @@ namespace siva.api.Controllers
         {
             get
             {
-                
+
                 if (Session["UsuarioLogado"] != null)
                 {
                     return Session["UsuarioLogado"] as Dominio.Usuario;
@@ -28,21 +28,26 @@ namespace siva.api.Controllers
         }
 
         public bool UsuarioAutenticado
-        {        
+        {
             get
             {
                 return UsuarioLogado != null;
-            }            
+            }
         }
 
         public void ShowMsg(string mensagem)
         {
-
             mensagem = HttpUtility.JavaScriptStringEncode(mensagem);
-            
-            TempData["msg"] = string.Format("alert('{0}');", mensagem);
-        }        
 
+            TempData["msg"] = string.Format("alert('{0}');", mensagem);
+        }
+
+        public void ShowConfirm(string mensagem)
+        {
+            mensagem = HttpUtility.JavaScriptStringEncode(mensagem);
+
+            TempData["confirm"] = string.Format("confirm('{0}')", mensagem);
+        }            
     }
 
 

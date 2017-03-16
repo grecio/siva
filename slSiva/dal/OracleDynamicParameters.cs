@@ -240,8 +240,8 @@ namespace DAL
                 }
                 return default(T);
             }
+
             return (T)val;
         }        
     }
-
 }

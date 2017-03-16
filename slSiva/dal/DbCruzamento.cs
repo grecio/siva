@@ -1,6 +1,7 @@
 ﻿using Dapper;
 using Dominio;
 using Oracle.ManagedDataAccess.Client;
+using Oracle.ManagedDataAccess.Types;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -33,14 +34,15 @@ namespace DAL
         {
             using (OracleConnection cnn = new OracleConnection(Properties.Settings.Default.ConnectionString))
             {
-                return cnn.Query<CruzamentoDetalhamento>(string.Format("select * from ADM_OBJETOS.CRZ_CRUZAMENTO_DET d  WHERE d.NU_PROCESSO = {0}", numeroProcesso));
+                return cnn.Query<CruzamentoDetalhamento>(string.Format("select d.*, c.NM_RAZAO_SOCIAL  from ADM_OBJETOS.CRZ_CRUZAMENTO_DET d  inner join ADM_OBJETOS.CAD_CONTRIBUINTE_MUNICIPAL c on c.NU_CNPJ_CPF = d.NU_CNPJ_CPF WHERE d.NU_PROCESSO = {0}", numeroProcesso));
             }
         }
 
-        public void ExecutarCruzamento(decimal codigoMunicipio, int tipoCruzamento, int anoInicial, int anoFinal)
+        public decimal ExecutarCruzamento(decimal codigoMunicipio, int tipoCruzamento, int anoInicial, int anoFinal)
         {
             using (OracleConnection cnn = new OracleConnection(Properties.Settings.Default.ConnectionString))
             {
+                
 
                 var parameters = new OracleDynamicParameters();
 
@@ -49,9 +51,11 @@ namespace DAL
                 parameters.Add("pAnoInicial", anoInicial);
                 parameters.Add("pAnoFinal", anoFinal);
                 parameters.Add("pNuProcesso", null, OracleDbType.Decimal, ParameterDirection.Output);
-                parameters.Add("pErro", null, OracleDbType.Varchar2, ParameterDirection.Output, 1000);
-                
+                parameters.Add("pErro", null, OracleDbType.Varchar2, ParameterDirection.Output, 1000);                
+
                 cnn.Execute("ADM_OBJETOS.CRZPKG_GERENCIA_CRUZAMENTO.SP_PROCESSA_CRUZAMENTO", param: parameters, commandType: CommandType.StoredProcedure);
+
+                return Convert.ToDecimal(parameters.Get<OracleDecimal>("pNuProcesso").ToString());
             }           
         }
 

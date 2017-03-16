@@ -36,7 +36,7 @@ namespace BLL
             }
         }
 
-        public void ExecutarCruzamento(decimal codigoMunicipio, int tipoCruzamento, int anoInicial, int anoFinal)
+        public decimal ExecutarCruzamento(decimal codigoMunicipio, int tipoCruzamento, int anoInicial, int anoFinal)
         {
             Validador.Validar(codigoMunicipio > 0, "Informe o município.");
             Validador.Validar(tipoCruzamento > 0, "Informe o tipo de cruzamento.");
@@ -46,7 +46,7 @@ namespace BLL
 
             using (var dao = new DAL.DbCruzamento())
             {
-                dao.ExecutarCruzamento(codigoMunicipio, tipoCruzamento, anoInicial, anoFinal);
+                return dao.ExecutarCruzamento(codigoMunicipio, tipoCruzamento, anoInicial, anoFinal);
             }
         }
     }

@@ -34,6 +34,7 @@ namespace Dominio
         public DateTime DT_ATUALIZACAO { get; set; }
         public string NM_USUARIO_ATUALIZACAO { get; set; }
         public decimal CD_MUNICIPIO { get; set; }
+        public string NM_RAZAO_SOCIAL { get; set; }
 
     }
 

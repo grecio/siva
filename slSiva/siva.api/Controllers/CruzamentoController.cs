@@ -69,9 +69,11 @@ namespace siva.api.Controllers
         {
             try
             {
-                bpCruzamento.ExecutarCruzamento(CD_MUNICIPIO, CD_CRUZAMENTO, anoInicial, anoFinal);
+                var processamento = bpCruzamento.ExecutarCruzamento(CD_MUNICIPIO, CD_CRUZAMENTO, anoInicial, anoFinal);
 
-                ShowMsg("Processamento Executado com Sucesso!");
+                ShowConfirm(string.Format("O Processamento de Nº {0} Gerado Com Sucesso!\nDeseja exibir os Detalhes?", processamento));
+
+                TempData["Processamento"] = processamento;
 
                 return View("Index");
             }
