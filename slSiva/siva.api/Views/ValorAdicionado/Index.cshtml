@@ -21,12 +21,12 @@
                         <form class="form-horizontal form-label-left" method="post" action="@Url.Action("Executar")" novalidate>
 
                             <div class="item form-group">
-                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="municipio">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12">
                                     Tipo: <span class="required">*</span>
                                 </label>
                                 <div class="col-md-6 col-sm-6 col-xs-6">
-                                    <select class="select2_single form-control" tabindex="-1" name="tipo" id="tipo" required="required">
-                                        <option value=""></option>                                        
+                                    <select class="select2_single form-control" tabindex="-1" name="tipoCalculo" required="required">
+                                        <option value=""></option> 
                                     </select>
                                 </div>
                             </div>
@@ -36,31 +36,19 @@
                                     Município: <span class="required">*</span>
                                 </label>
                                 <div class="col-md-6 col-sm-6 col-xs-6">
-                                    <select class="select2_municipio form-control" tabindex="-1" name="CD_MUNICIPIO" id="CD_MUNICIPIO" required="required">
+                                    <select class="select2_municipio form-control" tabindex="-1" name="CD_MUNICIPIO" required="required">
                                         <option value=""></option>
                                     </select>
-                                </div>
-                            </div>
-
-                            <div class="item form-group">
-                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="cnpj">
-                                    CNPJ:
-                                </label>
-                                <div class="col-md-6 col-sm-6 col-xs-6">
-                                    <input id="cnpj" class="form-control col-md-7 col-xs-12" name="Cnpj" type="text" data-mask="cnpj">
                                 </div>
                             </div>
                             
                             <div class="item form-group">
                                 <label class="control-label col-md-3 col-sm-3 col-xs-12">
-                                    Período <span class="required">*</span>
+                                    Ano: <span class="required">*</span>
                                 </label>
                                 <div class="col-md-1">
-                                    <input id="data_inicial" class="form-control" name="anoInicial" placeholder="AAAA" required="required" type="text" data-mask="year">
-                                </div>
-                                <div class="col-md-1">
-                                    <input id="data_final" class="form-control" name="anoFinal" placeholder="AAAA" required="required" type="text" data-mask="year">
-                                </div>
+                                    <input class="form-control" name="anoBase" placeholder="AAAA" required="required" type="text" data-mask="year">
+                                </div>                                
                             </div>
 
                             <div class="ln_solid"></div>

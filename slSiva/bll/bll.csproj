@@ -53,6 +53,7 @@
     <Compile Include="BLLMunicipio.cs" />
     <Compile Include="BLLPrefeitura.cs" />
     <Compile Include="BLLResumoFinanceiro.cs" />
+    <Compile Include="BLLValorAdicionado.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="BLLUsuario.cs" />
   </ItemGroup>

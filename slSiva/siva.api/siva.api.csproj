@@ -169,6 +169,7 @@
     <Compile Include="Models\ResumoFinanceiroPorTipoViewModel.cs" />
     <Compile Include="Models\ResumoFinanceiroViewModel.cs" />
     <Compile Include="Models\UsuarioPrefeituraViewModel.cs" />
+    <Compile Include="Models\ValorAdicionadoViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -3157,6 +3158,8 @@
     <Content Include="Views\Cruzamento\Consultar.cshtml" />
     <Content Include="Views\Cruzamento\Detalhar.cshtml" />
     <Content Include="Views\ValorAdicionado\Index.cshtml" />
+    <Content Include="Views\ValorAdicionado\Consultar.cshtml" />
+    <Content Include="Views\ValorAdicionado\Detalhar.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="Content\vendors\moment\moment.d.ts" />

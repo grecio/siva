@@ -71,7 +71,7 @@ namespace siva.api.Controllers
             {
                 var processamento = bpCruzamento.ExecutarCruzamento(CD_MUNICIPIO, CD_CRUZAMENTO, anoInicial, anoFinal);
 
-                ShowConfirm(string.Format("O Processamento de Nº {0} Gerado Com Sucesso!\nDeseja exibir os Detalhes?", processamento));
+                ShowConfirm(string.Format("O PROCESSO DO CRUZAMENTO DE Nº {0} GERADO COM SUCESSO!\nDESEJA EXIBIR OS DETALHES?", processamento));
 
                 TempData["Processamento"] = processamento;
 
